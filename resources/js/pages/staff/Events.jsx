@@ -329,7 +329,10 @@ function EventDetail({ event, onBack, onEdit, onDelete, onQR, token, onToggle })
                 <div className="ev-detail-card">
                     <div className="ev-detail-label">Date</div>
                     <div className="ev-detail-value">
-                        <i className="bi bi-calendar3 me-2 text-danger"></i>{event.date}
+                        <i className="bi bi-calendar3 me-2 text-danger"></i>
+                        {new Date(event.date).toLocaleDateString('en-US', {
+                            month: 'long', day: 'numeric', year: 'numeric',
+                        })}
                     </div>
                 </div>
                 <div className="ev-detail-card">
@@ -642,7 +645,7 @@ export default function Events() {
                                 </td>
                                 <td className="sm-muted">
                                     {new Date(event.date).toLocaleDateString('en-US', {
-                                        month: 'short', day: 'numeric', year: 'numeric',
+                                        month: 'long', day: 'numeric', year: 'numeric',
                                     })}
                                 </td>
                                 <td className="sm-muted sm-col-hide640">
