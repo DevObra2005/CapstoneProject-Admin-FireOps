@@ -1,0 +1,8 @@
+/* ===== GLOBAL STYLES ===== */
+/* These styles apply to the WHOLE app, every page */
+
+body {
+  background-color: #eaedf1;
+  color: #ffffff;
+  margin: 0;
+}

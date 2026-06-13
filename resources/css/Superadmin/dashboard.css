@@ -1,0 +1,68 @@
+/* ===== STAT CARDS ===== */
+.stat-card {
+  background-color: #161d27;
+  border-radius: 10px;
+  padding: 20px;
+  border-left: 4px solid;
+  height: 100%;
+}
+
+.stat-card .stat-label {
+  color: #8a9bb0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-card .stat-value {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 6px 0;
+}
+
+.stat-card .stat-trend {
+  font-size: 12px;
+}
+
+.stat-card.orange { border-color: #e67e22; }
+.stat-card.blue   { border-color: #3498db; }
+.stat-card.green  { border-color: #2ecc71; }
+.stat-card.yellow { border-color: #f1c40f; }
+
+/* ===== CHART CARD ===== */
+.chart-card {
+  background-color: #161d27;
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.chart-card .card-title {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.chart-card .card-subtitle {
+  color: #8a9bb0;
+  font-size: 12px;
+}
+
+/* ===== PROGRESS BARS ===== */
+.module-item {
+  margin-bottom: 20px;
+}
+
+.module-item .module-label {
+  display: flex;
+  justify-content: space-between;
+  color: #ffffff;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.module-item .progress {
+  height: 6px;
+  background-color: #2a3a4a;
+  border-radius: 10px;
+}

@@ -1,0 +1,146 @@
+/* ── Card / Table ─────────────────────────────────────────────────────────── */
+.sm-card {
+    background: #1e2433;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.sm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sm-table thead tr {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sm-table thead th {
+    padding: 11px 16px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #64748b;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.sm-table tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.1s;
+}
+
+.sm-table tbody tr:last-child { border-bottom: none; }
+.sm-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+.sm-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #e2e8f0;
+    vertical-align: middle;
+}
+
+.sm-num   { color: #475569; font-size: 12px; width: 36px; }
+.sm-muted { color: #64748b; }
+
+/* ── Avatar + name cell ───────────────────────────────────────────────────── */
+.sm-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sm-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    color: #f87171;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ── Action buttons ───────────────────────────────────────────────────────── */
+.sm-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sm-btn-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    background: none;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.sm-btn-edit {
+    color: #94a3b8;
+    border-color: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+}
+.sm-btn-edit:hover {
+    background: rgba(255,255,255,0.08);
+    color: #e2e8f0;
+}
+
+.sm-btn-del {
+    color: #f87171;
+    border-color: rgba(248,113,113,0.15);
+    background: rgba(248,113,113,0.05);
+}
+.sm-btn-del:hover {
+    background: rgba(248,113,113,0.12);
+    border-color: rgba(248,113,113,0.3);
+}
+.sm-btn-del:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+.sm-empty {
+    padding: 52px 24px;
+    text-align: center;
+}
+
+.sm-empty-icon {
+    font-size: 28px;
+    color: #334155;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.sm-empty-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #94a3b8;
+    margin: 0 0 6px;
+}
+
+.sm-empty-sub {
+    font-size: 12px;
+    color: #475569;
+    margin: 0;
+}
+
+/* ── Skeleton loader ──────────────────────────────────────────────────────── */
+@keyframes sm-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+/* ── Responsive: hide columns on mobile ──────────────────────────────────── */
+@media (max-width: 640px) {
+    .sm-col-hide640 { display: none; }
+}

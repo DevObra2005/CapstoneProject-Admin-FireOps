@@ -1,0 +1,67 @@
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background-color: #161d27;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  margin-top: 20px;
+  padding: 20px 30px;
+  border-bottom: 1px solid #2a3a4a;
+}
+
+.sidebar-logo .app-name {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.sidebar-logo .app-sub {
+  color: #8a9bb0;
+  font-size: 13px;
+}
+
+/* ===== NAV LINKS ===== */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #95a0ad;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+  background-color: #1e2d3d;
+  color: #ffffff;
+}
+
+.sidebar-link.active {
+  background-color: #c0392b;
+  color: #ffffff;
+}
+
+/* ===== LOGOUT BUTTON ===== */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 25px 25px;
+  color: #8a9bb0;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  color: #e74c3c;
+}
