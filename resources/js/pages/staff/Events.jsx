@@ -6,7 +6,6 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle} from 're
 import 'leaflet/dist/leaflet.css'
 import '../../../css/Staff/events.css'
 import DataTable from '../../components/DataTable';
-import '../../../css//Components/datatable.css';
 
 // Fix Leaflet marker icons broken by Vite bundler
 delete L.Icon.Default.prototype._getIconUrl
@@ -246,7 +245,7 @@ function EventDetail({ event, onBack, onEdit, onDelete, onQR, token, onToggle })
     {   key: '_index',
         label: '#',           
         width: '36px', 
-        className: 'sm-num',
+       
         render: (_, __, i) => i + 1 
     },
 
@@ -256,12 +255,11 @@ function EventDetail({ event, onBack, onEdit, onDelete, onQR, token, onToggle })
     },
 
     {   key: 'email',
-        label: 'Email',        
-        className: 'sm-muted' },
+        label: 'Email',     
+    },
 
     {   key: 'department',   
-        label: 'Department',   
-        className: 'sm-muted',
+        label: 'Department',
         hidden640: true,
         render: (value) => value || <span className="ev-dash">—</span> 
     },
@@ -609,8 +607,8 @@ export default function Events() {
             </div>
 
             {/* ── Events table ── */}
-            <div className="sm-card">
-                <table className="sm-table ev-events-table">
+            <div className="ev-card">
+                <table className="ev-table ev-events-table">
                     <thead>
                         <tr>
                             <th style={{ width: '40px' }}>#</th>

@@ -156,8 +156,8 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
-    color: #374151;
-    background: #d3d7db;
+    color: #ffffff;
+    background: #1e2433;
 }
 
 .ev-table thead tr {
@@ -185,22 +185,10 @@
     border: none;
 }
 
-.ev-table td[colspan] {
-    text-align: center;
-    padding: 56px 16px;
-    color: #9ca3af;
-}
-
-.ev-table td[colspan] i {
-    font-size: 28px;
-    display: block;
-    margin-bottom: 8px;
-}
 
 .ev-event-name {
-    display: block;
-    font-weight: 600;
-    color: #434a5a;
+    font-weight: 1000;
+    color: #fafafa;
 }
 
 .ev-event-desc {
@@ -936,44 +924,12 @@
     }
 }
 
-@media (max-width: 420px) {
-    .ev-page-title { font-size: 18px; }
-    .ev-detail-card { padding: 12px 14px; }
-    .ev-detail-value { font-size: 13px; }
-    .ev-qr-event-name { font-size: 17px; }
-    .ev-page-header > div:last-child .ev-btn {
-        flex: 1 1 100%;
-    }
-    .ev-map-wrap { height: 220px; }
-}
-/* ── Events table — dark theme overrides ── */
-.ev-events-table .ev-event-name {
-    color: #e2e8f0;
-}
-
-.ev-events-table .ev-badge-blue {
-    background: rgba(29, 78, 216, 0.15);
-    color: #93c5fd;
-}
-
-.ev-events-table .ev-badge-gray {
-    background: rgba(255, 255, 255, 0.06);
-    color: #94a3b8;
-}
-
 /* ── Events table mobile — card style ── */
 @media (max-width: 640px) {
     .ev-events-table thead {
         display: none;
     }
-
-    .ev-events-table,
-    .ev-events-table tbody {
-        display: block;
-        width: 100%;
-    }
-
-    /* Each row becomes a card */
+    
     .ev-events-table tbody tr {
         display: flex;
         flex-wrap: wrap;

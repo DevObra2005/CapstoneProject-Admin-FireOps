@@ -96,15 +96,14 @@ export default function Staff() {
             key: '_index',
             label: '#',
             width: '36px',
-            className: 'sm-num',
             render: (_, __, index) => index + 1,
         },
         {
             key: 'name',
             label: 'Name',
             render: (value) => (
-                <div className="sm-name-cell">
-                    <div className="sm-avatar">{value.charAt(0).toUpperCase()}</div>
+                <div className="dt-name-cell">
+                    <div className="dt-avatar">{value.charAt(0).toUpperCase()}</div>
                     {value}
                 </div>
             ),
@@ -112,13 +111,13 @@ export default function Staff() {
         {
             key: 'email',
             label: 'Email',
-            className: 'sm-muted',
+            className: 'dt-muted',
             hidden640: true,
         },
         {
             key: 'created_at',
             label: 'Created',
-            className: 'sm-muted',
+            className: 'dt-muted',
             hidden640: true,
             render: (value) =>
                 new Date(value).toLocaleDateString('en-US', {
@@ -129,22 +128,22 @@ export default function Staff() {
             key: '_actions',
             label: 'Actions',
             render: (_, row) => (
-                <div className="sm-actions">
+                <div className="dt-actions">
                     <button
-                        className="sm-btn-icon sm-btn-edit"
+                        className="dt-btn-icon dt-btn-edit"
                         onClick={() => openEdit(row)}
                         title="Edit"
                     >
                         <i className="bi bi-pencil"></i>
                     </button>
                     <button
-                        className="sm-btn-icon sm-btn-del"
+                        className="dt-btn-icon dt-btn-del"
                         onClick={() => handleDelete(row.id)}
                         disabled={deleting === row.id}
                         title="Delete"
                     >
                         {deleting === row.id
-                            ? <span className="sm-spin"></span>
+                            ? <span className="dt-spin"></span>
                             : <i className="bi bi-trash"></i>
                         }
                     </button>

@@ -32,14 +32,14 @@ import '../../css//Components/datatable.css'
  *
  *   { key: 'name', label: 'Name',
  *     render: (value) => (
- *       <div className="sm-name-cell">
- *         <div className="sm-avatar">{value.charAt(0).toUpperCase()}</div>
+ *       <div className="dt-name-cell">
+ *         <div className="dt-avatar">{value.charAt(0).toUpperCase()}</div>
  *         {value}
  *       </div>
  *     )},
  *
- *   { key: 'email',      label: 'Email',   className: 'sm-muted', hidden640: true },
- *   { key: 'created_at', label: 'Created', className: 'sm-muted',
+ *   { key: 'email',      label: 'Email',   className: 'dt-muted', hidden640: true },
+ *   { key: 'created_at', label: 'Created', className: 'dt-muted',
  *     render: (v) => new Date(v).toLocaleDateString('en-US',
  *       { month: 'short', day: 'numeric', year: 'numeric' }) },
  *
@@ -56,11 +56,11 @@ function SkeletonRow({ colCount }) {
         <tr>
             {Array.from({ length: colCount }).map((_, i) => (
                 <td key={i}>
-                    <div className="sm-skeleton" style={{
+                    <div className="dt-skeleton" style={{
                         height: '14px',
                         borderRadius: '6px',
                         background: 'rgba(255,255,255,0.05)',
-                        animation: 'sm-pulse 1.4s ease-in-out infinite',
+                        animation: 'dt-pulse 1.4s ease-in-out infinite',
                         width: i === 0 ? '28px' : i === colCount - 1 ? '68px' : '80%',
                     }} />
                 </td>
@@ -86,29 +86,29 @@ export default function DataTable({
             {/* Pulse keyframe injected once via a <style> tag.
                 If you already have sm-spin in staff.css, just add sm-pulse there instead. */}
             <style>{`
-                @keyframes sm-pulse {
+                @keyframes dt-pulse {
                     0%, 100% { opacity: 1 }
                     50%       { opacity: 0.4 }
                 }
             `}</style>
 
-            <div className="sm-card">
+            <div className="dt-card">
                 {isEmpty ? (
                     /* ── Empty state ── */
-                    <div className="sm-empty">
-                        <i className={`bi ${emptyIcon} sm-empty-icon`}></i>
-                        <p className="sm-empty-title">{emptyTitle}</p>
-                        <p className="sm-empty-sub">{emptySub}</p>
+                    <div className="dt-empty">
+                        <i className={`bi ${emptyIcon} dt-empty-icon`}></i>
+                        <p className="dt-empty-title">{emptyTitle}</p>
+                        <p className="dt-empty-sub">{emptySub}</p>
                     </div>
                 ) : (
-                    <table className="sm-table">
+                    <table className="dt-table">
                         <thead>
                             <tr>
                                 {columns.map((col) => (
                                     <th
                                         key={col.key}
                                         style={{ width: col.width }}
-                                        className={col.hidden640 ? 'sm-col-hide640' : undefined}
+                                        className={col.hidden640 ? 'dt-col-hide640' : undefined}
                                     >
                                         {col.label}
                                     </th>
@@ -130,7 +130,7 @@ export default function DataTable({
                                                   key={col.key}
                                                   className={[
                                                       col.className,
-                                                      col.hidden640 ? 'sm-col-hide640' : '',
+                                                      col.hidden640 ? 'dt-col-hide640' : '',
                                                   ].filter(Boolean).join(' ') || undefined}
                                               >
                                                   {col.render
