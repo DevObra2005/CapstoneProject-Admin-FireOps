@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FireOps Admin</title>
+    <title>FireOps</title>
 
     {{-- This loads your React and CSS files through Vite --}}
     @viteReactRefresh

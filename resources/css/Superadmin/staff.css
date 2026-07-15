@@ -42,7 +42,6 @@
     white-space: nowrap;
     transition: background 0.15s;
 }
-
 .sm-add-btn:hover { background: #b91c1c; }
 
 /* ── Modal overlay ────────────────────────────────────────────────────────── */
@@ -64,7 +63,7 @@
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 14px;
     width: 100%;
-    max-width: 400px;
+    max-width: 440px;
     box-shadow: 0 24px 48px rgba(0,0,0,0.5);
     animation: sm-up 0.18s ease;
     overflow: hidden;
@@ -73,7 +72,7 @@
 @keyframes sm-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes sm-up   { from { transform: translateY(8px); opacity: 0 } to { transform: none; opacity: 1 } }
 
-/* Modal header */
+/* ── Modal header ─────────────────────────────────────────────────────────── */
 .sm-modal-header {
     display: flex;
     align-items: center;
@@ -105,14 +104,14 @@
 }
 .sm-close:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
 
-/* Modal body */
+/* ── Modal body ───────────────────────────────────────────────────────────── */
 .sm-modal-body {
     padding: 18px 20px 0;
     display: flex;
     flex-direction: column;
 }
 
-/* Alerts */
+/* ── Alerts ───────────────────────────────────────────────────────────────── */
 .sm-alert {
     display: flex;
     align-items: center;
@@ -126,8 +125,14 @@
 .sm-alert-err { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
 .sm-alert-ok  { background: rgba(74,222,128,0.08); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
 
-/* Fields */
+/* ── Fields ───────────────────────────────────────────────────────────────── */
 .sm-field { margin-bottom: 14px; }
+
+.sm-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
 
 .sm-label {
     display: flex;
@@ -155,30 +160,31 @@
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 .sm-input::placeholder { color: #334155; }
-.sm-input:hover { border-color: rgba(255,255,255,0.14); }
-.sm-input:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
+.sm-input:hover  { border-color: rgba(255,255,255,0.14); }
+.sm-input:focus  { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
 
-/* Password toggle */
-.sm-pass-wrap { position: relative; }
-.sm-pass-wrap .sm-input { padding-right: 36px; }
-
-.sm-eye {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #475569;
-    font-size: 14px;
-    cursor: pointer;
+/* ── Info note ────────────────────────────────────────────────────────────── */
+.sm-info-note {
     display: flex;
-    align-items: center;
-    transition: color 0.15s;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+    line-height: 1.5;
 }
-.sm-eye:hover { color: #94a3b8; }
+.sm-info-note i {
+    color: #3b82f6;
+    font-size: 14px;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
 
-/* Modal footer */
+/* ── Modal footer ─────────────────────────────────────────────────────────── */
 .sm-modal-footer {
     display: flex;
     gap: 8px;
@@ -219,7 +225,7 @@
 .sm-btn-submit:hover:not(:disabled) { background: #b91c1c; }
 .sm-btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* Spinner */
+/* ── Spinners ─────────────────────────────────────────────────────────────── */
 .sm-spin {
     display: inline-block;
     width: 13px;
@@ -230,10 +236,43 @@
     animation: sm-spin 0.7s linear infinite;
     flex-shrink: 0;
 }
-
 .sm-spin-white {
     border-color: rgba(255,255,255,0.25);
     border-top-color: #fff;
 }
-
 @keyframes sm-spin { to { transform: rotate(360deg); } }
+
+/* ── Status badges ────────────────────────────────────────────────────────── */
+.sm-badge-active {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(34,197,94,0.12);
+    color: #22c55e;
+}
+.sm-badge-archived {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(100,116,139,0.12);
+    color: #64748b;
+}
+
+/* ── Archive / Restore action buttons ────────────────────────────────────── */
+.dt-btn-archive {
+    color: #f59e0b;
+    border-color: rgba(245,158,11,0.3);
+}
+.dt-btn-archive:hover { background: rgba(245,158,11,0.1); }
+
+.dt-btn-restore {
+    color: #22c55e;
+    border-color: rgba(34,197,94,0.3);
+}
+.dt-btn-restore:hover { background: rgba(34,197,94,0.1); }

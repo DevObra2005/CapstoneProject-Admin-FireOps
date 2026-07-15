@@ -1,43 +1,61 @@
-/* ===== DESKTOP SIDEBAR WRAPPER ===== */
-.sidebar-desktop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 100;
+/* MainLayout — the global page shell.
+   Theme variables live in sidebar.css (:root) and are global,
+   so here we only reference them. */
+
+body {
+    background: var(--bg);
+    color: var(--ink);
 }
 
-/* ===== MAIN CONTENT ===== */
+/* ===== Desktop sidebar: fixed to the left ===== */
+.sidebar-desktop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1030;
+}
+
+/* ===== Main content area ===== */
 .main-wrapper {
-  min-height: 100vh;
-  background-color: #0d1117;
-  padding: 30px;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
 }
 
 @media (min-width: 992px) {
-  .main-wrapper {
-    margin-left: 220px;
-  }
+    .main-wrapper {
+        margin-left: 240px;   /* clears the fixed sidebar */
+    }
 }
 
-/* ===== MOBILE TOPBAR ===== */
+/* ===== Mobile topbar (hidden on desktop) ===== */
 .mobile-topbar {
-  display: none;
-  background-color: #161d27;
-  padding: 12px 16px;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #2a3a4a;
-}
-
-@media (max-width: 991px) {
-  .mobile-topbar {
     display: flex;
-  }
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
 }
 
-/* ===== OFFCANVAS DARK THEME ===== */
+@media (min-width: 992px) {
+    .mobile-topbar {
+        display: none;
+    }
+}
+
+/* ===== Mobile offcanvas sidebar =====
+   Overrides the legacy blue !important rule so it matches the panel. */
 .offcanvas {
-  background-color: #3d86ec !important;
-  width: 220px !important;
+    background: var(--panel) !important;
+    width: 240px !important;
+    border-right: 1px solid var(--line);
+}
+
+.offcanvas-body {
+    background: var(--panel);
 }

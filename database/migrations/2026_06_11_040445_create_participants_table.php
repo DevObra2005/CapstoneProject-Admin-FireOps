@@ -10,17 +10,12 @@ return new class extends Migration
     {
         Schema::create('participants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('event_id')
-                  ->constrained()
-                  ->onDelete('cascade');         // Participant deleted if event is deleted
             $table->string('name');
-            $table->string('email');
-            $table->string('department')->nullable();
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('organization');
             $table->string('contact_number')->nullable();
             $table->timestamps();
-
-            // Same email cannot register twice for the same event
-            $table->unique(['event_id', 'email']);
         });
     }
 

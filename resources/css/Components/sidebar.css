@@ -1,67 +1,316 @@
-/* ===== SIDEBAR ===== */
+/* ── Theme variables (light = default; dark ready for the toggle later) ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --panel:      #ffffff;
+    --bg:         #f2f2f2;
+    --soft:       #f4f7f5;
+    --line:       #dfe4e0;
+    --ink:        #18241f;
+    --ink2:       #3b4842;
+    --muted:      #7c877f;
+    --faint:      #a7b0a9;
+    --green:      #2fa24d;
+    --green-2:    #268a41;
+    --green-soft: #e8f5ec;
+    --green-ink:  #1c6b33;
+    --track:      #eaefeb;
+    --sh:         0 6px 22px rgba(20,45,30,.06), 0 2px 6px rgba(20,45,30,.04);
+    --sh-sm:      0 2px 8px rgba(20,45,30,.05);
+    --danger-soft: rgba(192,57,43,.08);
+    --danger-ink:  #c0392b;
+}
+
+[data-theme="dark"] {
+    --panel:      #17191e;
+    --bg:         #0e0f12;
+    --soft:       #1f222a;
+    --line:       #282c34;
+    --ink:        #e8eaef;
+    --ink2:       #c3c8d1;
+    --muted:      #8b909b;
+    --faint:      #5b616c;
+    --green:      #34b857;
+    --green-2:    #2a9647;
+    --green-soft: #17271c;
+    --green-ink:  #5fd07e;
+    --track:      #282c34;
+    --sh:         0 8px 24px rgba(0,0,0,.40), 0 2px 6px rgba(0,0,0,.30);
+    --sh-sm:      0 2px 10px rgba(0,0,0,.30);
+    --danger-soft: rgba(224,71,58,.12);
+    --danger-ink:  #ff7a6b;
+}
+
+/* ============================================================
+   BASE
+============================================================ */
 .sidebar {
-  width: 240px;
-  min-height: 100vh;
-  background-color: #161d27;
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    min-height: 100vh;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    box-shadow: var(--sh-sm);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-.sidebar-logo {
-  margin-top: 20px;
-  padding: 20px 30px;
-  border-bottom: 1px solid #2a3a4a;
+/* ============================================================
+   LOGO
+============================================================ */
+.sb-logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 18px 20px;
 }
 
-.sidebar-logo .app-name {
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 15px;
+.sb-logo img {
+    padding: 4px;
+    background: var(--green-soft);
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(20, 45, 30, .06);
 }
 
-.sidebar-logo .app-sub {
-  color: #8a9bb0;
-  font-size: 13px;
+.sb-logo::after {
+    position: absolute;
+    right: 16px;
+    bottom: 0;
+    left: 16px;
+    height: 1px;
+    content: '';
+    background: linear-gradient(90deg, var(--line) 0%, transparent 90%);
 }
 
-/* ===== NAV LINKS ===== */
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  color: #95a0ad;
-  text-decoration: none;
-  font-size: 14px;
-  margin-bottom: 4px;
-  transition: all 0.2s;
+.sb-logo-name {
+    margin-top: 3px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.4px;
 }
 
-.sidebar-link:hover {
-  background-color: #1e2d3d;
-  color: #ffffff;
+.sb-admin-name {
+    margin-top: 3px;
+    margin-bottom: 0;
+    overflow: hidden;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink2);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.sidebar-link.active {
-  background-color: #c0392b;
-  color: #ffffff;
+.sb-role {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--green-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--green-soft);
+    border-radius: 6px;
 }
 
-/* ===== LOGOUT BUTTON ===== */
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 25px 25px;
-  color: #8a9bb0;
-  font-size: 14px;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  transition: all 0.2s;
+/* ============================================================
+   NAV
+============================================================ */
+.sb-nav {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px 10px;
+    overflow-y: auto;
 }
 
-.logout-btn:hover {
-  color: #e74c3c;
+.sb-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 13px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 11px;
+    transition: background .18s ease, color .18s ease, transform .12s ease;
+}
+
+.sb-link i {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: var(--faint);
+    background: var(--soft);
+    border-radius: 9px;
+    transition: background .18s ease, color .18s ease;
+}
+
+.sb-link:hover {
+    color: var(--ink);
+    background: var(--soft);
+    transform: translateX(1px);
+}
+
+.sb-link:hover i {
+    color: var(--ink2);
+    background: var(--panel);
+}
+
+/* Active state — pale green with left accent + lifted icon chip */
+.sb-link.active {
+    color: var(--green-ink);
+    background: var(--green-soft);
+    box-shadow: inset 3px 0 0 var(--green);
+}
+
+.sb-link.active i {
+    color: #fff;
+    background: var(--green);
+    box-shadow: 0 3px 8px rgba(47, 162, 77, .30);
+}
+
+/* thin scrollbar for long nav lists */
+.sb-nav::-webkit-scrollbar { width: 4px; }
+.sb-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+/* ============================================================
+   THEME TOGGLE
+============================================================ */
+.sb-theme {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+    padding: 10px 13px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-radius: 11px;
+    transition: background .18s ease, color .18s ease;
+}
+
+.sb-theme:hover {
+    color: var(--ink);
+    background: var(--soft);
+}
+
+.sb-theme-l {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.sb-theme-l i {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    color: var(--green);
+    background: var(--green-soft);
+    border-radius: 9px;
+}
+
+/* switch */
+.sb-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 38px;
+    height: 22px;
+    background: var(--track);
+    border-radius: 99px;
+    transition: background .2s ease;
+}
+
+.sb-switch.on {
+    background: var(--green);
+}
+
+.sb-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+    transition: left .2s ease;
+}
+
+.sb-switch.on .sb-knob {
+    left: 19px;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+.sb-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 10px 16px;
+    border-top: 1px solid var(--line);
+}
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+.sb-logout {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 11px;
+    padding: 10px 13px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-radius: 11px;
+    transition: background .18s ease, color .18s ease;
+}
+
+.sb-logout i {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    border-radius: 9px;
+    transition: background .18s ease, color .18s ease;
+}
+
+.sb-logout:hover {
+    color: var(--danger-ink);
+    background: var(--danger-soft);
+}
+
+.sb-logout:hover i {
+    color: var(--danger-ink);
+    background: transparent;
 }

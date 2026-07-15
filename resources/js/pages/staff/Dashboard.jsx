@@ -8,6 +8,11 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const token = localStorage.getItem('token'); // or wherever you store it
+
+        const headers = {
+            Authorization: `Bearer ${token}`
+        };
         Promise.all([
             axios.get("/api/staff/dashboard-stats"),
             axios.get("/api/staff/events"),
@@ -55,10 +60,10 @@ export default function Dashboard() {
 
     return (
         <div>
-            <h5 className="mb-4 fw-semibold text-light d-flex align-items-center gap-2">
-                <i className="bi bi-grid-1x2 text-secondary"></i>
+            <h5 className="db-page-title">
                 Staff Dashboard
             </h5>
+            <p className="db-page-sub">Overview of your events and participants.</p>
 
             {loading ? (
                 <div className="text-secondary">Loading...</div>

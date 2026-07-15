@@ -1,0 +1,354 @@
+/* ============================================================
+   PAGE HEADER
+============================================================ */
+.ae-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.ae-page-title {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+}
+
+.ae-page-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ============================================================
+   STAT CARDS
+============================================================ */
+.ae-stat-card {
+    position: relative;
+    height: 100%;
+    padding: 18px 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--sh-sm);
+}
+
+.ae-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 17px;
+    color: var(--green);
+    background: var(--green-soft);
+    border-radius: 12px;
+}
+
+.ae-stat-icon.green {
+    color: var(--green);
+    background: var(--green-soft);
+}
+
+.ae-stat-icon.muted {
+    color: var(--muted);
+    background: var(--soft);
+}
+
+.ae-stat-tag {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: var(--soft);
+    border-radius: 8px;
+}
+
+.ae-stat-number {
+    margin-bottom: 3px;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.8px;
+}
+
+.ae-stat-number.green { color: var(--ink); }
+
+.ae-stat-label {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* Filled highlight variant (Total events card) — same green gradient as dashboard */
+.ae-stat-card.fill {
+    background: linear-gradient(150deg, var(--green), var(--green-2));
+    border-color: transparent;
+    box-shadow: 0 14px 28px rgba(47, 162, 77, .28);
+}
+
+.ae-stat-card.fill .ae-stat-icon { color: #fff; background: rgba(255, 255, 255, .22); }
+.ae-stat-card.fill .ae-stat-tag  { color: #fff; background: rgba(255, 255, 255, .20); }
+.ae-stat-card.fill .ae-stat-number { color: #fff; }
+.ae-stat-card.fill .ae-stat-label  { color: rgba(255, 255, 255, .9); }
+
+/* ============================================================
+   TOOLBAR
+============================================================ */
+.ae-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.ae-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+}
+
+.ae-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    font-size: 13px;
+    color: var(--faint);
+    transform: translateY(-50%);
+}
+
+.ae-search {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    outline: none;
+    transition: border-color .15s;
+}
+
+.ae-search::placeholder {
+    color: var(--faint);
+}
+
+.ae-search:focus {
+    border-color: var(--green);
+}
+
+.ae-filter-group {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+}
+
+.ae-filter-btn {
+    padding: 7px 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.ae-filter-btn:hover {
+    color: var(--ink);
+    background: var(--soft);
+}
+
+.ae-filter-btn.active {
+    color: #fff;
+    background: var(--green);
+}
+
+/* ============================================================
+   EVENT LIST / CARDS
+============================================================ */
+.ae-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ae-card {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--sh-sm);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.ae-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 10px 24px rgba(47, 162, 77, .10);
+    transform: translateY(-1px);
+}
+
+.ae-card-body {
+    flex: 1;
+    padding: 16px 18px;
+}
+
+.ae-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ae-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.ae-badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 99px;
+}
+
+.ae-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.ae-badge-open   { color: var(--green-ink); background: var(--green-soft); }
+.ae-badge-open .ae-badge-dot { background: var(--green); }
+
+.ae-badge-closed { color: var(--muted); background: var(--soft); }
+.ae-badge-closed .ae-badge-dot { background: var(--faint); }
+
+.ae-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.ae-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--soft);
+    border-radius: 8px;
+}
+
+.ae-meta-chip i {
+    font-size: 11px;
+    color: var(--faint);
+}
+
+.ae-card-incharge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+}
+
+.ae-incharge-avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(150deg, var(--green), var(--green-2));
+    border-radius: 50%;
+    box-shadow: 0 3px 8px rgba(47, 162, 77, .25);
+}
+
+.ae-incharge-label {
+    font-size: 10px;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ae-incharge-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.ae-card-arrow {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    font-size: 14px;
+    color: var(--faint);
+    background: var(--soft);
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.ae-card:hover .ae-card-arrow {
+    color: #fff;
+    background: var(--green);
+}
+
+/* ============================================================
+   STATES
+============================================================ */
+.ae-loading,
+.ae-empty {
+    padding: 48px 24px;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.ae-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.ae-spin {
+    font-size: 18px;
+    animation: ae-spin 1s linear infinite;
+}
+
+@keyframes ae-spin {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+}
+
+.ae-empty i {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 32px;
+    opacity: 0.4;
+}

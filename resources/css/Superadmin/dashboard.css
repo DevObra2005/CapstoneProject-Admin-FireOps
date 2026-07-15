@@ -1,68 +1,486 @@
-/* ===== STAT CARDS ===== */
-.stat-card {
-  background-color: #161d27;
-  border-radius: 10px;
-  padding: 20px;
-  border-left: 4px solid;
-  height: 100%;
+/* ============================================================
+   FONTS & TOKENS
+============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --d1: #278a43;
+    --d2: #4fb36b;
+    --d3: #aeddbc;
 }
 
-.stat-card .stat-label {
-  color: #8a9bb0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+[data-theme="dark"] {
+    --d1: #34b857;
+    --d2: #238a40;
+    --d3: #155e2c;
 }
 
-.stat-card .stat-value {
-  color: #ffffff;
-  font-size: 32px;
-  font-weight: 700;
-  margin: 6px 0;
+/* ============================================================
+   BASE / PAGE
+============================================================ */
+.db-page {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--ink);
 }
 
-.stat-card .stat-trend {
-  font-size: 12px;
+/* ============================================================
+   HEADER
+============================================================ */
+.db-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.5px;
 }
 
-.stat-card.orange { border-color: #e67e22; }
-.stat-card.blue   { border-color: #3498db; }
-.stat-card.green  { border-color: #2ecc71; }
-.stat-card.yellow { border-color: #f1c40f; }
-
-/* ===== CHART CARD ===== */
-.chart-card {
-  background-color: #161d27;
-  border-radius: 10px;
-  padding: 24px;
+.db-sub {
+    font-size: 13px;
+    color: var(--muted);
 }
 
-.chart-card .card-title {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
+/* ============================================================
+   TOGGLE (period switch)
+============================================================ */
+.db-toggle {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 11px;
 }
 
-.chart-card .card-subtitle {
-  color: #8a9bb0;
-  font-size: 12px;
+.db-tog-btn {
+    padding: 7px 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
 }
 
-/* ===== PROGRESS BARS ===== */
-.module-item {
-  margin-bottom: 20px;
+.db-tog-btn.active {
+    color: #fff;
+    background: var(--green);
 }
 
-.module-item .module-label {
-  display: flex;
-  justify-content: space-between;
-  color: #ffffff;
-  font-size: 13px;
-  margin-bottom: 6px;
+/* ============================================================
+   SECTION LABEL
+============================================================ */
+.db-section-label {
+    margin: 18px 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: .06em;
 }
 
-.module-item .progress {
-  height: 6px;
-  background-color: #2a3a4a;
-  border-radius: 10px;
+/* ============================================================
+   KPI CARDS
+============================================================ */
+.db-kpi-card {
+    position: relative;
+    height: 100%;
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--sh-sm);
+}
+
+.db-kpi-line {
+    display: none; /* removes the rainbow top-lines */
+}
+
+.db-kpi-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: 19px;
+    color: var(--green);
+    background: var(--green-soft);
+    border-radius: 13px;
+}
+
+.db-kpi-icon.r,
+.db-kpi-icon.g,
+.db-kpi-icon.b {
+    color: var(--green);
+    background: var(--green-soft);
+}
+
+.db-kpi-tag {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: var(--soft);
+    border-radius: 8px;
+}
+
+.db-kpi-tag.r,
+.db-kpi-tag.g,
+.db-kpi-tag.b {
+    color: var(--muted);
+    background: var(--soft);
+}
+
+.db-kpi-val {
+    margin: 14px 0 4px;
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -1px;
+}
+
+.db-kpi-val.green,
+.db-kpi-val.blue {
+    color: var(--ink);
+}
+
+.db-kpi-sub {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* Filled green highlight variant (first KPI) */
+.db-kpi-card.fill {
+    background: linear-gradient(150deg, var(--green), var(--green-2));
+    border-color: transparent;
+    box-shadow: 0 14px 28px rgba(47, 162, 77, .28);
+}
+
+.db-kpi-card.fill .db-kpi-icon { background: rgba(255, 255, 255, .22); color: #fff; }
+.db-kpi-card.fill .db-kpi-tag  { background: rgba(255, 255, 255, .20); color: #fff; }
+.db-kpi-card.fill .db-kpi-val  { color: #fff; }
+.db-kpi-card.fill .db-kpi-sub  { color: rgba(255, 255, 255, .9); }
+
+/* ============================================================
+   MINI CARDS
+============================================================ */
+.db-mini-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--sh-sm);
+}
+
+.db-mini-icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 17px;
+    color: var(--green);
+    background: var(--green-soft);
+    border-radius: 12px;
+}
+
+.db-mini-icon.r,
+.db-mini-icon.g,
+.db-mini-icon.p {
+    color: var(--green);
+    background: var(--green-soft);
+}
+
+.db-mini-label {
+    margin-bottom: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.db-mini-val {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -.5px;
+}
+
+.db-mini-sub {
+    margin-top: 3px;
+    font-size: 10.5px;
+    color: var(--faint);
+}
+
+/* ============================================================
+   PANEL (shared wrapper for chart / recent events / failed steps)
+============================================================ */
+.db-panel {
+    height: 100%;
+    padding: 22px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--sh-sm);
+}
+
+.db-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.db-panel-title i {
+    font-size: 15px;
+    color: var(--green);
+}
+
+.db-panel-badge {
+    padding: 5px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--soft);
+    border: none;
+    border-radius: 8px;
+}
+
+.db-panel .border-dark {
+    border-color: var(--line) !important;
+}
+
+/* ============================================================
+   SCORE CHART
+============================================================ */
+.db-score-chart-wrap {
+    position: relative;
+    height: 170px;
+    margin-bottom: 14px;
+}
+
+.db-dl-dot {
+    flex-shrink: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+}
+
+.db-dl-dot.e { background: var(--d1); }
+.db-dl-dot.g { background: var(--d2); }
+.db-dl-dot.p { background: var(--d3); }
+
+.db-dl-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.db-dl-text strong {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.db-dl-range {
+    font-size: 10.5px;
+    color: var(--faint);
+}
+
+/* ============================================================
+   ENVIRONMENT CARDS
+============================================================ */
+.db-env-card {
+    position: relative;
+    height: 100%;
+    padding: 18px 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--sh-sm);
+}
+
+.db-env-card::before {
+    display: none; /* removes the red left bar */
+}
+
+.db-env-card .border-dark {
+    border-color: var(--line) !important;
+}
+
+.db-env-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.db-env-title i {
+    font-size: 16px;
+    color: var(--green);
+}
+
+.db-env-tag {
+    padding: 4px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--green-ink);
+    background: var(--green-soft);
+    border-radius: 8px;
+}
+
+.db-env-row-lbl {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.db-env-row-lbl i {
+    font-size: 12px;
+    color: var(--faint);
+}
+
+.db-env-row-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+/* ============================================================
+   EVENT ROWS (Recent activity → events)
+============================================================ */
+.db-event-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.db-event-dot.open   { background: var(--green); }
+.db-event-dot.closed { background: var(--faint); }
+
+.db-event-name {
+    overflow: hidden;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.db-event-meta {
+    margin-top: 1px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.db-ev-badge {
+    flex-shrink: 0;
+    padding: 4px 11px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 99px;
+}
+
+.db-ev-badge.open   { color: var(--green-ink); background: var(--green-soft); border: none; }
+.db-ev-badge.closed { color: var(--muted);     background: var(--soft);       border: none; }
+
+/* ============================================================
+   FAILED STEPS (Recent activity → steps)
+============================================================ */
+.db-step-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 7px;
+    padding: 11px 12px;
+    background: var(--soft);
+    border-radius: 12px;
+}
+
+.db-step-item:last-child {
+    margin-bottom: 0;
+}
+
+.db-step-rank {
+    min-width: 16px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--muted);
+    text-align: center;
+}
+
+.db-step-name {
+    margin-bottom: 5px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.db-step-bar-wrap {
+    height: 5px;
+    overflow: hidden;
+    background: var(--track);
+    border-radius: 99px;
+}
+
+.db-step-bar {
+    height: 100%;
+    background: var(--green);
+    border-radius: 99px;
+    transition: width .4s ease;
+}
+
+.db-step-count {
+    min-width: 24px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--green);
+    text-align: right;
+}
+
+/* ============================================================
+   LOADING / EMPTY STATES
+============================================================ */
+.db-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 300px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.db-spin {
+    font-size: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+}
+
+.db-empty {
+    padding: 1rem 0;
+    font-size: 13px;
+    color: var(--faint);
+    text-align: center;
 }

@@ -17,6 +17,7 @@ class Event extends Model
         'longitude',
         'radius_meters',
         'is_open',
+        'token',
     ];
 
     protected $casts = [
@@ -55,7 +56,8 @@ class Event extends Model
      */
     public function participants()
     {
-        return $this->hasMany(Participant::class);
+        return $this->belongsToMany(Participant::class, 'event_participant')
+                ->withTimestamps();
     }
 
 }

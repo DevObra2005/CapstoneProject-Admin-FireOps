@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { QRCodeCanvas } from 'qrcode.react'
-import L from 'leaflet'
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle} from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
+import { useState, useEffect } from 'react'
+import EventModal from './EventModal'
+import EventDetail from './EventDetail'
+import QRModal from './QRModal'
 import '../../../css/Staff/events.css'
 import DataTable from '../../components/DataTable';
 
@@ -210,183 +209,6 @@ function LocationSearch({ onSelect }) {
         </div>
     )
 }
-function EventDetail({ event, onBack, onEdit, onDelete, onQR, token, onToggle }) {
-    const [participants, setParticipants] = useState([])
-    const [loadingP, setLoadingP]         = useState(true)
-    const [toggling, setToggling]         = useState(false)
-    
-
-    // Fetch participants for this event when component mounts
-    useEffect(() => {
-        const fetch = async () => {
-            try {
-                const res = await axios.get(`/api/staff/events/${event.id}/participants`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
-                setParticipants(Array.isArray(res.data) ? res.data : [])
-            } catch {
-                setParticipants([])
-            } finally {
-                setLoadingP(false)
-            }
-        }
-        fetch()
-    }, [event.id])
-
-    const handleToggleClick = async () => {
-        setToggling(true)
-        try {
-            await onToggle(event)
-        } finally {
-            setToggling(false)
-        }
-    }
-    const participantColumns = [
-    {   key: '_index',
-        label: '#',           
-        width: '36px', 
-       
-        render: (_, __, i) => i + 1 
-    },
-
-    {   key: 'name',         
-        label: 'Name',
-        render: (value) => <span className="ev-event-name">{value}</span> 
-    },
-
-    {   key: 'email',
-        label: 'Email',     
-    },
-
-    {   key: 'department',   
-        label: 'Department',
-        hidden640: true,
-        render: (value) => value || <span className="ev-dash">—</span> 
-    },
-
-    {   key: 'contact_number', 
-        label: 'Contact',    
-        className: 'sm-muted',
-        render: (value) => value || <span className="ev-dash">—</span> 
-    },
-
-    {   key: 'created_at',   
-        label: 'Registered',   
-        hidden640: true,
-        render: (value) =>
-                new Date(value).toLocaleDateString('en-US', {
-                    month: 'long', day: 'numeric', year: 'numeric',
-                }),
-    },
-];
-
-    return (
-        <div className="ev-page">
-
-            {/* Header */}
-            <div className="ev-page-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <button className="ev-btn ev-btn-ghost" onClick={onBack}>
-                        <i className="bi bi-arrow-left"></i> Back
-                    </button>
-                    <div>
-                        <h4 className="ev-page-title">{event.name}</h4>
-                        <p className="ev-page-sub">Event Details</p>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="ev-btn ev-btn-ghost" onClick={() => onQR(event)}>
-                        <i className="bi bi-qr-code-scan"></i> QR Code
-                    </button>
-                    <button className="ev-btn ev-btn-ghost" onClick={() => onEdit(event)}>
-                        <i className="bi bi-pencil-fill"></i> Edit
-                    </button>
-                    <button className="ev-btn ev-btn-danger" onClick={() => onDelete(event.id)}>
-                        <i className="bi bi-trash-fill"></i> Delete
-                    </button>
-                    <button
-                        className={`ev-btn ${event.is_open ? 'ev-btn-danger' : 'ev-btn-success'}`}
-                        onClick={handleToggleClick}
-                        disabled={toggling}
-                    >
-                        {toggling ? (
-                            <>
-                                <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                                {event.is_open ? 'Closing...' : 'Opening...'}
-                            </>
-                        ) : (
-                            <>
-                                <i className={`bi ${event.is_open ? 'bi-lock-fill' : 'bi-unlock-fill'}`}></i>
-                                {event.is_open ? ' Close Registration' : ' Open Registration'}
-                            </>
-                        )}
-                    </button>
-                </div>
-            </div>
-
-            {/* Info Cards */}
-            <div className="ev-detail-grid">
-                <div className="ev-detail-card">
-                    <div className="ev-detail-label">Date</div>
-                    <div className="ev-detail-value">
-                        <i className="bi bi-calendar3 me-2 text-danger"></i>
-                        {new Date(event.date).toLocaleDateString('en-US', {
-                            month: 'long', day: 'numeric', year: 'numeric',
-                        })}
-                    </div>
-                </div>
-                <div className="ev-detail-card">
-                    <div className="ev-detail-label">Venue</div>
-                    <div className="ev-detail-value">
-                        <i className="bi bi-geo-alt-fill me-2 text-danger"></i>
-                        {event.location_name || '—'}
-                    </div>
-                </div>
-                <div className="ev-detail-card">
-                    <div className="ev-detail-label">Registration Radius</div>
-                    <div className="ev-detail-value">
-                        <i className="bi bi-broadcast me-2 text-danger"></i>
-                        {event.radius_meters}m from venue
-                    </div>
-                </div>
-                <div className="ev-detail-card">
-                    <div className="ev-detail-label">Total Registered</div>
-                    <div className="ev-detail-value">
-                        <i className="bi bi-people-fill me-2 text-danger"></i>
-                        {event.participants_count ?? participants.length} participants
-                    </div>
-                </div>
-            </div>
-
-            {event.description && (
-                <div className="ev-card" style={{ padding: '16px 20px', marginBottom: 20 }}>
-                    <div className="ev-detail-label" style={{ marginBottom: 4 }}>Description</div>
-                    <p style={{ margin: 0, color: '#cbd5e1' }}>{event.description}</p>
-                </div>
-            )}
-
-            {/* Participants Table */}
-            <div className="ev-card">
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e293b' }}>
-                    <h6 style={{ margin: 0, color: '#f1f5f9', fontWeight: 600 }}>
-                        <i className="bi bi-people-fill me-2 text-danger"></i>
-                        Registered Participants
-                    </h6>
-                </div>
-                <DataTable
-                    columns={participantColumns}
-                    data={participants}
-                    loading={loadingP}
-                    emptyIcon="bi-inbox"
-                    emptyTitle="No participants yet"
-                    emptySub="No participants registered yet."
-                />
-            </div>
-
-        </div>
-    )
-}
-
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function Events() {
     const [eventList,     setEventList]     = useState([])
@@ -403,8 +225,6 @@ export default function Events() {
     const [loading,       setLoading]       = useState(false)
     const [selectedView, setSelectedView]   = useState(null)
     const [something, setSomething]         = useState([])
-    const [copied, setCopied]               = useState(false)
-    const [downloaded, setDownloaded]       = useState(false)
    
 
     const token = localStorage.getItem('token')
@@ -609,307 +429,79 @@ export default function Events() {
                 </button>
             </div>
 
-            {/* ── Events table ── */}
-            <div className="ev-card">
-                <table className="ev-table ev-events-table">
-                    <thead>
-                        <tr>
-                            <th style={{ width: '40px' }}>#</th>
-                            <th>Event Name</th>
-                            <th>Date</th>
-                            <th className="sm-col-hide640">Venue</th>
-                            <th className="sm-col-hide640" style={{ width: '80px' }}>Radius</th>
-                            <th style={{ width: '130px' }}>Participants</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {eventList.length === 0 ? (
-                            <tr>
-                                <td colSpan="6">
-                                    <div className="sm-empty">
-                                        <i className="bi bi-calendar-x sm-empty-icon"></i>
-                                        <p className="sm-empty-title">No events yet</p>
-                                        <p className="sm-empty-sub">Click "Create Event" to add one.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        ) : eventList.map((event, i) => (
-                            <tr
-                                key={event.id}
-                                onClick={() => setSelectedView(event)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <td className="sm-num">{i + 1}</td>
-                                <td>
-                                    <span className="ev-event-name">{event.name}</span>
-                                </td>
-                                <td className="sm-muted">
-                                    {new Date(event.date).toLocaleDateString('en-US', {
-                                        month: 'long', day: 'numeric', year: 'numeric',
-                                    })}
-                                </td>
-                                <td className="sm-muted sm-col-hide640">
-                                    {event.location_name || <span className="ev-dash">—</span>}
-                                </td>
-                                <td className="sm-col-hide640">
-                                    <span className="ev-badge ev-badge-blue">{event.radius_meters}m</span>
-                                </td>
-                                <td>
-                                    <span className="ev-badge ev-badge-gray">
-                                        {event.participants_count ?? 0} registered
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* ── Events grid ── */}
+            <div className="ev-grid">
+                {eventList.length === 0 ? (
+                   <div className="ev-empty">
+                        <i className="bi bi-calendar-x ev-empty-icon"></i>
+                        <p className="ev-empty-title">No events yet</p>
+                        <p className="ev-empty-sub">Click "Create Event" to add one.</p>
+                    </div>
+                ) : eventList.map((event) => (
+                    <div
+                        key={event.id}
+                        className="ev-event-card"
+                        onClick={() => setSelectedView(event)}
+                    >
+                        <div className="ev-event-card-top">
+                            <div className="ev-event-card-icon">
+                                <i className="bi bi-fire"></i>
+                            </div>
+                            <span className={`ev-status-badge ${event.is_open ? 'ev-status-open' : 'ev-status-closed'}`}>
+                                {event.is_open ? <><span className="ev-status-dot"></span> Open</> : 'Closed'}
+                            </span>
+                        </div>
+
+                        <div className="ev-event-card-body">
+                            <p className="ev-event-card-name">{event.name}</p>
+                            {event.description && (
+                                <p className="ev-event-card-desc">{event.description}</p>
+                            )}
+                        </div>
+
+                        <hr className="ev-event-card-divider" />
+
+                        <div className="ev-event-card-meta">
+                            <span className="ev-event-card-meta-item">
+                                <i className="bi bi-calendar3"></i>
+                                {new Date(event.date).toLocaleDateString('en-US', {
+                                    month: 'long', day: 'numeric', year: 'numeric',
+                                })}
+                            </span>
+        
+                            <span className="ev-event-card-participants">
+                                <i className="bi bi-people"></i>
+                                {event.participants_count ?? 0}
+                            </span>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
         )}
 
-        {/* Create / Edit Modal */}
-        {showModal && (
-            <div className="ev-overlay" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
-                <div className="ev-modal">
-
-                    <div className="ev-modal-header">
-                        <div className="ev-modal-header-icon">
-                            <i className={`bi ${editing ? 'bi-pencil-fill' : 'bi-plus-lg'}`}></i>
-                        </div>
-                        <div className="ev-modal-header-text">
-                            <h5>{editing ? 'Edit Event' : 'Create New Event'}</h5>
-                            <p>{editing ? 'Update event details below' : 'Fill in the details to create an event'}</p>
-                        </div>
-                        <button className="ev-modal-close" onClick={closeModal}>
-                            <i className="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-
-                    <form onSubmit={handleSubmit} style={{ display: 'contents' }}>
-                        <div className="ev-modal-body">
-
-                            {error   && <div className="ev-alert ev-alert-error">{error}</div>}
-                            {success && <div className="ev-alert ev-alert-success">{success}</div>}
-
-                            <div className="ev-section-label">Basic Information</div>
-
-                            <div className="ev-field">
-                                <label>Event Name <span className="ev-req">*</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Fire Safety Seminar Batch 1"
-                                    value={form.name}
-                                    onChange={e => setForm({ ...form, name: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="ev-field">
-                                <label>Description <span className="ev-opt">(optional)</span></label>
-                                <textarea
-                                    rows="2"
-                                    placeholder="Brief description of the event..."
-                                    value={form.description}
-                                    onChange={e => setForm({ ...form, description: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="ev-row">
-                                <div className="ev-field">
-                                    <label>Date <span className="ev-req">*</span></label>
-                                    <input
-                                        type="date"
-                                        value={form.date}
-                                        onChange={e => setForm({ ...form, date: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="ev-field">
-                                    <label>Venue Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Natividad Municipal Hall"
-                                        value={form.location_name}
-                                        onChange={e => setForm({ ...form, location_name: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="ev-section-label" style={{ marginTop: 8 }}>Location & Radius</div>
-
-                            <div className="ev-field">
-                                <label>
-                                    Registration Radius
-                                    <span className="ev-radius-val">{form.radius_meters}m</span>
-                                </label>
-                                <input
-                                    type="range" min="50" max="500" step="50"
-                                    value={form.radius_meters}
-                                    onChange={e => setForm({ ...form, radius_meters: parseInt(e.target.value) })}
-                                    className="ev-range"
-                                />
-                                <div className="ev-range-labels">
-                                    <span>50m · indoor</span>
-                                    <span>500m · outdoor</span>
-                                </div>
-                            </div>
-
-                            <div className="ev-field">
-                                <label>
-                                    Pin on Map <span className="ev-req">*</span>
-                                    <span className="ev-hint">Search a place or tap the map to drop a pin</span>
-                                </label>
-                                <div className="ev-map-wrap">
-                                    <LocationSearch onSelect={handleSearchSelect} />
-                                    <MapContainer
-                                        key={mapKey}
-                                        center={mapCenter}
-                                        zoom={DEFAULT_ZOOM}
-                                        minZoom={12}
-                                        maxZoom={18}
-                                        maxBounds={NATIVIDAD_BOUNDS}
-                                        maxBoundsViscosity={1.0}
-                                        style={{ height: '100%', width: '100%' }}
-                                    >
-                                        <TileLayer
-                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                            attribution="© OpenStreetMap"
-                                        />
-                                        <MapPicker onLocationSelect={handleMapClick} />
-                                        <FlyTo target={flyTarget} />
-                                        {markerPos && <Marker position={[markerPos.lat, markerPos.lng]} />}
-                                        {markerPos && (
-                                            <Circle
-                                                center={[markerPos.lat, markerPos.lng]}
-                                                radius={form.radius_meters}
-                                                pathOptions={{
-                                                    color: '#c0392b',
-                                                    fillColor: '#c0392b',
-                                                    fillOpacity: 0.15,
-                                                    weight: 2,
-                                                }}
-                                            />
-                                        )}
-                                         <LocateMe onLocate={(lat, lng) => {
-                                            handleMapClick(lat, lng)
-                                            setFlyTarget({ lat, lng })
-                                        }} />
-                                    </MapContainer>
-                                </div>
-                                <div className="ev-pin-feedback">
-                                    {markerPos ? (
-                                        <span className="ev-pin-set">
-                                            <i className="bi bi-geo-alt-fill"></i>
-                                            Pinned at {parseFloat(markerPos.lat).toFixed(5)}, {parseFloat(markerPos.lng).toFixed(5)}
-                                        </span>
-                                    ) : (
-                                        <span className="ev-pin-unset">
-                                            <i className="bi bi-exclamation-circle"></i>
-                                            No pin set — search or tap the map
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div className="ev-modal-footer">
-                            <button type="button" className="ev-btn ev-btn-ghost" onClick={closeModal}>
-                                Cancel
-                            </button>
-                            <button type="submit" className="ev-btn ev-btn-primary" disabled={loading}>
-                                {loading ? (
-                                    <><span className="ev-spinner"></span> Saving…</>
-                                ) : (
-                                    <><i className={`bi ${editing ? 'bi-check-lg' : 'bi-plus-lg'}`}></i> {editing ? 'Update Event' : 'Create Event'}</>
-                                )}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        )}
-
-        {/* ══ QR Code Modal */}
-        {showQR && selectedEvent && (
-            <div className="ev-overlay" onClick={e => { if (e.target === e.currentTarget) setShowQR(false) }}>
-                <div className="ev-modal ev-modal-qr">
-
-    
-                    <div className="ev-modal-header ev-modal-header-qr">
-                        <div className="ev-modal-header-icon">
-                            <i className="bi bi-qr-code-scan"></i>
-                        </div>
-                        <div className="ev-modal-header-text">
-                            <h5>Event QR Code</h5>
-                            <p>Scan to register for this event</p>
-                        </div>
-                        <button className="ev-modal-close ev-modal-close-qr" onClick={() => setShowQR(false)}>
-                            <i className="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-
-                    <div className="ev-modal-body ev-qr-body">
-
-                        <p className="ev-qr-event-name">{selectedEvent.name}</p>
-                        <p className="ev-qr-meta">
-                            <i className="bi bi-calendar3"></i>&nbsp;
-                            {new Date(selectedEvent.date).toLocaleDateString('en-US', {
-                                year: 'numeric', month: 'long', day: 'numeric'
-                            })}
-                            {selectedEvent.location_name && (
-                                <>
-                                    &nbsp;<span className="ev-qr-dot">·</span>&nbsp;
-                                    <i className="bi bi-geo-alt"></i>&nbsp;{selectedEvent.location_name}
-                                </>
-                            )}
-                        </p>
-
-                        <div className="ev-qr-frame">
-                            <div className="ev-qr-inner">
-                                <QRCodeCanvas
-                                    id="qr-canvas"
-                                    value={getRegistrationUrl(selectedEvent.token)}
-                                    size={190}
-                                    level="H"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="ev-qr-url-chip">
-                            <i className="bi bi-link-45deg"></i>
-                            <span className="ev-qr-url-text">{getRegistrationUrl(selectedEvent.token)}</span>
-                        </div>
-                    </div>
-
-                    <div className="ev-modal-footer ev-qr-footer">
-                        <button
-                            className={`ev-btn ev-qr-download-btn ${downloaded ? 'ev-btn-success' : 'ev-btn-primary'}`}
-                            onClick={downloadQR}
-                            style={{ transition: 'background 0.3s, border-color 0.3s, color 0.3s' }}
-                        >
-                            <i className={`bi ${downloaded ? 'bi-check-lg' : 'bi-download'}`}></i>
-                            {downloaded ? 'Downloaded!' : 'Download QR Code'}
-                        </button>
-                        <button
-                            className="ev-btn ev-btn-ghost ev-qr-share-btn"
-                            onClick={() => {
-                                navigator.clipboard.writeText(getRegistrationUrl(selectedEvent.token))
-                                setCopied(true)
-                                setTimeout(() => setCopied(false), 2000)
-                            }}
-                        >
-                            <i className={`bi ${copied ? 'bi-check-lg' : 'bi-share'}`}></i>
-                            {copied ? 'Copied!' : 'Copy Link'}
-                        </button>
-                    </div>
-
-                    <p className="ev-qr-hint">
-                        Post or print this QR so participants can scan and register instantly.
-                    </p>
-                </div>
-            </div>
-        )}
+       <EventModal
+            show={showModal}
+            editing={editing}
+            form={form}
+            setForm={setForm}
+            onSubmit={handleSubmit}
+            onClose={closeModal}
+            loading={loading}
+            error={error}
+            success={success}
+            markerPos={markerPos}
+            setMarkerPos={setMarkerPos}
+            flyTarget={flyTarget}
+            setFlyTarget={setFlyTarget}
+            mapKey={mapKey}
+        />
+        
+        <QRModal
+            show={showQR}
+            event={selectedEvent}
+            onClose={() => setShowQR(false)}
+        />
         </>
     )
 }

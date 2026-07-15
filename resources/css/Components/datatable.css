@@ -1,7 +1,7 @@
 /* ── Card / Table ─────────────────────────────────────────────────────────── */
 .dt-card {
-    background: #1e2433;
-    border: 1px solid rgba(255,255,255,0.06);
+    background: #0d1320;
+    border: 1px solid #162032;
     border-radius: 12px;
     overflow: hidden;
 }

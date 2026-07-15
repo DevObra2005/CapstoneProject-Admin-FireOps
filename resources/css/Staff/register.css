@@ -1,11 +1,12 @@
-
-
-*, *::before, *::after {
+*::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* ── Page wrapper ─────────────────────────────────────────────────────────── */
+/* min-height: 100vh makes the page always fill the full screen height         */
+/* display: flex + align/justify centers the card both vertically+horizontally */
 .reg-page {
     min-height: 100vh;
     display: flex;
@@ -16,20 +17,24 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-
+/* ── Card — the white box that holds left + right panels ─────────────────── */
+/* max-width increased to 860px to give more room for the new password fields  */
+/* display: flex makes left and right panels sit side by side                  */
 .reg-card {
     background: #0f1923;
     width: 100%;
-    max-width: 780px;
+    max-width: 860px;
     border-radius: 8px;
     border: 1px solid #1c2333;
     overflow: hidden;
     display: flex;
 }
 
-
+/* ── Left panel — branding, event info, location notice ──────────────────── */
+/* width increased to 260px so the location notice text has room to breathe    */
+/* flex-direction: column stacks children vertically                           */
 .reg-left {
-    width: 220px;
+    width: 260px;
     flex-shrink: 0;
     background: #0a0d12;
     border-right: 1px solid #1c2333;
@@ -38,12 +43,12 @@
     padding: 28px 20px;
 }
 
-
+/* ── Brand row ───────────────────────────────────────────────────────────── */
 .reg-brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .reg-flame {
@@ -68,13 +73,13 @@
 }
 
 .reg-brand-sub {
-    color: #2a3d52;
+    color: #7f8081;
     font-size: 10px;
     margin-top: 2px;
     line-height: 1.4;
 }
 
-
+/* ── Event info card ─────────────────────────────────────────────────────── */
 .reg-ev-card {
     background: #111927;
     border: 1px solid #1c2333;
@@ -99,7 +104,7 @@
     margin-bottom: 10px;
 }
 
-
+/* ── Open pill badge ─────────────────────────────────────────────────────── */
 .reg-open-pill {
     display: inline-flex;
     align-items: center;
@@ -115,7 +120,7 @@
     text-transform: uppercase;
 }
 
-
+/* Blinking dot inside the open pill */
 .reg-open-dot {
     width: 5px;
     height: 5px;
@@ -129,7 +134,7 @@
     50%       { opacity: 0.3; }
 }
 
-
+/* ── Event meta rows (date, venue, radius) ───────────────────────────────── */
 .reg-ev-meta {
     margin-top: 10px;
     padding-top: 10px;
@@ -158,14 +163,52 @@
     line-height: 1.4;
 }
 
+/* ── Location notice ─────────────────────────────────────────────────────── */
+/* This is the new block explaining WHY location is needed                     */
+/* It sits below the event card on the left panel                              */
+/* display: flex puts the icon and text side by side                           */
+.reg-location-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #080d12;
+    border: 1px solid #1c2333;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 14px;
+}
 
+/* The shield icon — flex-shrink: 0 prevents it from squishing */
+.reg-notice-icon {
+    color: #c0392b;
+    font-size: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.reg-notice-title {
+    color: #8a9bb0;
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+/* The body text — kept small so it fits in the narrow left panel */
+.reg-notice-body {
+    color: #b1b1b1;
+    font-size: 9.5px;
+    line-height: 1.6;
+}
+
+/* ── Left footer (download button) ──────────────────────────────────────── */
+/* margin-top: auto pushes the footer to the very bottom of the left panel    */
 .reg-left-footer {
     margin-top: auto;
     padding-top: 20px;
 }
 
 .reg-dl-label {
-    color: #1c2333;
+    color: #7e7e80;
     font-size: 10px;
     margin-bottom: 8px;
     line-height: 1.4;
@@ -186,20 +229,18 @@
     transition: border-color 0.15s, color 0.15s;
 }
 
-.reg-dl-btn:hover {
-    border-color: #3d5166;
-    color: #8a9bb0;
-}
-
+.reg-dl-btn:hover { border-color: #3d5166; color: #8a9bb0; }
 .reg-dl-btn i { font-size: 15px; }
 
-
+/* ── Right panel — the form ──────────────────────────────────────────────── */
+/* flex: 1 makes it take all remaining space after the left panel             */
+/* min-width: 0 prevents flex overflow on narrow screens                      */
 .reg-right {
     flex: 1;
     padding: 28px 28px 24px;
     display: flex;
     flex-direction: column;
-    min-width: 0; 
+    min-width: 0;
 }
 
 .reg-form-title {
@@ -213,15 +254,16 @@
 .reg-form-sub {
     color: #2a3d52;
     font-size: 11px;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
 }
 
-
+/* ── Section divider — the horizontal line with text in the middle ────────── */
+/* ::before and ::after create the lines on each side of the text             */
 .reg-section-divider {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .reg-section-divider::before,
@@ -241,8 +283,11 @@
     white-space: nowrap;
 }
 
+/* ── Form layout ─────────────────────────────────────────────────────────── */
 .reg-form { flex: 1; display: flex; flex-direction: column; }
 
+/* Two-column grid for fields side by side */
+/* 1fr 1fr = each column takes equal space */
 .reg-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -265,7 +310,7 @@
 
 .reg-req { color: #c0392b; }
 
-
+/* Character counter for contact number — pushed to the right with margin-left: auto */
 .reg-count {
     margin-left: auto;
     color: #1c2333;
@@ -273,9 +318,10 @@
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
-    font-variant-numeric: tabular-nums; 
+    font-variant-numeric: tabular-nums;
 }
 
+/* ── Standard text input ─────────────────────────────────────────────────── */
 .reg-input {
     background: #080d12;
     border: 1px solid #1c2333;
@@ -290,17 +336,107 @@
 }
 
 .reg-input::placeholder { color: #1e2d3d; }
+.reg-input:hover        { border-color: #243347; }
+.reg-input:focus        { border-color: #c0392b; color: #c8d8e8; }
+.reg-input-error        { border-color: #7a1a1a !important; }
 
-.reg-input:hover { border-color: #243347; }
-
-
-.reg-input:focus {
-    border-color: #c0392b;
-    color: #c8d8e8;
+/* ── Password field wrapper ──────────────────────────────────────────────── */
+/* position: relative is REQUIRED for the eye button to position itself       */
+/* inside the input. Without it, the eye button would float outside.          */
+/* Think of it like a picture frame — the eye button is the corner decoration */
+/* that only stays in the right place because the frame has position: relative */
+.reg-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.reg-input-error { border-color: #7a1a1a !important; }
+/* Password input — extra right padding so text doesn't go under the eye icon */
+.reg-input-pass {
+    padding-right: 38px;
+    width: 100%;
+}
 
+/* ── Eye toggle button ───────────────────────────────────────────────────── */
+/* position: absolute + right: 10px places it inside the input on the right   */
+/* It works because .reg-input-wrap has position: relative                    */
+/* Without position: relative on the parent, 'absolute' would jump to the     */
+/* nearest positioned ancestor — possibly the whole page                       */
+.reg-eye {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);  /* Perfect vertical center regardless of height */
+    background: none;
+    border: none;
+    color: #3d5166;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reg-eye:hover { color: #8a9bb0; }
+
+/* ── Credentials note ────────────────────────────────────────────────────── */
+/* The small info box explaining what the password is for                      */
+.reg-cred-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    color: #3d5166;
+    font-size: 10px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    background: #080d12;
+    border: 1px solid #1c2333;
+    border-radius: 4px;
+}
+
+.reg-cred-note i { font-size: 11px; margin-top: 1px; flex-shrink: 0; }
+
+/* ── GPS status box ──────────────────────────────────────────────────────── */
+/* Shows between password fields and submit button                             */
+/* Color changes dynamically via inline style in JSX based on gpsStatus        */
+.reg-gps-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #080d12;
+    border: 1px solid #1c2333;  /* overridden inline per status */
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    margin-top: 4px;
+}
+
+.reg-gps-icon { font-size: 14px; margin-top: 2px; flex-shrink: 0; }
+.reg-gps-text { font-size: 11px; font-weight: 600; line-height: 1.3; }
+.reg-gps-sub  { font-size: 10px; color: #2a3d52; margin-top: 2px; line-height: 1.4; }
+
+/* Retry button — only shown when GPS failed */
+.reg-gps-retry {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid #3d5166;
+    border-radius: 3px;
+    color: #3d5166;
+    font-size: 10px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.reg-gps-retry:hover { border-color: #8a9bb0; color: #8a9bb0; }
+
+/* ── Error message ───────────────────────────────────────────────────────── */
 .reg-err {
     color: #c0392b;
     font-size: 10px;
@@ -312,20 +448,20 @@
 
 .reg-err i { font-size: 10px; }
 
-
+/* ── Submit button ───────────────────────────────────────────────────────── */
+/* disabled state shows 50% opacity — visual cue that GPS hasn't confirmed yet */
 .reg-submit {
     width: 100%;
     background: #c0392b;
     color: #fff;
     border: none;
     border-radius: 4px;
-    padding: 11px;
+    padding: 12px;
     font-size: 13px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     margin-top: auto;
-    padding-top: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -334,12 +470,12 @@
     transition: background 0.15s;
 }
 
-.reg-submit:hover:not(:disabled) { background: #a93226; }
+.reg-submit:hover:not(:disabled)  { background: #a93226; }
 .reg-submit:active:not(:disabled) { background: #922b21; }
 .reg-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
 .reg-submit i { font-size: 15px; }
 
+/* ── Loading spinner inside submit button ────────────────────────────────── */
 .reg-spinner {
     width: 14px;
     height: 14px;
@@ -351,14 +487,7 @@
 
 @keyframes reg-spin { to { transform: rotate(360deg); } }
 
-.reg-submit-note {
-    color: #1c2333;
-    font-size: 10px;
-    text-align: center;
-    margin-top: 10px;
-}
-
-
+/* ── Status screens (validating / error / success) ───────────────────────── */
 .reg-status-page {
     min-height: 100vh;
     display: flex;
@@ -389,11 +518,11 @@
     margin: 0 auto 18px;
 }
 
-.reg-status-icon { font-size: 36px; margin-bottom: 16px; display: block; }
+.reg-status-icon  { font-size: 36px; margin-bottom: 16px; display: block; }
 .reg-status-title { color: #f0f4f8; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-.reg-status-sub { color: #3d5166; font-size: 12px; line-height: 1.7; max-width: 240px; margin-inline: auto; }
+.reg-status-sub   { color: #3d5166; font-size: 12px; line-height: 1.7; max-width: 240px; margin-inline: auto; }
 
-/* Success screen */
+/* ── Success screen ──────────────────────────────────────────────────────── */
 .reg-success-box {
     background: #0f1923;
     border: 1px solid #1c2333;
@@ -414,15 +543,13 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 18px;
-    font-size: 24px;
-    color: #4a9d5a;
 }
 
-.reg-success-check i { font-size: 24px; color: #4a9d5a; }
-.reg-success-title { color: #f0f4f8; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.reg-success-sub { color: #3d5166; font-size: 13px; line-height: 1.7; }
+.reg-success-check i  { font-size: 24px; color: #4a9d5a; }
+.reg-success-title    { color: #f0f4f8; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.reg-success-sub      { color: #3d5166; font-size: 13px; line-height: 1.7; }
 .reg-success-sub strong { color: #8a9bb0; }
-.reg-success-divider { height: 1px; background: #1c2333; margin: 22px 0; }
+.reg-success-divider  { height: 1px; background: #1c2333; margin: 22px 0; }
 .reg-success-dl-label { color: #2a3d52; font-size: 11px; margin-bottom: 12px; }
 
 .reg-success-dl-btn {
@@ -442,23 +569,26 @@
 }
 
 .reg-success-dl-btn:hover { border-color: #4a9d5a; color: #5fb870; }
-.reg-success-dl-btn i { font-size: 16px; }
-.reg-success-note { color: #1c2333; font-size: 10px; margin-top: 10px; }
+.reg-success-dl-btn i     { font-size: 16px; }
+.reg-success-note         { color: #1c2333; font-size: 10px; margin-top: 10px; }
 
-
+/* ── Responsive — mobile (max 600px) ────────────────────────────────────── */
+/* On mobile, the card stacks vertically instead of side by side              */
+/* The left panel becomes a top header, the form goes below                   */
 @media (max-width: 600px) {
-    .reg-page    { padding: 0; align-items: flex-start; }
-    .reg-card    { flex-direction: column; border-radius: 0; min-height: 100vh; max-width: 100%; border: none; }
-    .reg-left    { width: 100%; border-right: none; border-bottom: 1px solid #1c2333; padding: 20px; }
-    .reg-brand   { margin-bottom: 16px; }
-    .reg-ev-card { margin-bottom: 0; }
-    .reg-left-footer { display: none; } 
-    .reg-right   { padding: 20px; }
-    .reg-grid    { grid-template-columns: 1fr; }
-    .reg-input   { font-size: 16px; }
-    .reg-submit  { margin-top: 16px; }
-    .reg-ev-meta { flex-direction: row; flex-wrap: wrap; gap: 10px; border-top: none; margin-top: 8px; padding-top: 0; }
-    .reg-mobile-dl { display: flex !important; }
+    .reg-page         { padding: 0; align-items: flex-start; }
+    .reg-card         { flex-direction: column; border-radius: 0; min-height: 100vh; max-width: 100%; border: none; }
+    .reg-left         { width: 100%; border-right: none; border-bottom: 1px solid #1c2333; padding: 20px; }
+    .reg-brand        { margin-bottom: 16px; }
+    .reg-ev-card      { margin-bottom: 0; }
+    .reg-left-footer  { display: none; }
+    .reg-right        { padding: 20px; }
+    .reg-grid         { grid-template-columns: 1fr; }
+    .reg-input        { font-size: 16px; }
+    .reg-submit       { margin-top: 16px; }
+    .reg-ev-meta      { flex-direction: row; flex-wrap: wrap; gap: 10px; border-top: none; margin-top: 8px; padding-top: 0; }
+    .reg-mobile-dl    { display: flex !important; }
+    .reg-location-notice { margin-top: 12px; }
 }
 
 @media (min-width: 601px) {

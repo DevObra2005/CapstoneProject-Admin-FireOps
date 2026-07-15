@@ -1,0 +1,192 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import '../../../css/Superadmin/staffdetail.css';
+
+export default function StaffDetail() {
+    const { id }       = useParams();
+    const navigate     = useNavigate();
+    const [staff,      setStaff]    = useState(null);
+    const [logs,       setLogs]     = useState([]);
+    const [loading,    setLoading]  = useState(true);
+    const [error,      setError]    = useState('');
+
+    useEffect(() => {
+        fetchData();
+    }, [id]);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            // Fire both API calls at the same time
+            const [staffRes, logsRes] = await Promise.all([
+                axios.get(`/api/superadmin/staff/${id}`),
+                axios.get(`/api/superadmin/staff/${id}/logs`),
+            ]);
+            setStaff(staffRes.data);
+            setLogs(logsRes.data.logs);
+        } catch (err) {
+            setError('Failed to load staff details.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Format date nicely
+    const formatDate = (dateStr) =>
+        new Date(dateStr).toLocaleDateString('en-US', {
+            month: 'long', day: 'numeric', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+        });
+
+    // Each action gets a color and icon
+   const actionStyle = (action) => {
+        const map = {
+            created:  { color: '#22c55e', icon: 'bi-plus-circle-fill' },
+            edited:   { color: '#3b82f6', icon: 'bi-pencil-fill' },
+            archived: { color: '#f59e0b', icon: 'bi-archive-fill' },
+            restored: { color: '#22c55e', icon: 'bi-arrow-counterclockwise' },
+            viewed:   { color: '#64748b', icon: 'bi-eye-fill' },
+            deleted:  { color: '#f87171', icon: 'bi-trash-fill' },
+            toggled:  { color: '#a855f7', icon: 'bi-toggle-on' },
+            login:    { color: '#a855f7', icon: 'bi-box-arrow-in-right' },
+        };
+        return map[action] || { color: '#64748b', icon: 'bi-circle-fill' };
+    };
+    if (loading) return (
+        <div className="sd-loading">
+            <span className="sd-spinner"></span>
+            Loading staff details...
+        </div>
+    );
+
+    if (error) return (
+        <div className="sd-error">
+            <i className="bi bi-exclamation-circle-fill"></i>
+            {error}
+        </div>
+    );
+
+    return (
+        <div className="sd-page">
+
+            {/* Back button */}
+            <button className="sd-back" onClick={() => navigate('/staff')}>
+                <i className="bi bi-arrow-left"></i>
+                Back to Staff
+            </button>
+
+            {/* Staff info card */}
+            {staff && (
+                <div className="sd-info-card">
+                    <div className="sd-avatar">
+                        {staff.first_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="sd-info-body">
+                        <div className="sd-name">{staff.full_name}</div>
+                        <div className="sd-email">{staff.email}</div>
+                        <div className="sd-meta">
+                            <span className={staff.is_active ? 'sm-badge-active' : 'sm-badge-archived'}>
+                                {staff.is_active ? 'Active' : 'Archived'}
+                            </span>
+                            <span className="sd-since">
+                                <i className="bi bi-calendar3"></i>
+                                Joined {new Date(staff.created_at).toLocaleDateString('en-US', {
+                                    month: 'long', day: 'numeric', year: 'numeric'
+                                })}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Activity logs */}
+            <div className="sd-section">
+                <div className="sd-section-header">
+                    <h5 className="sd-section-title">
+                        <i className="bi bi-clock-history"></i>
+                        Activity Log
+                    </h5>
+                    <span className="sd-count">{logs.length} entries</span>
+                </div>
+
+                {logs.length === 0 ? (
+                    <div className="sd-empty">
+                        <i className="bi bi-journal-x"></i>
+                        <p>No activity recorded yet.</p>
+                    </div>
+                ) : (
+                    <div className="sd-timeline">
+                        {logs.map((log) => {
+                            const { color, icon } = actionStyle(log.action);
+                            return (
+                                <div className="sd-entry" key={log.id}>
+
+                                    {/* Icon */}
+                                    <div className="sd-entry-icon" style={{ background: `${color}18`, border: `1px solid ${color}40` }}>
+                                        <i className={`bi ${icon}`} style={{ color }}></i>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="sd-entry-body">
+                                        <div className="sd-entry-top">
+                                            <span className="sd-entry-action" style={{ color }}>
+                                                {log.action.charAt(0).toUpperCase() + log.action.slice(1)}
+                                            </span>
+                                            <span className="sd-entry-date">{formatDate(log.created_at)}</span>
+                                        </div>
+                                        <div className="sd-entry-desc">{log.description}</div>
+                                        <div className="sd-entry-by">
+                                            <i className="bi bi-person"></i>
+                                            <span>By</span> {log.performed_by}
+                                        </div>
+
+                                        {/* Meta — show if exists */}
+                                        {log.meta && (
+                                            <div className="sd-meta-box">
+                                                <div className="sd-meta-label">Changes</div>
+                                                {log.meta.before && log.meta.after ? (
+                                                    <table className="sd-meta-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Field</th>
+                                                                <th>Before</th>
+                                                                <th>After</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {Object.keys(log.meta.before).map((key) => (
+                                                                log.meta.before[key] !== log.meta.after[key] && (
+                                                                    <tr key={key}>
+                                                                        <td className="sd-meta-key">{key.replace('_', ' ')}</td>
+                                                                        <td className="sd-meta-old">{log.meta.before[key] || '—'}</td>
+                                                                        <td className="sd-meta-new">{log.meta.after[key] || '—'}</td>
+                                                                    </tr>
+                                                                )
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                ) : (
+                                                    <div className="sd-meta-pills">
+                                                        {Object.entries(log.meta).map(([key, value]) => (
+                                                            <div className="sd-meta-pill" key={key}>
+                                                                <span className="sd-meta-pill-key">{key.replace('_', ' ')}</span>
+                                                                <span className="sd-meta-pill-val">{value}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+        </div>
+    );
+}

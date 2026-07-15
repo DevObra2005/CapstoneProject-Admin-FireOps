@@ -1,0 +1,312 @@
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import ParticipantCardList from '../staff/ParticipantCardList'
+import ParticipantAllSessions from '../staff/ParticipantAllSessions'
+
+export default function AdminEventDetail({ event, token, onBack }) {
+    const [participants, setParticipants] = useState([])
+    const [loadingP, setLoadingP]         = useState(true)
+    const [results, setResults]           = useState([])
+    const [search, setSearch]             = useState('')
+    const [selectedParticipant, setSelectedParticipant] = useState(null)
+
+    useEffect(() => {
+        const fetchParticipants = async () => {
+            try {
+                const res = await axios.get(`/api/superadmin/events/${event.id}/participants`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                setParticipants(Array.isArray(res.data) ? res.data : [])
+            } catch {
+                setParticipants([])
+            } finally {
+                setLoadingP(false)
+            }
+        }
+        fetchParticipants()
+    }, [event.id])
+
+    useEffect(() => {
+        const fetchResults = async () => {
+            try {
+                const res = await axios.get(
+                    `/api/superadmin/events/${event.id}/results`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                )
+                setResults(Array.isArray(res.data) ? res.data : [])
+            } catch {
+                setResults([])
+            }
+        }
+        fetchResults()
+    }, [event.id])
+
+    const filteredParticipants = participants.filter(p =>
+        p.name?.toLowerCase().includes(search.toLowerCase()) ||
+        p.email?.toLowerCase().includes(search.toLowerCase())
+    )
+
+    const sessionsForParticipant = (participant) =>
+        results.filter(r => r.participant_email === participant.email)
+
+    const uniqueCompletedEmails = new Set(results.map(r => r.participant_email))
+    const totalCompleted = uniqueCompletedEmails.size
+    const avgScore = totalCompleted > 0
+        ? Math.round(
+            [...uniqueCompletedEmails].reduce((sum, email) => {
+                const personSessions = results.filter(r => r.participant_email === email)
+                const bestScore = Math.max(...personSessions.map(s => s.percentage_score))
+                return sum + bestScore
+            }, 0) / totalCompleted
+        )
+        : 0
+
+    const ENVIRONMENTS = ['office', 'classroom', 'kitchen']
+    const envStats = ENVIRONMENTS.map(env => {
+        const envResults = results.filter(r => r.environment === env)
+        const envPassed  = envResults.filter(r => r.phase2_passed)
+        const envAvg     = envPassed.length > 0
+            ? Math.round(envPassed.reduce((s, r) => s + r.percentage_score, 0) / envPassed.length)
+            : 0
+        return {
+            env,
+            label: env.charAt(0).toUpperCase() + env.slice(1),
+            passed: envPassed.length,
+            avgScore: envAvg,
+        }
+    })
+
+    const stepFailCounts = {}
+    results.forEach(session => {
+        session.steps?.forEach(step => {
+            if (!step.was_correct) {
+                stepFailCounts[step.step_name] = (stepFailCounts[step.step_name] || 0) + 1
+            }
+        })
+    })
+    const sortedSteps = Object.entries(stepFailCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    const maxFails = sortedSteps.length > 0 ? sortedSteps[0][1] : 1
+
+    const formatStepName = (stepName) => {
+        const names = {
+            'SoundAlarm':    'Sound Alarm',
+            'GrabExtinguisher': 'Grab Extinguisher',
+            'GrabWetBlanket':   'Grab Wet Blanket',
+            'TPASS_Twist':   'TPASS — Twist',
+            'TPASS_Pull':    'TPASS — Pull',
+            'TPASS_Aim':     'TPASS — Aim',
+            'TPASS_Squeeze': 'TPASS — Squeeze',
+            'TPASS_Sweep':   'TPASS — Sweep',
+            'WCTL_Wet':      'WCTL — Wet',
+            'WCTL_Cover':    'WCTL — Cover',
+            'WCTL_TurnOff':  'WCTL — Turn Off',
+            'WCTL_Leave':    'WCTL — Leave',
+            'Evacuate':      'Evacuate',
+        }
+        return names[stepName] || stepName
+    }
+
+    if (selectedParticipant) {
+        return (
+            <ParticipantAllSessions
+                participant={selectedParticipant}
+                sessions={sessionsForParticipant(selectedParticipant)}
+                onBack={() => setSelectedParticipant(null)}
+            />
+        )
+    }
+
+    return (
+        <div className="ev-page">
+
+            {/* Header — read only */}
+            <div className="ev-page-header">
+                <div>
+                    <h4 className="ev-page-title">{event.name}</h4>
+                    <p className="ev-page-sub">
+                        <i className="bi bi-person-fill me-1 text-danger"></i>
+                        In charge: <strong>{event.incharge_name}</strong>
+                        <span className="ms-2" style={{ fontSize: 12, color: '#647d94' }}>
+                            {event.incharge_email}
+                        </span>
+                    </p>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                    <button className="ev-btn ev-btn-danger" onClick={onBack}>
+                        <i className="bi bi-arrow-left"></i> Back
+                    </button>
+                    <span style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        padding: '5px 14px',
+                        borderRadius: 6,
+                        background: event.is_open ? 'rgba(34,197,94,0.15)' : 'rgba(100,125,148,0.15)',
+                        color: event.is_open ? '#22c55e' : '#647d94',
+                        border: `1px solid ${event.is_open ? 'rgba(34,197,94,0.3)' : 'rgba(100,125,148,0.3)'}`,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                    }}>
+                        <i className={`bi ${event.is_open ? 'bi-unlock-fill' : 'bi-lock-fill'} me-1`}></i>
+                        {event.is_open ? 'Open' : 'Closed'}
+                    </span>
+                </div>
+            </div>
+
+            {/* Info Cards */}
+            <div className="ev-detail-grid">
+                <div className="ev-detail-card">
+                    <div className="ev-detail-label">Date</div>
+                    <div className="ev-detail-value">
+                        <i className="bi bi-calendar3 me-2 text-danger"></i>
+                        {new Date(event.date).toLocaleDateString('en-US', {
+                            month: 'long', day: 'numeric', year: 'numeric'
+                        })}
+                    </div>
+                </div>
+                <div className="ev-detail-card">
+                    <div className="ev-detail-label">Venue</div>
+                    <div className="ev-detail-value">
+                        <i className="bi bi-geo-alt-fill me-2 text-danger"></i>
+                        {event.location_name || '—'}
+                    </div>
+                </div>
+                <div className="ev-detail-card">
+                    <div className="ev-detail-label">Registration Radius</div>
+                    <div className="ev-detail-value">
+                        <i className="bi bi-broadcast me-2 text-danger"></i>
+                        {event.radius_meters}m from venue
+                    </div>
+                </div>
+                <div className="ev-detail-card">
+                    <div className="ev-detail-label">Total Registered</div>
+                    <div className="ev-detail-value">
+                        <i className="bi bi-people-fill me-2 text-danger"></i>
+                        {participants.length} participants
+                    </div>
+                </div>
+            </div>
+
+            {/* Overview */}
+            <div className="ev-overview-card">
+                <div className="ev-overview-section-title">
+                    <i className="bi bi-bar-chart-fill text-danger"></i>
+                    Event Overview
+                </div>
+                <div className="ev-stats-grid">
+                    <div className="ev-stat-card">
+                        <div className="ev-stat-number ev-stat-green">{totalCompleted}</div>
+                        <div className="ev-stat-label">
+                            <i className="bi bi-check-circle-fill" style={{ color: '#22c55e' }}></i>
+                            Completed
+                        </div>
+                        <div className="ev-stat-sub">Passed at least one simulation</div>
+                    </div>
+                    <div className="ev-stat-card">
+                        <div className="ev-stat-number ev-stat-yellow">{avgScore}%</div>
+                        <div className="ev-stat-label">
+                            <i className="bi bi-stopwatch-fill" style={{ color: '#f59e0b' }}></i>
+                            Avg Score
+                        </div>
+                        <div className="ev-stat-sub">AVG Percentage Score</div>
+                    </div>
+                </div>
+
+                {/* ── BY ENVIRONMENT  ── */}
+                <div className="ev-overview-divider"></div>
+                <div className="ev-overview-section-title">
+                    <i className="bi bi-building text-danger"></i>
+                    By Environment
+                </div>
+                <div className="row g-2 mb-2">
+                    {[
+                        { key: 'office',    label: 'Office',    icon: 'bi-building-fill',    tag: 'TPASS' },
+                        { key: 'classroom', label: 'Classroom', icon: 'bi-mortarboard-fill', tag: 'TPASS' },
+                        { key: 'kitchen',   label: 'Kitchen',   icon: 'bi-fire',             tag: 'WCTL'  },
+                    ].map(env => {
+                        const stat = envStats.find(e => e.env === env.key)
+                        return (
+                            <div key={env.key} className="col-12 col-md-4">
+                                <div className="db-env-card">
+                                    <div className="d-flex align-items-center justify-content-between mb-3 ps-2">
+                                        <div className="db-env-title">
+                                            <i className={`bi ${env.icon}`}></i>
+                                            {env.label}
+                                        </div>
+                                        <span className="db-env-tag">{env.tag}</span>
+                                    </div>
+                                    <div className="ps-2">
+                                        <div className="d-flex align-items-center justify-content-between py-2 border-bottom border-dark">
+                                            <span className="db-env-row-lbl">
+                                                <i className="bi bi-people-fill me-2"></i>
+                                                Participants passed
+                                            </span>
+                                            <span className="db-env-row-val">{stat?.passed ?? 0}</span>
+                                        </div>
+                                        <div className="d-flex align-items-center justify-content-between py-2">
+                                            <span className="db-env-row-lbl">
+                                                <i className="bi bi-graph-up me-2"></i>
+                                                Avg simulation score
+                                            </span>
+                                            <span className="db-env-row-val">
+                                                {stat?.avgScore > 0 ? `${stat.avgScore}%` : '—'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* ── MOST FAILED STEPS ── */}
+                <div className="ev-overview-divider"></div>
+                <div className="ev-overview-section-title">
+                    <i className="bi bi-exclamation-triangle-fill text-danger"></i>
+                    Most Failed Steps
+                </div>
+                {sortedSteps.length > 0 ? (
+                    <div className="ev-hbar-list">
+                        {sortedSteps.map(([stepName, count]) => (
+                            <div key={stepName} className="ev-hbar-row">
+                                <div className="ev-hbar-label">{formatStepName(stepName)}</div>
+                                <div className="ev-hbar-track">
+                                    <div className="ev-hbar-fill"
+                                        style={{ width: `${(count / maxFails) * 100}%`, opacity: 0.4 + (count / maxFails) * 0.6 }} />
+                                </div>
+                                <div className="ev-hbar-count">{count}</div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="ev-hbar-empty">
+                        <i className="bi bi-bar-chart"></i>
+                        <p>No simulation data yet.</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Participants */}
+            <div>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <h6 style={{ margin: 0, color: '#f1f5f9', fontWeight: 600, flexShrink: 0 }}>
+                        <i className="bi bi-people-fill me-2 text-danger"></i>
+                        Registered Participants
+                    </h6>
+                    <input
+                        type="text"
+                        placeholder="Search by name or email..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        style={{ flex: 1, minWidth: 180, background: '#0d1117', border: '1px solid #1e293b', borderRadius: 8, padding: '6px 12px', color: '#f1f5f9', fontSize: 13, outline: 'none' }}
+                    />
+                </div>
+                <ParticipantCardList
+                    participants={filteredParticipants}
+                    loading={loadingP}
+                    onRowClick={(p) => setSelectedParticipant(p)}
+                />
+            </div>
+
+        </div>
+    )
+}
