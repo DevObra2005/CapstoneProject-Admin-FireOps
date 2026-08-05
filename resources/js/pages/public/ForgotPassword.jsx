@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../api/axios'
 import '../../../css/forgotpassword.css';
 
 export default function ForgotPassword() {
@@ -12,7 +12,7 @@ export default function ForgotPassword() {
         e.preventDefault();
         setLoading(true); setError(''); setSuccess('');
         try {
-            const res = await axios.post('/api/forgot-password', { email });
+            const res = await api.post('/forgot-password', { email });
             setSuccess(res.data.message);
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong.');

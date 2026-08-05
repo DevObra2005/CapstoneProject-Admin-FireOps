@@ -1,0 +1,455 @@
+/* ============================================================
+   FireOps — Staff Certifications page
+   Uses the shared theme variables from sidebar.css.
+   Header, KPI cards, section labels and panels reuse the
+   existing db-* classes from the dashboard stylesheet.
+   ============================================================ */
+
+/* ── TOOLBAR ──────────────────────────────────────────────── */
+.cf-toolbar {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.cf-search {
+    flex: 1 1 250px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    height: 40px;
+    padding: 0 13px;
+    color: var(--faint);
+    margin: 0;
+}
+
+.cf-search i {
+    font-size: 14px;
+    flex: none;
+}
+
+.cf-search input {
+    background: none;
+    border: 0;
+    outline: none;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13.5px;
+    width: 100%;
+}
+
+.cf-search input::placeholder {
+    color: var(--faint);
+}
+
+.cf-select {
+    background-color: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    height: 40px;
+    padding: 0 32px 0 13px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='11' fill='%23888888'><path d='M1 3l4.5 5L10 3z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.cf-select option {
+    background: var(--panel);
+    color: var(--ink);
+}
+
+.cf-select:hover,
+.cf-search:focus-within {
+    border-color: var(--green);
+}
+
+/* ── PANEL ────────────────────────────────────────────────── */
+.cf-panel {
+    padding: 0;
+    overflow: hidden;
+}
+
+.cf-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+/* ── TABLE ────────────────────────────────────────────────── */
+.cf-table-wrap {
+    overflow-x: auto;
+}
+
+.cf-tbl {
+    width: 100%;
+    min-width: 860px;
+    border-collapse: collapse;
+}
+
+.cf-tbl thead th {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 11px 16px;
+    text-align: left;
+    background: var(--soft);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.cf-tbl th.c,
+.cf-tbl td.c { text-align: center; }
+
+.cf-tbl th.r,
+.cf-tbl td.r { text-align: right; }
+
+.cf-tbl tbody tr {
+    border-bottom: 1px solid var(--line);
+}
+
+.cf-tbl tbody tr:last-child {
+    border-bottom: 0;
+}
+
+.cf-tbl tbody tr:hover {
+    background: var(--soft);
+}
+
+.cf-tbl td {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+/* ── PARTICIPANT CELL ─────────────────────────────────────── */
+.cf-who {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.cf-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex: none;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 12.5px;
+    background: var(--green-soft);
+    color: var(--green-ink);
+    border: 1px solid var(--brand-glow);
+}
+
+.cf-who-text { min-width: 0; }
+
+.cf-who-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.cf-who-mail {
+    font-size: 11px;
+    color: var(--faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── EVENT CELL ───────────────────────────────────────────── */
+.cf-event {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink2);
+    background: var(--soft);
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+    border-radius: 8px;
+    max-width: 100%;
+}
+
+.cf-event i {
+    color: var(--green);
+    font-size: 11px;
+    flex: none;
+}
+
+.cf-event span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cf-event-date {
+    font-size: 10.5px;
+    color: var(--faint);
+    margin-top: 4px;
+}
+
+/* ── SCORE CELLS ──────────────────────────────────────────── */
+.cf-score {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--pass);
+    line-height: 1.25;
+}
+
+.cf-score small {
+    display: block;
+    font-weight: 500;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .3px;
+}
+
+.cf-none {
+    color: var(--faint);
+    font-size: 15px;
+}
+
+/* ── PROGRESS ─────────────────────────────────────────────── */
+.cf-prog {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.cf-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.cf-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--track);
+    border: 1px solid var(--line);
+    display: inline-block;
+}
+
+.cf-dot.on {
+    background: var(--pass);
+    border-color: var(--pass);
+}
+
+/* Partial progress uses a neutral chip rather than a warning
+   colour — an incomplete set is not an error state. */
+.cf-count {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: var(--soft);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.cf-count.full {
+    background: var(--pass-soft);
+    color: var(--pass-ink);
+    border-color: transparent;
+}
+
+/* ── ACTION BUTTONS ───────────────────────────────────────── */
+.cf-act {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    width: 31px;
+    height: 31px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    margin-left: 5px;
+    transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.cf-act:hover {
+    color: var(--green-ink);
+    border-color: var(--green);
+    background: var(--green-soft);
+}
+
+/* ── FOOTER + PAGINATION ──────────────────────────────────── */
+.cf-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 11px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--soft);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.cf-pager {
+    display: flex;
+    gap: 6px;
+}
+
+.cf-pg {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    min-width: 29px;
+    height: 29px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    transition: color .18s ease, border-color .18s ease;
+}
+
+.cf-pg:hover:not(:disabled) {
+    color: var(--ink);
+    border-color: var(--green);
+}
+
+.cf-pg.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+    font-weight: 700;
+}
+
+.cf-pg:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+/* ── EMPTY STATE ──────────────────────────────────────────── */
+.cf-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 46px 20px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.cf-empty i {
+    font-size: 26px;
+    color: var(--faint);
+}
+
+/* ── LEGEND ───────────────────────────────────────────────── */
+.cf-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.cf-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-sw {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    background: var(--track);
+    border: 1px solid var(--line);
+    display: inline-block;
+}
+
+.cf-sw.on {
+    background: var(--pass);
+    border-color: var(--pass);
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .cf-toolbar {
+        flex-direction: column;
+    }
+
+    /* flex-basis follows the flex direction. In the row layout
+       `flex: 1 1 250px` sets the WIDTH, but once the toolbar
+       becomes a column that same basis becomes the HEIGHT — which
+       is why the search box ballooned. Reset it here. */
+    .cf-search {
+        flex: none;
+        width: 100%;
+        height: 40px;
+    }
+
+    .cf-select {
+        flex: none;
+        width: 100%;
+    }
+
+    /* Panel title and badge stop fighting for one line */
+    .cf-panel-head {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 13px 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    /* 16px stops iOS Safari zooming the page on focus */
+    .cf-search input { font-size: 16px; }
+    .cf-select       { font-size: 16px; }
+
+    .cf-tbl { min-width: 700px; }
+
+    .cf-tbl thead th,
+    .cf-tbl td {
+        padding: 11px 12px;
+    }
+
+    .cf-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 11.5px;
+    }
+
+    .cf-who { gap: 9px; }
+    .cf-who-name { font-size: 13px; }
+    .cf-who-mail { font-size: 10.5px; }
+
+    .cf-foot {
+        justify-content: center;
+        padding: 11px 14px;
+    }
+
+    .cf-legend {
+        gap: 10px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 400px) {
+    .cf-tbl { min-width: 620px; }
+
+    .cf-tbl thead th,
+    .cf-tbl td {
+        padding: 10px;
+    }
+}

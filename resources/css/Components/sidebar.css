@@ -1,46 +1,83 @@
-/* ── Theme variables (light = default; dark ready for the toggle later) ── */
+/* ── Theme variables ─────────────────────────────────────────
+   NOTE: the --green-* names are kept on purpose so that
+   dashboard.css, login.css and all components keep working.
+   They now hold the BFP RED brand values.
+   Use --pass-* for genuine success/pass states.
+──────────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
+    /* Pure neutral greys — R=G=B, no tint */
     --panel:      #ffffff;
-    --bg:         #f2f2f2;
-    --soft:       #f4f7f5;
-    --line:       #dfe4e0;
-    --ink:        #18241f;
-    --ink2:       #3b4842;
-    --muted:      #7c877f;
-    --faint:      #a7b0a9;
-    --green:      #2fa24d;
-    --green-2:    #268a41;
-    --green-soft: #e8f5ec;
-    --green-ink:  #1c6b33;
-    --track:      #eaefeb;
-    --sh:         0 6px 22px rgba(20,45,30,.06), 0 2px 6px rgba(20,45,30,.04);
-    --sh-sm:      0 2px 8px rgba(20,45,30,.05);
-    --danger-soft: rgba(192,57,43,.08);
-    --danger-ink:  #c0392b;
+    --bg:         #eeeeee;   /* darker canvas → white cards pop harder */
+    --soft:       #f5f5f5;
+    --line:       #d6d6d6;   /* stronger, clearly visible borders */
+    --ink:        #0a0a0a;   /* near-black body text */
+    --ink2:       #2e2e2e;
+    --muted:      #616161;   /* darker: passes WCAG AA on white */
+    --faint:      #8f8f8f;   /* darker: readable, not washed out */
+    --brand-glow: rgba(184, 39, 26, .30);
+
+    /* BRAND — BFP red (names kept for compatibility) */
+    --green:      #b8271a;   /* deeper, richer red */
+    --green-2:    #94180d;
+    --green-soft: #fce4e1;
+    --green-ink:  #7d1a10;
+
+    /* SUCCESS / PASS — green scale: deep → mid → light */
+    --pass:       #14562a;
+    --pass-mid:   #2d8752;
+    --pass-light: #4fa375;
+    --pass-soft:  #dff0e5;
+    --pass-ink:   #0d3f1e;
+
+    /* FAIL / ERROR */
+    --fail:       #b8271a;
+    --fail-soft:  #fce4e1;
+    --fail-ink:   #7d1a10;
+
+    --track:      #dedede;
+    --sh:         0 6px 24px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.07);
+    --sh-sm:      0 2px 8px rgba(0,0,0,.08);
+
+    --danger-soft: rgba(125,26,16,.10);
+    --danger-ink:  #7d1a10;
 }
 
 [data-theme="dark"] {
-    --panel:      #17191e;
-    --bg:         #0e0f12;
-    --soft:       #1f222a;
-    --line:       #282c34;
-    --ink:        #e8eaef;
-    --ink2:       #c3c8d1;
-    --muted:      #8b909b;
-    --faint:      #5b616c;
-    --green:      #34b857;
-    --green-2:    #2a9647;
-    --green-soft: #17271c;
-    --green-ink:  #5fd07e;
-    --track:      #282c34;
-    --sh:         0 8px 24px rgba(0,0,0,.40), 0 2px 6px rgba(0,0,0,.30);
-    --sh-sm:      0 2px 10px rgba(0,0,0,.30);
-    --danger-soft: rgba(224,71,58,.12);
-    --danger-ink:  #ff7a6b;
-}
+    /* Pure neutral darks — R=G=B, no tint */
+    --panel:      #1c1c1c;   /* clearly lifted above the background */
+    --bg:         #070707;   /* near-true-black canvas */
+    --soft:       #262626;
+    --line:       #3a3a3a;   /* borders you can actually see */
+    --ink:        #fafafa;   /* brighter body text */
+    --ink2:       #d9d9d9;
+    --muted:      #a3a3a3;   /* brighter: readable on dark */
+    --faint:      #757575;
+    --brand-glow: rgba(255, 95, 80, .28);
 
+    /* BRAND — lifted red for dark backgrounds */
+    --green:      #ff5f50;   /* punchier on black */
+    --green-2:    #db4032;
+    --green-soft: #331512;
+    --green-ink:  #ff9d90;
+
+    /* SUCCESS / PASS — green scale: deep → mid → light */
+    --pass:       #3ecf68;
+    --pass-mid:   #2fae57;
+    --pass-light: #74e394;
+    --pass-soft:  #102a18;
+    --pass-ink:   #74e394;
+
+    /* FAIL / ERROR */
+    --fail:       #ff5f50;
+    --fail-soft:  #331512;
+    --fail-ink:   #ff9d90;
+
+    --track:      #3a3a3a;
+    --sh:         0 10px 30px rgba(0,0,0,.65), 0 2px 8px rgba(0,0,0,.50);
+    --sh-sm:      0 3px 12px rgba(0,0,0,.45);
+}
 /* ============================================================
    BASE
 ============================================================ */
@@ -49,7 +86,7 @@
     flex-direction: column;
     width: 240px;
     min-height: 100vh;
-    background: var(--panel);
+    background: linear-gradient(180deg, var(--panel) 0%, var(--soft) 100%);
     border-right: 1px solid var(--line);
     box-shadow: var(--sh-sm);
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -70,7 +107,7 @@
     padding: 4px;
     background: var(--green-soft);
     border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(20, 45, 30, .06);
+    box-shadow: 0 2px 6px rgba(45, 20, 15, .06);
 }
 
 .sb-logo::after {
@@ -152,15 +189,19 @@
     justify-content: center;
     font-size: 15px;
     color: var(--faint);
-    background: var(--soft);
+    background: var(--panel);
     border-radius: 9px;
     transition: background .18s ease, color .18s ease;
 }
 
 .sb-link:hover {
     color: var(--ink);
-    background: var(--soft);
+    background: rgba(255, 255, 255, 0.5);
     transform: translateX(1px);
+}
+
+[data-theme="dark"] .sb-link:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .sb-link:hover i {
@@ -168,7 +209,7 @@
     background: var(--panel);
 }
 
-/* Active state — pale green with left accent + lifted icon chip */
+/* Active state — pale red with left accent + lifted icon chip */
 .sb-link.active {
     color: var(--green-ink);
     background: var(--green-soft);
@@ -178,7 +219,7 @@
 .sb-link.active i {
     color: #fff;
     background: var(--green);
-    box-shadow: 0 3px 8px rgba(47, 162, 77, .30);
+    box-shadow: 0 3px 8px rgba(192, 57, 43, .32);
 }
 
 /* thin scrollbar for long nav lists */
@@ -208,7 +249,11 @@
 
 .sb-theme:hover {
     color: var(--ink);
-    background: var(--soft);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .sb-theme:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .sb-theme-l {

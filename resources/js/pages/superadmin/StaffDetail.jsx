@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios'
 import '../../../css/Superadmin/staffdetail.css';
 
 export default function StaffDetail() {
@@ -18,10 +18,9 @@ export default function StaffDetail() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Fire both API calls at the same time
             const [staffRes, logsRes] = await Promise.all([
-                axios.get(`/api/superadmin/staff/${id}`),
-                axios.get(`/api/superadmin/staff/${id}/logs`),
+                api.get(`/superadmin/staff/${id}`),
+                api.get(`/superadmin/staff/${id}/logs`),
             ]);
             setStaff(staffRes.data);
             setLogs(logsRes.data.logs);
@@ -32,27 +31,27 @@ export default function StaffDetail() {
         }
     };
 
-    // Format date nicely
     const formatDate = (dateStr) =>
         new Date(dateStr).toLocaleDateString('en-US', {
             month: 'long', day: 'numeric', year: 'numeric',
             hour: '2-digit', minute: '2-digit',
         });
 
-    // Each action gets a color and icon
-   const actionStyle = (action) => {
+    // Each action gets an icon + a semantic CSS class (no inline colors)
+    const actionStyle = (action) => {
         const map = {
-            created:  { color: '#22c55e', icon: 'bi-plus-circle-fill' },
-            edited:   { color: '#3b82f6', icon: 'bi-pencil-fill' },
-            archived: { color: '#f59e0b', icon: 'bi-archive-fill' },
-            restored: { color: '#22c55e', icon: 'bi-arrow-counterclockwise' },
-            viewed:   { color: '#64748b', icon: 'bi-eye-fill' },
-            deleted:  { color: '#f87171', icon: 'bi-trash-fill' },
-            toggled:  { color: '#a855f7', icon: 'bi-toggle-on' },
-            login:    { color: '#a855f7', icon: 'bi-box-arrow-in-right' },
+            created:  { icon: 'bi-plus-circle-fill',        className: 'sd-action-created' },
+            edited:   { icon: 'bi-pencil-fill',              className: 'sd-action-edited' },
+            archived: { icon: 'bi-archive-fill',              className: 'sd-action-archived' },
+            restored: { icon: 'bi-arrow-counterclockwise',    className: 'sd-action-restored' },
+            viewed:   { icon: 'bi-eye-fill',                  className: 'sd-action-viewed' },
+            deleted:  { icon: 'bi-trash-fill',                className: 'sd-action-deleted' },
+            toggled:  { icon: 'bi-toggle-on',                 className: 'sd-action-toggled' },
+            login:    { icon: 'bi-box-arrow-in-right',        className: 'sd-action-login' },
         };
-        return map[action] || { color: '#64748b', icon: 'bi-circle-fill' };
+        return map[action] || { icon: 'bi-circle-fill', className: 'sd-action-default' };
     };
+
     if (loading) return (
         <div className="sd-loading">
             <span className="sd-spinner"></span>
@@ -71,7 +70,7 @@ export default function StaffDetail() {
         <div className="sd-page">
 
             {/* Back button */}
-            <button className="sd-back" onClick={() => navigate('/staff')}>
+           <button className="sd-back" onClick={() => navigate('/staff-management')}>
                 <i className="bi bi-arrow-left"></i>
                 Back to Staff
             </button>
@@ -118,19 +117,21 @@ export default function StaffDetail() {
                 ) : (
                     <div className="sd-timeline">
                         {logs.map((log) => {
-                            const { color, icon } = actionStyle(log.action);
+                            const { icon, className } = actionStyle(log.action);
+                            const isToggle = log.action === 'toggled';
+
                             return (
                                 <div className="sd-entry" key={log.id}>
 
                                     {/* Icon */}
-                                    <div className="sd-entry-icon" style={{ background: `${color}18`, border: `1px solid ${color}40` }}>
-                                        <i className={`bi ${icon}`} style={{ color }}></i>
+                                    <div className={`sd-entry-icon ${className}`}>
+                                        <i className={`bi ${icon}`}></i>
                                     </div>
 
                                     {/* Content */}
                                     <div className="sd-entry-body">
                                         <div className="sd-entry-top">
-                                            <span className="sd-entry-action" style={{ color }}>
+                                            <span className={`sd-entry-action ${className}`}>
                                                 {log.action.charAt(0).toUpperCase() + log.action.slice(1)}
                                             </span>
                                             <span className="sd-entry-date">{formatDate(log.created_at)}</span>
@@ -141,8 +142,8 @@ export default function StaffDetail() {
                                             <span>By</span> {log.performed_by}
                                         </div>
 
-                                        {/* Meta — show if exists */}
-                                        {log.meta && (
+                                        {/* Meta — skipped entirely for event toggle actions */}
+                                        {log.meta && !isToggle && (
                                             <div className="sd-meta-box">
                                                 <div className="sd-meta-label">Changes</div>
                                                 {log.meta.before && log.meta.after ? (

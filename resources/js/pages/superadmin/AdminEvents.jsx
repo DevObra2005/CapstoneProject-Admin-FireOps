@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../api/axios'
 import AdminEventDetail from './AdminEventDetail'
-import '../../../css/Superadmin/adminevents.css'
+import '../../../css/Components/eventlist.css'
 
 export default function AdminEvents() {
     const [events, setEvents]           = useState([])
@@ -14,9 +14,7 @@ export default function AdminEvents() {
     useEffect(() => {
         const fetch = async () => {
             try {
-                const res = await axios.get('/api/superadmin/events', {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
+                const res = await api.get('/superadmin/events')
                 setEvents(Array.isArray(res.data) ? res.data : [])
             } catch {
                 setEvents([])

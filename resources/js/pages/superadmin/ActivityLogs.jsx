@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios'
 import '../../../css/Superadmin/activitylogs.css';
 
 export default function ActivityLogs() {
@@ -12,7 +12,7 @@ export default function ActivityLogs() {
     const fetchLogs = async () => {
         setFetching(true);
         try {
-            const res = await axios.get('/api/superadmin/activity-logs');
+            const res = await api.get('/superadmin/activity-logs');
             setLogs(res.data);
         } catch (err) {
             console.log('Error fetching logs:', err);
@@ -27,17 +27,18 @@ export default function ActivityLogs() {
             hour: '2-digit', minute: '2-digit',
         });
 
+    // Each action gets an icon + a semantic CSS class (no inline colors)
     const actionStyle = (action) => {
         const map = {
-            created:  { color: '#22c55e', icon: 'bi-plus-circle-fill' },
-            edited:   { color: '#3b82f6', icon: 'bi-pencil-fill' },
-            archived: { color: '#f59e0b', icon: 'bi-archive-fill' },
-            restored: { color: '#22c55e', icon: 'bi-arrow-counterclockwise' },
-            viewed:   { color: '#64748b', icon: 'bi-eye-fill' },
-            deleted:  { color: '#f87171', icon: 'bi-trash-fill' },
-            toggled:  { color: '#a855f7', icon: 'bi-toggle-on' },
+            created:  { icon: 'bi-plus-circle-fill',      className: 'al-action-created' },
+            edited:   { icon: 'bi-pencil-fill',             className: 'al-action-edited' },
+            archived: { icon: 'bi-archive-fill',            className: 'al-action-archived' },
+            restored: { icon: 'bi-arrow-counterclockwise',  className: 'al-action-restored' },
+            viewed:   { icon: 'bi-eye-fill',                className: 'al-action-viewed' },
+            deleted:  { icon: 'bi-trash-fill',              className: 'al-action-deleted' },
+            toggled:  { icon: 'bi-toggle-on',               className: 'al-action-toggled' },
         };
-        return map[action] || { color: '#64748b', icon: 'bi-circle-fill' };
+        return map[action] || { icon: 'bi-circle-fill', className: 'al-action-default' };
     };
 
     // Get unique actions for filter buttons
@@ -55,7 +56,7 @@ export default function ActivityLogs() {
             <div className="al-header">
                 <div>
                     <h4 className="al-title">Activity Logs</h4>
-                    <p className="al-sub">All superadmin and staff actions recorded by the system</p>
+                  <p className="al-sub">Audit trail of administration and staff actions across the system</p>
                 </div>
                 <span className="al-count">{filteredLogs.length} entries</span>
             </div>
@@ -87,19 +88,21 @@ export default function ActivityLogs() {
             ) : (
                 <div className="al-list">
                     {filteredLogs.map(log => {
-                        const { color, icon } = actionStyle(log.action);
+                        const { icon, className } = actionStyle(log.action);
+                        const isToggle = log.action === 'toggled';
+
                         return (
                             <div className="al-entry" key={log.id}>
 
                                 {/* Icon */}
-                                <div className="al-icon" style={{ background: `${color}18`, border: `1px solid ${color}40` }}>
-                                    <i className={`bi ${icon}`} style={{ color }}></i>
+                                <div className={`al-icon ${className}`}>
+                                    <i className={`bi ${icon}`}></i>
                                 </div>
 
                                 {/* Main content */}
                                 <div className="al-body">
                                     <div className="al-row-top">
-                                        <span className="al-action" style={{ color }}>
+                                        <span className={`al-action ${className}`}>
                                             {log.action.charAt(0).toUpperCase() + log.action.slice(1)}
                                         </span>
                                         <span className="al-date">{formatDate(log.created_at)}</span>
@@ -118,8 +121,8 @@ export default function ActivityLogs() {
                                         )}
                                     </div>
 
-                                    {/* Meta changes */}
-                                    {log.meta && log.meta.before && log.meta.after && (
+                                    {/* Meta changes — skipped for event toggle actions */}
+                                    {log.meta && log.meta.before && log.meta.after && !isToggle && (
                                         <div className="al-changes">
                                             <div className="al-changes-label">Changes</div>
                                             <table className="al-changes-table">

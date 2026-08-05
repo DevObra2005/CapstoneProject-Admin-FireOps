@@ -1,6 +1,7 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import fireopsLogo from '/public/Images/FireOps_Logo.png'
 import '../../css/mainlayout.css'
 
 export default function MainLayout() {
@@ -15,17 +16,17 @@ export default function MainLayout() {
             {/* ===== MOBILE TOPBAR ===== */}
             <div className="mobile-topbar">
                 <button
-                    className="btn btn-sm"
-                    style={{ color: 'var(--ink)', fontSize: '20px' }}
+                    className="mt-burger"
                     data-bs-toggle="offcanvas"
                     data-bs-target="#mobileSidebar"
+                    aria-label="Open menu"
                 >
                     <i className="bi bi-list"></i>
                 </button>
-                <span style={{ color: 'var(--green)', fontWeight: '700' }}>
-                    FireOps
-                </span>
-                <div style={{ width: '30px' }}></div>
+                <div className="mt-spacer"></div>
+                <div className="mt-logo">
+                    <img src={fireopsLogo} alt="FireOps" />
+                </div>
             </div>
 
             {/* ===== MOBILE SIDEBAR ===== */}

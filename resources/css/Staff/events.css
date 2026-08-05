@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 /* ── Base ── */
 .ev-page {
     box-sizing: border-box;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     color: var(--ink);
 }
 
@@ -20,9 +20,10 @@
 .ev-page-title {
     margin: 0 0 2px;
     font-size: 22px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--ink);
     letter-spacing: -0.3px;
+    overflow-wrap: anywhere;
 }
 
 .ev-page-sub {
@@ -31,19 +32,37 @@
     color: var(--muted);
 }
 
+.ev-incharge-email {
+    font-size: 12px;
+    color: var(--faint);
+}
+
+.ev-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ev-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 /* ── Buttons ── */
 .ev-btn {
     display: inline-flex;
     align-items: center;
     gap: 7px;
     padding: 9px 18px;
-    font-size: 14px;
+    font-family: inherit;
+    font-size: 13.5px;
     font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
     background: none;
     border: none;
-    border-radius: 9px;
+    border-radius: 10px;
     transition: all 0.15s;
 }
 
@@ -54,7 +73,7 @@
 
 .ev-btn-primary:hover:not(:disabled) {
     background: var(--green-2);
-    box-shadow: 0 4px 12px rgba(47, 162, 77, .30);
+    box-shadow: 0 4px 12px var(--brand-glow);
     transform: translateY(-1px);
 }
 
@@ -65,8 +84,8 @@
 
 .ev-btn-ghost {
     color: var(--muted);
-    background: transparent;
-    border: 1.5px solid var(--line);
+    background: var(--panel);
+    border: 1px solid var(--line);
 }
 
 .ev-btn-ghost:hover {
@@ -74,34 +93,37 @@
     background: var(--soft);
 }
 
-.ev-btn-success {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #fff;
-    cursor: pointer;
-    background: var(--green);
-    border: none;
-    border-radius: 8px;
-}
-
-.ev-btn-success:hover { background: var(--green-2); }
-
+/* Delete — red, filled so it reads as destructive */
 .ev-btn-danger {
-    padding: 8px 16px;
-    font-size: 13px;
     color: #fff;
-    cursor: pointer;
-    background: var(--muted);
-    border: none;
-    border-radius: 8px;
-    transition: background 0.15s;
+    background: var(--fail);
 }
 
-.ev-btn-danger:hover { background: var(--ink2); }
+.ev-btn-danger:hover:not(:disabled) {
+    color: #fff;
+    background: var(--fail-ink);
+    box-shadow: 0 4px 12px var(--brand-glow);
+    transform: translateY(-1px);
+}
+
+/* QR button — green (a scannable/shareable action, not destructive) */
+.ev-btn-qr {
+    color: #fff;
+    background: var(--pass);
+    border: 1px solid transparent;
+}
+
+.ev-btn-qr:hover:not(:disabled) {
+    background: var(--pass-ink);
+    box-shadow: 0 4px 12px rgba(20, 82, 42, .30);
+    transform: translateY(-1px);
+}
+
+/* Back button */
+.ev-btn-back {
+    color: #fff;
+    background: var(--green);
+}
 
 /* ── Empty states ── */
 .ev-empty {
@@ -124,7 +146,7 @@
 .ev-empty-title {
     margin: 0;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--ink);
 }
 
@@ -134,61 +156,23 @@
     color: var(--muted);
 }
 
-.ev-event-desc {
-    display: block;
-    margin-top: 1px;
-    font-size: 12px;
-    color: var(--faint);
-}
-
-.ev-dash {
-    color: var(--faint);
-}
-
-/* ── Badges ── */
-.ev-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 20px;
-}
-
-.ev-badge-blue { color: #1d4ed8; background: #eff6ff; }
-.ev-badge-gray { color: var(--muted); background: var(--soft); }
-
-/* ── Action icon buttons ── */
-.ev-actions {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-}
-
-.ev-icon-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
+.ev-tab-empty {
+    padding: 40px;
     font-size: 13px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    transition: all 0.15s;
+    color: var(--muted);
+    text-align: center;
 }
 
-.ev-icon-btn:hover { transform: translateY(-1px); }
+.ev-tab-empty i {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 32px;
+    color: var(--faint);
+}
 
-.ev-icon-green { color: var(--green-ink); background: var(--green-soft); }
-.ev-icon-green:hover { background: var(--green-soft); filter: brightness(0.95); }
-
-.ev-icon-blue { color: #2563eb; background: #eff6ff; }
-.ev-icon-blue:hover { background: #dbeafe; }
-
-.ev-icon-red { color: var(--muted); background: var(--soft); }
-.ev-icon-red:hover { background: var(--line); }
-
-/* ── Modal overlay ── */
+/* ============================================================
+   MODAL
+============================================================ */
 .ev-overlay {
     position: fixed;
     inset: 0;
@@ -202,7 +186,6 @@
     backdrop-filter: blur(3px);
 }
 
-/* ── Modal card (kept light — form/print context) ── */
 .ev-modal {
     display: flex;
     flex-direction: column;
@@ -211,19 +194,11 @@
     max-height: calc(100vh - 40px);
     margin: auto;
     overflow: hidden;
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
     animation: evModalIn 0.2s ease;
-}
-
-@media (max-width: 480px) {
-    .ev-overlay { padding: 0; align-items: flex-end; }
-    .ev-modal   { margin: 0; max-height: 95vh; border-radius: 20px 20px 0 0; }
-    .ev-modal-qr { border-radius: 20px 20px 0 0; }
-    .ev-modal-header { padding: 16px 18px; }
-    .ev-modal-body    { padding: 18px; }
-    .ev-modal-footer  { padding: 14px 18px; }
 }
 
 .ev-modal-qr { max-width: 400px; }
@@ -240,7 +215,7 @@
     align-items: center;
     gap: 14px;
     padding: 20px 24px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--line);
 }
 
 .ev-modal-header-icon {
@@ -251,14 +226,26 @@
     width: 42px;
     height: 42px;
     font-size: 18px;
-    color: var(--green-ink);
+    color: var(--green);
     background: var(--green-soft);
-    border-radius: 10px;
+    border-radius: 12px;
 }
 
 .ev-modal-header-text { flex: 1; min-width: 0; }
-.ev-modal-header-text h5 { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: #111827; }
-.ev-modal-header-text p  { margin: 0; font-size: 13px; color: #9ca3af; }
+
+.ev-modal-header-text h5 {
+    margin: 0 0 2px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.ev-modal-header-text p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
 
 .ev-modal-close {
     display: flex;
@@ -268,15 +255,18 @@
     width: 34px;
     height: 34px;
     font-size: 14px;
-    color: #6b7280;
+    color: var(--muted);
     cursor: pointer;
     background: transparent;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 8px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
     transition: all 0.15s;
 }
 
-.ev-modal-close:hover { color: #111827; background: #f9fafb; }
+.ev-modal-close:hover {
+    color: var(--ink);
+    background: var(--soft);
+}
 
 /* ── Modal body ── */
 .ev-modal-body {
@@ -294,10 +284,21 @@
     padding-bottom: 4px;
     font-size: 11px;
     font-weight: 700;
-    color: #9ca3af;
+    color: var(--faint);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--line);
+}
+
+.ev-section-label-spaced { margin-top: 8px; }
+
+.ev-modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--line);
 }
 
 /* ── Fields ── */
@@ -310,45 +311,44 @@
     gap: 6px;
     font-size: 13px;
     font-weight: 600;
-    color: #374151;
+    color: var(--ink2);
 }
 
-.ev-req { color: var(--green-ink); }
-.ev-opt { font-size: 12px; font-weight: 400; color: #9ca3af; }
-.ev-hint { margin-left: auto; font-size: 12px; font-weight: 400; color: #9ca3af; }
+.ev-req  { color: var(--green); }
+.ev-opt  { font-size: 12px; font-weight: 400; color: var(--faint); }
+.ev-hint { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--faint); }
 
 .ev-field input[type="text"],
 .ev-field input[type="date"],
 .ev-field textarea {
     width: 100%;
-    padding: 10px 13px;
-    font-family: 'Inter', system-ui, sans-serif;
+    padding: 11px 13px;
+    font-family: inherit;
     font-size: 14px;
-    color: #111827;
-    background: #fff;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 9px;
+    color: var(--ink);
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 11px;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
+
+.ev-field input::placeholder,
+.ev-field textarea::placeholder { color: var(--faint); }
 
 .ev-field input:focus,
 .ev-field textarea:focus {
+    background: var(--panel);
     border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(47, 162, 77, .12);
+    box-shadow: 0 0 0 3px var(--green-soft);
 }
 
 .ev-field textarea { min-height: 64px; resize: vertical; }
 
-/* ── Two-column row ── */
 .ev-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-}
-
-@media (max-width: 480px) {
-    .ev-row { grid-template-columns: 1fr; }
 }
 
 /* ── Range slider ── */
@@ -362,8 +362,8 @@
         to right,
         var(--green) 0%,
         var(--green) var(--pct, 12.5%),
-        #e5e7eb var(--pct, 13%),
-        #e5e7eb 100%
+        var(--track) var(--pct, 13%),
+        var(--track) 100%
     );
     border-radius: 99px;
     outline: none;
@@ -375,14 +375,14 @@
     -webkit-appearance: none;
     cursor: pointer;
     background: var(--green);
-    border: 2.5px solid #fff;
+    border: 2.5px solid var(--panel);
     border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .ev-radius-val {
     margin-left: auto;
-    padding: 2px 9px;
+    padding: 2px 10px;
     font-size: 13px;
     font-weight: 700;
     color: var(--green-ink);
@@ -395,112 +395,200 @@
     justify-content: space-between;
     margin-top: 2px;
     font-size: 11px;
-    color: #9ca3af;
+    color: var(--faint);
 }
 
-/* ── Map wrapper ── */
+/* ── Map + location search ── */
 .ev-map-wrap {
     position: relative;
     height: 280px;
     overflow: hidden;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 11px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
 }
 
-.ev-search-wrap { position: absolute; top: 12px; right: 12px; left: 12px; z-index: 1000; }
+.ev-map-invalid {
+    border: 1.5px solid var(--fail);
+}
+
+.ev-search-wrap {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    z-index: 1000;
+}
 
 .ev-search-input-wrap {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 0 12px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+    background: var(--panel);
+    border-radius: 11px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.20);
 }
 
-.ev-search-icon { flex-shrink: 0; font-size: 14px; color: #9ca3af; }
+.ev-search-icon { flex-shrink: 0; font-size: 14px; color: var(--faint); }
 
 .ev-search-input {
     flex: 1;
-    padding: 10px 0;
-    font-family: 'Inter', system-ui, sans-serif;
+    min-width: 0;
+    padding: 11px 0;
+    font-family: inherit;
     font-size: 14px;
-    color: #111827;
+    color: var(--ink);
     background: transparent;
     border: none;
     outline: none;
 }
 
+.ev-search-input::placeholder { color: var(--faint); }
+
 .ev-search-clear {
     flex-shrink: 0;
     padding: 4px 0;
-    font-size: 13px;
-    color: #9ca3af;
+    font-size: 12px;
+    color: var(--faint);
     cursor: pointer;
     background: none;
     border: none;
 }
 
+.ev-search-clear:hover { color: var(--ink); }
+
 .ev-search-dropdown {
     margin: 4px 0 0;
     padding: 0;
-    overflow: hidden;
+    max-height: 240px;
+    overflow-y: auto;
     list-style: none;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.20);
 }
 
 .ev-search-item {
     display: flex;
     align-items: center;
     padding: 10px 14px;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: inherit;
     font-size: 13px;
-    color: #1f2937;
+    color: var(--ink2);
     cursor: pointer;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--line);
     transition: background 0.1s;
 }
 
-.ev-search-item:hover { background: #f9fafb; }
-.ev-search-item-title { display: block; font-size: 13px; font-weight: 600; color: #111827; }
-.ev-search-item-sub   { display: block; font-size: 11px; color: #9ca3af; }
+.ev-search-item:last-child { border-bottom: none; }
+.ev-search-item:hover { background: var(--soft); }
+
+.ev-search-item-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.ev-search-item-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.ev-search-item-pin {
+    flex-shrink: 0;
+    margin-right: 8px;
+    font-size: 12px;
+    color: var(--green);
+}
+
+/* Loading / no-results rows are not selectable */
+.ev-search-status {
+    color: var(--faint);
+    font-style: italic;
+    cursor: default;
+}
+
+.ev-search-status:hover { background: transparent; }
+
+/* ── "Use My Location" button (floats over the map) ── */
+.ev-locate-wrap {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 1000;
+}
+
+.ev-locate-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 13px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .22);
+    transition: border-color .15s, color .15s;
+}
+
+.ev-locate-btn:hover {
+    color: var(--green);
+    border-color: var(--green);
+}
+
+.ev-locate-btn i {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--green);
+}
+
+.ev-locate-spin {
+    display: inline-block;
+    animation: evLocateRotate 0.9s linear infinite;
+}
+
+@keyframes evLocateRotate { to { transform: rotate(360deg); } }
 
 /* ── Pin feedback ── */
 .ev-pin-feedback { font-size: 12px; }
-.ev-pin-set   { display: flex; align-items: center; gap: 5px; color: var(--green-ink); }
-.ev-pin-unset { display: flex; align-items: center; gap: 5px; color: #d97706; }
+
+.ev-pin-set {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--pass);
+}
+
+.ev-pin-unset {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--fail);
+}
 
 /* ── Alerts ── */
 .ev-alert {
-    padding: 10px 14px;
+    padding: 11px 14px;
     font-size: 13px;
     font-weight: 500;
-    border-radius: 9px;
+    border-radius: 10px;
 }
 
 .ev-alert-error {
-    color: var(--muted);
-    background: var(--soft);
-    border: 1px solid var(--line);
+    color: var(--fail-ink);
+    background: var(--fail-soft);
 }
 
 .ev-alert-success {
-    color: #15803d;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-}
-
-/* ── Modal footer ── */
-.ev-modal-footer {
-    display: flex;
-    flex-shrink: 0;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 16px 24px;
-    border-top: 1px solid #f3f4f6;
+    color: var(--pass-ink);
+    background: var(--pass-soft);
 }
 
 /* ── Spinner ── */
@@ -516,14 +604,16 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── QR Modal overrides — green accent ── */
+/* ============================================================
+   QR MODAL
+============================================================ */
 .ev-modal-header-qr {
     background: var(--green) !important;
     border-bottom: none !important;
 }
 
 .ev-modal-header-qr h5 { color: #fff !important; }
-.ev-modal-header-qr p  { color: rgba(255, 255, 255, 0.75) !important; }
+.ev-modal-header-qr p  { color: rgba(255, 255, 255, 0.78) !important; }
 
 .ev-modal-header-qr .ev-modal-header-icon {
     color: #fff !important;
@@ -540,7 +630,6 @@
 
 .ev-modal-close-qr:hover { background: rgba(255, 255, 255, 0.25) !important; }
 
-/* Body */
 .ev-qr-body { text-align: center; align-items: center; }
 
 .ev-qr-badge {
@@ -550,11 +639,10 @@
     padding: 4px 14px;
     margin-bottom: 16px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--green-ink);
     letter-spacing: 0.2px;
     background: var(--green-soft);
-    border: 1px solid var(--green);
     border-radius: 20px;
 }
 
@@ -563,9 +651,10 @@
 .ev-qr-event-name {
     margin: 0;
     font-size: 22px;
-    font-weight: 700;
+    font-weight: 800;
     line-height: 1.3;
-    color: #111827;
+    color: var(--ink);
+    overflow-wrap: anywhere;
 }
 
 .ev-qr-meta {
@@ -575,17 +664,19 @@
     justify-content: center;
     gap: 4px;
     font-size: 13.5px;
-    color: #6b7280;
+    color: var(--muted);
+    overflow-wrap: anywhere;
 }
 
-/* QR frame */
 .ev-qr-frame {
     display: inline-block;
+    max-width: 100%;
     padding: 3px;
     background: linear-gradient(135deg, var(--green), var(--green-2));
     border-radius: 18px;
 }
 
+/* Stays white in both themes — QR scanners need the contrast */
 .ev-qr-inner {
     display: flex;
     align-items: center;
@@ -595,20 +686,32 @@
     border-radius: 15px;
 }
 
+/* qrcode.react renders at a fixed pixel size, so the code is
+   constrained here instead — height:auto keeps it square. */
+.ev-qr-inner svg,
+.ev-qr-inner canvas,
+.ev-qr-inner img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 240px;
+}
+
 .ev-qr-copy-btn {
     flex-shrink: 0;
-    padding: 2px 4px;
+    padding: 2px 5px;
     font-size: 14px;
-    color: var(--green-ink);
+    color: var(--green);
     cursor: pointer;
     background: none;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 .ev-qr-copy-btn:hover { background: var(--green-soft); }
 
 .ev-qr-footer { flex-direction: column; gap: 8px; }
+
 .ev-qr-download-btn,
 .ev-qr-share-btn { justify-content: center; width: 100%; }
 
@@ -617,11 +720,13 @@
     padding: 0 24px 20px;
     font-size: 11px;
     line-height: 1.5;
-    color: #9ca3af;
+    color: var(--faint);
     text-align: center;
 }
 
-/* ── Detail info cards ── */
+/* ============================================================
+   EVENT DETAIL
+============================================================ */
 .ev-detail-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -629,22 +734,18 @@
     margin-bottom: 20px;
 }
 
-@media (max-width: 480px) {
-    .ev-detail-grid { grid-template-columns: 1fr 1fr; }
-}
-
 .ev-detail-card {
     padding: 16px 18px;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 14px;
     box-shadow: var(--sh-sm);
 }
 
 .ev-detail-label {
     margin-bottom: 6px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -652,148 +753,44 @@
 
 .ev-detail-value {
     font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
-}
-
-/* ── EventDetail header responsive ── */
-@media (max-width: 700px) {
-    .ev-page-header > div:first-child { flex-wrap: wrap; }
-    .ev-page-header > div:last-child {
-        display: flex;
-        flex-wrap: wrap;
-        width: 100%;
-        gap: 8px;
-    }
-    .ev-page-header > div:last-child .ev-btn {
-        flex: 1 1 calc(50% - 4px);
-        justify-content: center;
-        min-width: 0;
-        padding: 9px 10px;
-        font-size: 13px;
-    }
-}
-
-/* ── Event grid / cards ── */
-.ev-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 18px;
-}
-
-@media (max-width: 600px) {
-    .ev-grid { grid-template-columns: 2fr; }
-}
-
-.ev-event-card-body { display: flex; flex-direction: column; gap: 3px; }
-
-.ev-event-card-name {
-    margin: 0;
-    font-size: 15px;
     font-weight: 600;
     color: var(--ink);
+    overflow-wrap: anywhere;
 }
 
-.ev-event-card-desc {
-    margin: 0;
-    overflow: hidden;
-    font-size: 13px;
-    color: var(--muted);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.ev-event-card-divider {
-    margin: 0;
-    border: none;
-    border-top: 2px solid var(--line);
-}
-
-.ev-event-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-}
-
-.ev-event-card-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.ev-event-card-participants {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-left: auto;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    background: var(--soft);
-    border-radius: 20px;
-}
-
-.ev-event-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 1.1rem 1.25rem;
-    cursor: pointer;
+/* ── Description card ── */
+.ev-description-card {
+    padding: 16px 20px;
+    margin-bottom: 20px;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 14px;
     box-shadow: var(--sh-sm);
-    transition: border-color 0.15s, background 0.15s;
 }
 
-.ev-event-card:hover {
-    background: var(--soft);
-    border-color: var(--green);
-}
+.ev-description-label { margin-bottom: 4px; }
+.ev-description-text  { margin: 0; color: var(--muted); }
 
-.ev-event-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.ev-event-card-icon {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    font-size: 18px;
-    color: var(--green-ink);
-    background: var(--green-soft);
-    border-radius: 9px;
-}
-
+/* ── Status badge ── */
 .ev-status-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 10px;
+    padding: 4px 11px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: 20px;
 }
 
-.ev-status-open   { color: var(--green-ink); background: var(--green-soft); }
-.ev-status-closed { color: var(--muted);     background: var(--soft); }
+.ev-status-open   { color: var(--pass-ink); background: var(--pass-soft); }
+.ev-status-closed { color: var(--muted);    background: var(--soft); }
 
 .ev-status-dot {
     display: inline-block;
     flex-shrink: 0;
     width: 6px;
     height: 6px;
-    background: var(--green);
+    background: var(--pass);
     border-radius: 50%;
 }
 
@@ -805,16 +802,13 @@
     margin-bottom: 16px;
 }
 
-@media (max-width: 480px) {
-    .ev-stats-grid { grid-template-columns: 1fr 1fr; }
-}
-
 .ev-stat-card {
     padding: 16px;
     text-align: center;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 14px;
+    box-shadow: var(--sh-sm);
     transition: border-color 0.15s, transform 0.15s;
 }
 
@@ -826,8 +820,9 @@
 .ev-stat-number {
     margin-bottom: 6px;
     font-size: 30px;
-    font-weight: 700;
+    font-weight: 800;
     line-height: 1;
+    letter-spacing: -0.8px;
 }
 
 .ev-stat-label {
@@ -836,43 +831,10 @@
     justify-content: center;
     gap: 5px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-}
-
-.ev-stat-white  { color: var(--ink); }
-.ev-stat-green  { color: var(--green); }
-.ev-stat-red    { color: var(--muted); }
-.ev-stat-yellow { color: #d99a2b; }
-
-/* ── Overview card ── */
-.ev-overview-card {
-    padding: 20px;
-    margin-bottom: 20px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: var(--sh-sm);
-}
-
-.ev-overview-section-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 14px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.ev-overview-divider {
-    margin: 18px 0;
-    border: none;
-    border-top: 1px solid var(--line);
 }
 
 .ev-stat-sub {
@@ -884,7 +846,47 @@
     letter-spacing: 0;
 }
 
-/* ── Environment cards (compact variant) ── */
+.ev-stat-white  { color: var(--ink); }
+.ev-stat-green  { color: var(--pass); }
+.ev-stat-red    { color: var(--fail); }
+/* Brand red, not amber — kept under this name for compatibility */
+.ev-stat-yellow { color: var(--green); }
+
+/* ── Overview card ── */
+.ev-overview-card {
+    padding: 20px;
+    margin-bottom: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--sh-sm);
+}
+
+.ev-overview-section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.ev-overview-divider {
+    margin: 18px 0;
+    border: none;
+    border-top: 1px solid var(--line);
+}
+
+/* Replaces Bootstrap's border-dark, which is a fixed near-black
+   line that reads wrong in both themes. */
+.ev-env-row-divider {
+    border-bottom: 1px solid var(--line);
+}
+
+/* ── Environment cards (compact) ── */
 .ev-env-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -896,7 +898,7 @@
     padding: 14px;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 12px;
     transition: border-color 0.15s;
 }
 
@@ -908,7 +910,7 @@
     gap: 6px;
     margin-bottom: 10px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
 }
 
@@ -923,47 +925,27 @@
 
 .ev-env-card-value {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
 }
 
-.ev-env-pass {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--green-ink);
-    background: var(--green-soft);
-    border-radius: 20px;
-}
-
-.ev-env-fail {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    background: var(--soft);
-    border-radius: 20px;
-}
-
+.ev-env-pass,
+.ev-env-fail,
 .ev-env-none {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    padding: 2px 8px;
+    padding: 2px 9px;
     font-size: 11px;
-    font-weight: 600;
-    color: var(--faint);
-    background: var(--soft);
+    font-weight: 700;
     border-radius: 20px;
 }
 
-/* ── Horizontal bar chart ── */
+.ev-env-pass { color: var(--pass-ink); background: var(--pass-soft); }
+.ev-env-fail { color: var(--fail-ink); background: var(--fail-soft); }
+.ev-env-none { color: var(--faint);    background: var(--soft); }
+
+/* ── Horizontal bar chart (most failed steps) ── */
 .ev-hbar-list { display: flex; flex-direction: column; gap: 10px; }
 
 .ev-hbar-row {
@@ -991,9 +973,10 @@
     border-radius: 99px;
 }
 
+/* These are failed steps → red */
 .ev-hbar-fill {
     height: 100%;
-    background: var(--green);
+    background: var(--fail);
     border-radius: 99px;
     transition: width 0.3s ease;
 }
@@ -1002,7 +985,7 @@
     flex-shrink: 0;
     width: 20px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
     text-align: right;
 }
@@ -1021,54 +1004,7 @@
     color: var(--faint);
 }
 
-.ev-tab-empty {
-    padding: 40px;
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-}
-
-.ev-tab-empty i {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 32px;
-    color: var(--faint);
-}
-
-/* ── Icon accent helpers ── */
-.ev-icon-accent { color: var(--green); }
-.ev-icon-green  { color: var(--green); }
-.ev-icon-yellow { color: #d99a2b; }
-
-/* ── Header layout (replaces inline styles) ── */
-.ev-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.ev-header-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-/* ── Description card (replaces inline styles) ── */
-.ev-description-card {
-    padding: 16px 20px;
-    margin-bottom: 20px;
-}
-
-.ev-description-label {
-    margin-bottom: 4px;
-}
-
-.ev-description-text {
-    margin: 0;
-    color: var(--muted);
-}
-
-/* ── Participants section header (replaces inline styles) ── */
+/* ── Participants section ── */
 .ev-participants-header {
     display: flex;
     flex-wrap: wrap;
@@ -1081,25 +1017,247 @@
 .ev-participants-title {
     flex-shrink: 0;
     margin: 0;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
 }
 
 .ev-participants-search {
     flex: 1;
     min-width: 180px;
-    padding: 6px 12px;
+    padding: 8px 12px;
+    font-family: inherit;
     font-size: 13px;
     color: var(--ink);
-    background: var(--panel);
+    background: var(--soft);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 9px;
     outline: none;
+    transition: border-color 0.15s, background 0.15s;
 }
 
 .ev-participants-search::placeholder { color: var(--faint); }
-.ev-participants-search:focus { border-color: var(--green); }
 
-.ev-export-btn {
-    flex-shrink: 0;
+.ev-participants-search:focus {
+    background: var(--panel);
+    border-color: var(--green);
+}
+
+.ev-export-btn { flex-shrink: 0; }
+
+/* ── Icon accent helpers ── */
+.ev-icon-accent { color: var(--green); }
+.ev-icon-green  { color: var(--pass); }
+/* Brand red, not amber — name kept for compatibility */
+.ev-icon-yellow { color: var(--green); }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .ev-modal-header { padding: 16px 18px; }
+    .ev-modal-body   { padding: 18px; gap: 14px; }
+    .ev-modal-footer { padding: 14px 18px; }
+
+    .ev-overview-card { padding: 16px; }
+    .ev-detail-card   { padding: 14px 16px; }
+}
+
+/* ── Detail header buttons ──────────────────────────────── */
+@media (max-width: 700px) {
+    .ev-page-header > div:first-child { flex-wrap: wrap; }
+    .ev-page-header > div:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 8px;
+    }
+    .ev-page-header > div:last-child .ev-btn {
+        flex: 1 1 calc(50% - 4px);
+        justify-content: center;
+        min-width: 0;
+        padding: 9px 10px;
+        font-size: 13px;
+    }
+}
+
+/* ── Phones ─────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    /* Modal becomes a bottom sheet — reachable with a thumb */
+    .ev-overlay {
+        padding: 0;
+        align-items: flex-end;
+        height: 100dvh;
+    }
+
+    .ev-modal {
+        margin-bottom: 1;
+        max-height: 95dvh;
+        border-radius: 20px 20px 0 0;
+        border-bottom: 0;
+    }
+    /* Leaflet puts its zoom buttons top-left, directly underneath
+       the search bar. Pinch-to-zoom works on touch, so they are
+       redundant here. */
+    .ev-map-wrap .leaflet-control-zoom {
+        display: none;
+    }
+
+    /* Attribution shrinks so it stops crowding the locate button */
+    .ev-map-wrap .leaflet-control-attribution {
+        font-size: 8px;
+        padding: 0 3px;
+    }
+
+    .ev-modal-qr { border-radius: 20px 20px 0 0; }
+
+    .ev-modal-header { padding: 15px 16px; }
+    .ev-modal-body   { padding: 16px; }
+    .ev-modal-footer { padding: 13px 16px; }
+
+    .ev-modal-header-icon {
+        width: 37px;
+        height: 37px;
+        font-size: 16px;
+    }
+
+    .ev-modal-header-text h5 { font-size: 15px; }
+    .ev-modal-header-text p  { font-size: 12px; }
+
+    /* Date and Venue stack rather than squeezing side by side */
+    .ev-row { grid-template-columns: 1fr; }
+
+    /* 16px stops iOS Safari zooming the page on focus */
+    .ev-field input[type="text"],
+    .ev-field input[type="date"],
+    .ev-field textarea,
+    .ev-search-input,
+    .ev-participants-search {
+        font-size: 16px;
+    }
+
+    /* Hint drops to its own line instead of crowding the label */
+    .ev-hint {
+        margin-left: 0;
+        flex-basis: 100%;
+    }
+
+    /* Map still needs real height to pin accurately */
+    .ev-map-wrap { height: 250px; }
+
+    .ev-search-wrap {
+        top: 9px;
+        right: 9px;
+        left: 9px;
+    }
+
+    .ev-search-input-wrap { padding: 0 10px; }
+    .ev-search-dropdown   { max-height: 180px; }
+
+    .ev-locate-wrap {
+        right: 9px;
+        bottom: 9px;
+    }
+
+    .ev-locate-btn {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    /* Footer buttons split the row evenly */
+    .ev-modal-footer .ev-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 11px 12px;
+    }
+
+    /* QR modal */
+    .ev-qr-body { padding: 18px 16px; gap: 12px; }
+
+    .ev-qr-badge {
+        margin-bottom: 12px;
+        padding: 4px 12px;
+        font-size: 10.5px;
+    }
+
+    .ev-qr-event-name { font-size: 19px; }
+    .ev-qr-meta       { font-size: 12.5px; }
+
+    .ev-qr-inner { padding: 14px; }
+
+    .ev-qr-inner svg,
+    .ev-qr-inner canvas,
+    .ev-qr-inner img { max-width: 200px; }
+
+    .ev-qr-hint {
+        padding: 0 18px 16px;
+        font-size: 10.5px;
+    }
+
+    .ev-qr-footer { padding: 12px 16px; }
+
+    /* The QR footer buttons are already full width and stacked,
+       so the generic split rule above must not apply here. */
+    .ev-qr-footer .ev-btn { flex: none; }
+
+    /* Event detail */
+    .ev-page-title { font-size: 19px; }
+
+    .ev-detail-grid { grid-template-columns: 1fr 1fr; }
+    .ev-detail-card { padding: 13px 14px; }
+    .ev-detail-value { font-size: 14px; }
+
+    .ev-stats-grid { grid-template-columns: 1fr 1fr; }
+    .ev-stat-card  { padding: 13px; }
+    .ev-stat-number { font-size: 25px; }
+
+    .ev-overview-card { padding: 15px 14px; }
+
+    /* Long step names ate half the row before the bar began;
+       the label now sits above its own full-width bar. */
+    .ev-hbar-row {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+
+    .ev-hbar-label {
+        width: 100%;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .ev-participants-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .ev-participants-search { min-width: 0; }
+}
+
+/* ── Very small phones ──────────────────────────────────── */
+@media (max-width: 400px) {
+    /* Icon alone is clear enough at this width */
+    .ev-locate-text { display: none; }
+
+    .ev-locate-btn {
+        padding: 9px;
+        border-radius: 50%;
+    }
+
+    .ev-map-wrap { height: 220px; }
+
+    .ev-modal-header-text p { display: none; }
+
+    .ev-qr-event-name { font-size: 17px; }
+    .ev-qr-inner      { padding: 12px; }
+
+    .ev-qr-inner svg,
+    .ev-qr-inner canvas,
+    .ev-qr-inner img { max-width: 172px; }
+
+    .ev-detail-card { padding: 12px; }
+    .ev-stat-number { font-size: 23px; }
 }

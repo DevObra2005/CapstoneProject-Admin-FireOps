@@ -1,4 +1,18 @@
 /* ── Participant Card List ─────────────────────────────────── */
+
+/* Organisation-type tints. These are metadata, not pass/fail states,
+   so they deliberately avoid the --pass / --fail scales. Declared
+   locally so they flip with the theme instead of being hardcoded. */
+:root {
+    --pcl-a-fg: #2b6fac;  --pcl-a-bg: rgba(43, 111, 172, .10);
+    --pcl-b-fg: #6154b0;  --pcl-b-bg: rgba(97, 84, 176, .10);
+}
+
+[data-theme="dark"] {
+    --pcl-a-fg: #7cb8e8;  --pcl-a-bg: rgba(124, 184, 232, .14);
+    --pcl-b-fg: #a99ee8;  --pcl-b-bg: rgba(169, 158, 232, .14);
+}
+
 .pcl-list {
     display: flex;
     flex-direction: column;
@@ -75,13 +89,13 @@
 }
 
 .pcl-badge.student {
-    color: #60a5fa;
-    background: rgba(59, 130, 246, 0.12);
+    color: var(--pcl-a-fg);
+    background: var(--pcl-a-bg);
 }
 
 .pcl-badge.employee {
-    color: var(--green-ink);
-    background: var(--green-soft);
+    color: var(--pcl-b-fg);
+    background: var(--pcl-b-bg);
 }
 
 .pcl-badge.other {
@@ -145,4 +159,50 @@
     margin-top: 4px;
     font-size: 12px;
     color: var(--faint);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 576px) {
+    .pcl-row {
+        gap: 11px;
+        padding: 12px 14px;
+    }
+
+    .pcl-avatar,
+    .pcl-skeleton-avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 12px;
+    }
+
+    .pcl-name  { font-size: 13.5px; }
+    .pcl-email { font-size: 11.5px; }
+
+    /* The chevron already signals the row is tappable, and the join
+       date is secondary — both go before the name starts truncating. */
+    .pcl-date { display: none; }
+
+    .pcl-badge {
+        padding: 2px 8px;
+        font-size: 10.5px;
+    }
+}
+
+@media (max-width: 400px) {
+    .pcl-row {
+        gap: 10px;
+        padding: 11px 12px;
+    }
+
+    .pcl-arrow { display: none; }
+
+    .pcl-avatar,
+    .pcl-skeleton-avatar {
+        width: 31px;
+        height: 31px;
+        font-size: 11.5px;
+    }
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import axios from 'axios';
 import Login from './pages/public/Login';
 import MainLayout from './layouts/MainLayout';
 import Register from './pages/public/Register';
@@ -8,6 +7,7 @@ import ForgotPassword from './pages/public/ForgotPassword';
 import ResetPassword from './pages/public/ResetPassword';
 import StaffDetail from './pages/superadmin/StaffDetail';
 import AdminEvents from './pages/superadmin/AdminEvents';
+import AdminCertifications from './pages/superadmin/Certifications';
 import ActivityLogs from './pages/superadmin/ActivityLogs';
 
 // Superadmin pages
@@ -17,12 +17,8 @@ import Staff from './pages/superadmin/Staff';
 // Staff pages
 import StaffDashboard from './pages/staff/Dashboard';
 import Events from './pages/staff/Events';
+import Certifications from './pages/staff/Certifications';
 
-// Set token globally ONCE when app loads
-const token = localStorage.getItem('token');
-if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
 
 // Guard for superadmin only
 const SuperAdminRoute = ({ children }) => {
@@ -53,14 +49,17 @@ export default function AppRouter() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Superadmin routes */}
+            {/* Superadmin routes
+                NOTE: staff management now lives under /staff-management so it
+                no longer overlaps with the staff role's own /staff/* pages. */}
             <Route path="/" element={
                 <SuperAdminRoute><MainLayout /></SuperAdminRoute>
             }>
                 <Route path="dashboard" element={<SuperAdminDashboard />} />
-                <Route path="staff" element={<Staff />} />
-                <Route path="staff/:id" element={<StaffDetail />} />
+                <Route path="staff-management" element={<Staff />} />
+                <Route path="staff-management/:id" element={<StaffDetail />} />
                 <Route path="/events" element={<AdminEvents />} />
+                <Route path="certificates" element={<AdminCertifications />} />
                 <Route path="activity-logs" element={<ActivityLogs />} />
             </Route>
 
@@ -70,6 +69,7 @@ export default function AppRouter() {
             }>
                 <Route path="dashboard" element={<StaffDashboard />} />
                 <Route path="events" element={<Events />} />
+                <Route path="certifications" element={<Certifications />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/login" />} />

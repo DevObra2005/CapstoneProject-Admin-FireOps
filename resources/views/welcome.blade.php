@@ -7,7 +7,7 @@
 
     {{-- This loads your React and CSS files through Vite --}}
     @viteReactRefresh
-    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
+    @vite([ 'resources/js/app.jsx'])
 </head>
 <body>
 

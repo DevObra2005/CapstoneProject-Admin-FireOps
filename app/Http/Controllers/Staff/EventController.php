@@ -190,25 +190,6 @@ class EventController extends Controller
         ]);
     }
 
-    /**
-     * Dashboard stats.
-     */
-    public function dashboardStats(Request $request)
-    {
-        $events = Event::withCount('participants')->get();
-
-        $totalEvents       = $events->count();
-        $openEvents        = $events->where('is_open', true)->count();
-        $closedEvents      = $events->where('is_open', false)->count();
-        $totalParticipants = $events->sum('participants_count');
-
-        return response()->json([
-            'total_events'       => $totalEvents,
-            'open_events'        => $openEvents,
-            'closed_events'      => $closedEvents,
-            'total_participants' => $totalParticipants,
-        ]);
-    }
 
     /**
      * GET /api/staff/events/{id}/results

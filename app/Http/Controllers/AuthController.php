@@ -24,6 +24,15 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Archived accounts cannot log in. Checked AFTER the password
+        // so an attacker can't discover which emails exist by comparing
+        // error messages on wrong passwords.
+        if (!$user->is_active) {
+            return response()->json([
+                'message' => 'This account has been archived. Please contact your administrator.'
+            ], 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../api/axios'
 import ParticipantCardList from './ParticipantCardList'
 import ParticipantAllSessions from './ParticipantAllSessions'
 
-export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, token, onToggle }) {
+export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onToggle }) {
     const [participants, setParticipants] = useState([])
     const [loadingP, setLoadingP]         = useState(true)
     const [toggling, setToggling]         = useState(false)
@@ -15,9 +15,7 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, tok
     useEffect(() => {
         const fetchParticipants = async () => {
             try {
-                const res = await axios.get(`/api/staff/events/${event.id}/participants`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
+                const res = await api.get(`/staff/events/${event.id}/participants`)
                 setParticipants(Array.isArray(res.data) ? res.data : [])
             } catch {
                 setParticipants([])
@@ -31,10 +29,7 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, tok
     useEffect(() => {
         const fetchResults = async () => {
             try {
-                const res = await axios.get(
-                    `/api/staff/events/${event.id}/results`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                )
+               const res = await api.get(`/staff/events/${event.id}/results`)
                 setResults(Array.isArray(res.data) ? res.data : [])
             } catch {
                 setResults([])
@@ -52,27 +47,6 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, tok
         } finally {
             setToggling(false)
         }
-    }
-
-    const handleExportCSV = () => {
-        const headers = ['Name', 'Email', 'Organization Type', 'Contact', 'Registered At']
-        const rows = filteredParticipants.map(p => [
-            p.name ?? '',
-            p.email ?? '',
-            p.organization ?? '',
-            p.contact_number ?? '',
-            p.created_at ? new Date(p.created_at).toLocaleString() : '',
-        ])
-        const csvContent = [headers, ...rows]
-            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-            .join('\n')
-        const blob = new Blob([csvContent], { type: 'text/csv' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${event.name.replace(/\s+/g, '-')}-participants.csv`
-        a.click()
-        URL.revokeObjectURL(url)
     }
 
     const filteredParticipants = participants.filter(p =>
@@ -170,10 +144,10 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, tok
                     </div>
                 </div>
                 <div className="ev-header-actions">
-                    <button className="ev-btn ev-btn-ghost" onClick={onBack}>
+                    <button className="ev-btn ev-btn-back" onClick={onBack}>
                         <i className="bi bi-arrow-left"></i> Back to event
                     </button>
-                    <button className="ev-btn ev-btn-success" onClick={() => onQR(event)}>
+                    <button className="ev-btn ev-btn-qr" onClick={() => onQR(event)}>
                         <i className="bi bi-qr-code-scan"></i> QR Code
                     </button>
                     <button className="ev-btn ev-btn-ghost" onClick={() => onEdit(event)}>
@@ -360,12 +334,6 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, tok
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
-                    <button
-                        className="ev-btn ev-btn-success ev-export-btn"
-                        onClick={handleExportCSV}
-                    >
-                        <i className="bi bi-download me-1"></i> Export CSV
-                    </button>
                 </div>
                 <ParticipantCardList
                     participants={filteredParticipants}

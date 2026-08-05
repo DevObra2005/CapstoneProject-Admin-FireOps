@@ -1,9 +1,214 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 /* ── Base ───────────────────────────────────────────────── */
 .psd-page {
     box-sizing: border-box;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Participant Info Card ──────────────────────────────── */
+.psd-info-card {
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--sh-sm);
+}
+
+.psd-info-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    min-width: 0;
+}
+
+.psd-avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--green-ink);
+    background: var(--green-soft);
+    border-radius: 50%;
+}
+
+.psd-info-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.psd-info-email {
+    margin-top: 1px;
+    font-size: 13px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+.psd-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.psd-info-label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.psd-info-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.psd-info-value i {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--green);
+}
+
+/* ── Environment Tabs ───────────────────────────────────── */
+.psd-env-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.psd-env-tab {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    margin-bottom: -1px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.psd-env-tab:hover:not(.disabled) { color: var(--ink); }
+
+.psd-env-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--green);
+}
+
+.psd-env-tab.disabled {
+    color: var(--faint);
+    cursor: not-allowed;
+}
+
+.psd-tab-badge {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    border-radius: 50%;
+}
+
+.psd-tab-badge.passed { color: var(--pass-ink); background: var(--pass-soft); }
+.psd-tab-badge.failed { color: var(--fail-ink); background: var(--fail-soft); }
+
+.psd-tab-unattempted {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--faint);
+}
+
+/* ── Environment Pills (ParticipantAllSessions) ─────────── */
+.psd-env-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.psd-env-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    transition: all 0.15s;
+}
+
+.psd-env-pill:hover {
+    color: var(--ink);
+    border-color: var(--faint);
+}
+
+.psd-env-pill.active {
+    color: var(--green-ink);
+    background: var(--green-soft);
+    border-color: var(--green);
+}
+
+.psd-pill-status.passed { color: var(--pass); }
+.psd-pill-status.failed { color: var(--fail); }
+
+/* ── Active session meta row ────────────────────────────── */
+.psd-active-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.psd-pass-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 15px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.psd-pass-badge i {
+    flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.psd-pass-badge.passed { color: var(--pass-ink); background: var(--pass-soft); }
+.psd-pass-badge.failed { color: var(--fail-ink); background: var(--fail-soft); }
+
+.psd-active-date {
+    font-size: 13px;
+    color: var(--muted);
 }
 
 /* ── Score Cards Grid ───────────────────────────────────── */
@@ -12,12 +217,6 @@
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
     margin-bottom: 20px;
-}
-
-@media (max-width: 480px) {
-    .psd-score-grid {
-        grid-template-columns: 1fr 1fr;
-    }
 }
 
 .psd-score-card {
@@ -41,11 +240,20 @@
     font-size: 15px;
     font-weight: 600;
     color: var(--ink);
+    overflow-wrap: anywhere;
 }
 
-.psd-score-value.red    { color: var(--muted); }
+.psd-score-value.red    { color: var(--fail); }
 .psd-score-value.yellow { color: #d99a2b; }
-.psd-score-value.green  { color: var(--green); }
+.psd-score-value.green  { color: var(--pass); }
+
+.psd-score-sublabel {
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
 
 /* ── Section Card ───────────────────────────────────────── */
 .psd-card {
@@ -77,8 +285,8 @@
     padding: 8px 14px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--green-ink);
-    background: var(--green-soft);
+    color: var(--pass-ink);
+    background: var(--pass-soft);
     border-radius: 8px;
 }
 
@@ -93,8 +301,10 @@
     overflow: hidden;
     background: var(--soft);
     border-radius: 10px;
-    /* Border set inline in JSX based on stepHadError() */
 }
+
+.psd-step-block.ok    { border: 1px solid var(--line); }
+.psd-step-block.error { border: 1px solid var(--fail-soft); }
 
 .psd-step-header {
     display: flex;
@@ -116,39 +326,28 @@
     border-radius: 50%;
 }
 
-.psd-step-number.error {
-    color: var(--muted);
-    background: var(--line);
-}
-
-.psd-step-number.ok {
-    color: var(--green-ink);
-    background: var(--green-soft);
-}
+.psd-step-number.ok    { color: var(--pass-ink); background: var(--pass-soft); }
+.psd-step-number.error { color: var(--fail-ink); background: var(--fail-soft); }
 
 .psd-step-name {
     flex: 1;
+    min-width: 0;
     font-size: 13px;
     font-weight: 600;
     color: var(--ink);
 }
 
 .psd-step-penalty {
+    flex-shrink: 0;
     padding: 2px 8px;
     font-size: 12px;
     font-weight: 700;
+    white-space: nowrap;
     border-radius: 20px;
 }
 
-.psd-step-penalty.has-penalty {
-    color: var(--muted);
-    background: var(--line);
-}
-
-.psd-step-penalty.no-penalty {
-    color: var(--green-ink);
-    background: var(--green-soft);
-}
+.psd-step-penalty.no-penalty  { color: var(--pass-ink); background: var(--pass-soft); }
+.psd-step-penalty.has-penalty { color: var(--fail-ink); background: var(--fail-soft); }
 
 /* ── Individual Attempt Rows ────────────────────────────── */
 .psd-attempt-row {
@@ -158,139 +357,44 @@
     padding: 8px 14px;
 }
 
-.pd-attempt-row + .sd-attempt-row {
+.psd-attempt-row + .psd-attempt-row {
     border-top: 1px solid var(--panel);
 }
 
 .psd-attempt-label {
     flex: 1;
+    min-width: 0;
     font-size: 12px;
     color: var(--muted);
+    overflow-wrap: anywhere;
 }
 
-.psd-attempt-action {
-    font-weight: 600;
-}
+.psd-attempt-action { font-weight: 600; }
 
-.psd-attempt-action.correct { color: var(--green); }
-.psd-attempt-action.wrong   { color: var(--ink); }
+.psd-attempt-action.correct { color: var(--pass); font-weight: 700; }
+.psd-attempt-action.wrong   { color: var(--fail); font-weight: 700; }
 
 .psd-attempt-penalty {
+    flex-shrink: 0;
     font-size: 11px;
     font-weight: 700;
-    color: var(--muted);
+    color: var(--fail);
+    white-space: nowrap;
 }
 
-/* ── Pass / Fail Badge (header) ─────────────────────────── */
-.psd-pass-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 20px;
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .psd-info-card { padding: 16px 18px; }
+    .psd-card      { padding: 14px 16px; }
+
+    .psd-env-tab { padding: 10px 14px; }
 }
 
-.psd-pass-badge.passed {
-    color: var(--green-ink);
-    background: var(--green-soft);
-}
-
-.psd-pass-badge.failed {
-    color: var(--muted);
-    background: var(--soft);
-}
-
-/* ── Environment Pills (ParticipantAllSessions) ────────────── */
-.psd-env-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.psd-env-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    transition: all 0.15s;
-}
-
-.psd-env-pill:hover {
-    color: var(--ink);
-    border-color: var(--faint);
-}
-
-.psd-env-pill.active {
-    color: var(--ink);
-    background: var(--green-soft);
-    border-color: var(--green);
-}
-
-/* Small pass/fail dot inside each pill */
-.psd-pill-status.passed { color: var(--green); }
-.psd-pill-status.failed { color: var(--muted); }
-
-/* ── Participant Info Card ─────────────────────────────────── */
-.psd-info-card {
-    padding: 18px 22px;
-    margin-bottom: 20px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: var(--sh-sm);
-}
-
-.psd-info-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-}
-
-.psd-avatar {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--green-ink);
-    background: var(--green-soft);
-    border-radius: 50%;
-}
-
-.psd-info-name {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--ink);
-}
-
-.psd-info-email {
-    margin-top: 1px;
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.psd-info-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    padding-top: 14px;
-    border-top: 1px solid var(--line);
-}
-
+/* ── Small tablet / large phone ─────────────────────────── */
 @media (max-width: 600px) {
     .psd-info-grid {
         grid-template-columns: 1fr;
@@ -298,113 +402,86 @@
     }
 }
 
-.psd-info-label {
-    margin-bottom: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--faint);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+/* ── Phones ─────────────────────────────────────────────── */
+@media (max-width: 576px) {
+    /* Tabs scroll sideways rather than wrapping into a ragged
+       second row that breaks the underline. */
+    .psd-env-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .psd-env-tabs::-webkit-scrollbar { display: none; }
+
+    .psd-env-tab {
+        padding: 10px 13px;
+        font-size: 12.5px;
+    }
+
+    /* "Not attempted" is long — the greyed-out tab already says it */
+    .psd-tab-unattempted { display: none; }
+
+    .psd-info-card {
+        padding: 15px 16px;
+        border-radius: 12px;
+    }
+
+    .psd-info-top { gap: 12px; }
+
+    .psd-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .psd-info-name  { font-size: 16px; }
+    .psd-info-email { font-size: 12px; }
+
+    .psd-score-card { padding: 13px 14px; }
+    .psd-score-label { font-size: 10px; }
+    .psd-score-value { font-size: 14px; }
+
+    .psd-card { padding: 13px 14px; }
+
+    .psd-step-header  { padding: 9px 12px; gap: 9px; }
+    .psd-attempt-row  { padding: 8px 12px; gap: 8px; }
+
+    .psd-step-name    { font-size: 12.5px; }
+    .psd-attempt-label { font-size: 11.5px; }
+
+    .psd-env-pill {
+        padding: 7px 13px;
+        font-size: 12.5px;
+    }
 }
 
-.psd-info-value {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--ink);
-}
+/* ── Very small phones ──────────────────────────────────── */
+@media (max-width: 420px) {
+    /* Two columns keeps the numbers comparable at a glance;
+       one column would push them into a long scroll. */
+    .psd-score-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+    }
 
-.psd-info-value i {
-    font-size: 13px;
-    color: var(--green);
-}
+    .psd-score-card { padding: 11px 12px; }
 
-/* ── Environment Tabs ───────────────────────────────────────── */
-.psd-env-tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--line);
-}
+    /* Step label and its penalty stack instead of colliding */
+    .psd-step-header {
+        flex-wrap: wrap;
+        row-gap: 6px;
+    }
+    .psd-step-name { flex: 1 1 auto; }
 
-.psd-env-tab {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 18px;
-    margin-bottom: -1px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    white-space: nowrap;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-}
+    .psd-attempt-row {
+        flex-wrap: wrap;
+        row-gap: 3px;
+    }
 
-.psd-env-tab:hover:not(.disabled) {
-    color: var(--ink);
-}
+    .psd-pass-badge {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
 
-.psd-env-tab.active {
-    color: var(--ink);
-    border-bottom-color: var(--green);
-}
-
-.psd-env-tab.disabled {
-    color: var(--faint);
-    cursor: not-allowed;
-}
-
-/* Pass/fail circular badge inside the tab */
-.psd-tab-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    font-size: 11px;
-    border-radius: 50%;
-}
-
-.psd-tab-badge.passed {
-    color: var(--green-ink);
-    background: var(--green-soft);
-}
-
-.psd-tab-badge.failed {
-    color: var(--muted);
-    background: var(--soft);
-}
-
-/* "Not attempted" label shown instead of a badge */
-.psd-tab-unattempted {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--faint);
-}
-
-/* ── Active Session Meta Row ───────────────────────────────── */
-.psd-active-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.psd-active-date {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.psd-score-sublabel {
-    margin-top: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    .psd-active-date { font-size: 12px; }
 }

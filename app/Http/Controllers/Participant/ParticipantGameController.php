@@ -5,7 +5,15 @@ namespace App\Http\Controllers\Participant;
 use App\Http\Controllers\Controller;
 use App\Models\GameSession;
 use App\Models\SimulationStep;
+use App\Models\Certificate;
+use App\Models\Event;
+use App\Mail\CertificateMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ParticipantGameController extends Controller
 {
@@ -55,6 +63,9 @@ class ParticipantGameController extends Controller
      *   90 - 100% → Excellent
      *   75 - 89%  → Good
      *   50 - 74%  → Passed
+     *
+     * A certificate is issued and emailed automatically for every
+     * passing session (see STEP 9.5).
      */
     public function submitResult(Request $request)
     {
@@ -170,6 +181,18 @@ class ParticipantGameController extends Controller
             ]);
         }
 
+        // ── STEP 9.5 — ISSUE CERTIFICATE ─────────────────────────────
+        // Every session reaching this point is a passing session, so the
+        // participant has earned a certificate. Wrapped in try/catch so a
+        // PDF or mail failure never breaks the Unity response — the result
+        // is already saved above, and the player still sees their win
+        // screen. Failures are logged for staff to resend manually.
+        try {
+            $this->issueCertificate($participant, $session, $percentage, $label);
+        } catch (\Exception $e) {
+            Log::error('Certificate issuing failed: ' . $e->getMessage());
+        }
+
         // ── STEP 10 — RETURN SUCCESS ──────────────────────────────────
         // Unity reads this response to show the Win screen.
         // percentage_score and score_label drive the result display.
@@ -181,5 +204,180 @@ class ParticipantGameController extends Controller
             'score_label'      => $label,
             'time_remaining'   => $validated['phase2_score'],
         ], 201);
+    }
+
+    /**
+     * Creates a certificate record, renders the PDF, and emails it to
+     * the participant. Called only for passing sessions.
+     *
+     * The record is saved BEFORE the email is sent, so that a mail
+     * failure still leaves a certificate staff can resend later.
+     */
+    private function issueCertificate($participant, GameSession $session, $percentage, string $label)
+    {
+        $event = Event::find($session->event_id);
+
+        // Guard — no event, no certificate
+        if (!$event) {
+            Log::warning("Certificate skipped: event {$session->event_id} not found.");
+            return;
+        }
+
+        // Guard — never issue twice for the same
+        // participant + event + environment combination
+        $exists = Certificate::where('participant_id', $participant->id)
+            ->where('event_id', $event->id)
+            ->where('environment', $session->environment)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        // ── 1. Verification code + QR ────────────────────────────
+        // SVG rather than PNG — SVG needs no imagick extension and
+        // stays sharp at any print size.
+        $verificationCode = Str::uuid()->toString();
+        $verifyUrl        = url('/certificates/verify/' . $verificationCode);
+
+        $qrCode = 'data:image/svg+xml;base64,' . base64_encode(
+            QrCode::format('svg')->size(220)->margin(1)->generate($verifyUrl)
+        );
+
+        // ── 2. Embed logos ───────────────────────────────────────
+        // dompdf cannot fetch images over HTTP, so files are read
+        // from disk and inlined as base64. Missing files return null
+        // and the template simply skips that image.
+        $embed = function ($relativePath) {
+            $path = public_path($relativePath);
+            if (!file_exists($path)) return null;
+            $type = pathinfo($path, PATHINFO_EXTENSION);
+            return 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($path));
+        };
+
+        // ── 3. Render the PDF ────────────────────────────────────
+        $pdf = Pdf::loadView('certificates.certificate', [
+            'participantName'  => $participant->name,
+            'eventName'        => $event->name,
+            'environment'      => $session->environment,
+            'percentageScore'  => $percentage,
+            'scoreLabel'       => $label,
+            'issuedAt'         => now()->format('F j, Y'),
+            'qrCode'           => $qrCode,
+            'verificationCode' => $verificationCode,
+            'bfpLogo'          => $embed('Images/BFP_Logo.png'),
+            'fireopsLogo'      => $embed('Images/FireOps_Logo.png'),
+        ])->setPaper('a4', 'landscape');
+
+        // ── 4. Save the certificate record ───────────────────────
+        Certificate::create([
+            'participant_id'    => $participant->id,
+            'event_id'          => $event->id,
+            'game_session_id'   => $session->id,
+            'environment'       => $session->environment,
+            'verification_code' => $verificationCode,
+            'issued_at'         => now(),
+        ]);
+
+        // ── 5. Email it to the participant ───────────────────────
+        Mail::to($participant->email)->send(new CertificateMail(
+            pdfContent:      $pdf->output(),
+            participantName: $participant->name,
+            environment:     $session->environment,
+            eventName:       $event->name,
+            percentageScore: $percentage,
+            scoreLabel:      $label,
+            verifyUrl:       $verifyUrl,
+        ));
+    }
+
+    /**
+     * GET /api/participant/results?event_id={id}
+     *
+     * Returns the logged-in participant's saved results for ONE event,
+     * broken down by the three environments (office, kitchen, classroom).
+     *
+     * Performance Results in Unity is scoped to the currently-selected
+     * event. It shows three environment cards; completed ones display a
+     * score + label and open a full step breakdown, not-yet-done ones
+     * show as "locked / not completed".
+     *
+     * For each environment we return either:
+     *   - completed: true  + score, label, stats, and the step list, OR
+     *   - completed: false (no session for that environment yet)
+     *
+     * One call returns everything both Unity screens need (cards + detail),
+     * so tapping a card needs no second request.
+     */
+    public function getMyResults(Request $request)
+    {
+        // ── VALIDATE ─────────────────────────────────────────────────
+        $validated = $request->validate([
+            'event_id' => 'required|integer|exists:events,id',
+        ]);
+
+        $participant = $request->user();
+        $eventId     = $validated['event_id'];
+
+        // The three environments we always show, in display order.
+        $allEnvironments = ['office', 'kitchen', 'classroom'];
+
+        // ── FETCH THIS PARTICIPANT'S SESSIONS FOR THIS EVENT ─────────
+        // Eager-load the steps so we don't run a query per session.
+        // (Assumes GameSession has a `steps` relationship — see note below.)
+        $sessions = GameSession::with('steps')
+            ->where('participant_id', $participant->id)
+            ->where('event_id', $eventId)
+            ->get()
+            ->keyBy('environment'); // index by environment for easy lookup
+
+        // ── BUILD ONE ENTRY PER ENVIRONMENT ──────────────────────────
+        $environments = [];
+
+        foreach ($allEnvironments as $env) {
+            $session = $sessions->get($env);
+
+            if (!$session) {
+                // No record yet — this environment is "not completed".
+                $environments[] = [
+                    'environment' => $env,
+                    'completed'   => false,
+                ];
+                continue;
+            }
+
+            // Completed — include score, stats, and the full step breakdown.
+            $steps = $session->steps->map(function ($step) {
+                return [
+                    'step_name'       => $step->step_name,
+                    'sub_step'        => $step->sub_step,
+                    'chosen_action'   => $step->chosen_action,
+                    'was_correct'     => (bool) $step->was_correct,
+                    'penalty_seconds' => $step->penalty_seconds,
+                ];
+            })->values();
+
+            $environments[] = [
+                'environment'      => $env,
+                'completed'        => true,
+                'percentage_score' => $session->percentage_score,
+                'score_label'      => $session->score_label,
+                'time_remaining'   => $session->phase2_score,
+                'total_penalties'  => $session->total_penalties,
+                'played_at'        => $session->played_at
+                                        ? $session->played_at->format('Y-m-d')
+                                        : null,
+                'steps'            => $steps,
+            ];
+        }
+
+        // Event name for the header pill (optional but nice).
+        $event = Event::find($eventId);
+
+        return response()->json([
+            'event_id'     => (int) $eventId,
+            'event_name'   => $event ? $event->name : '',
+            'environments' => $environments,
+        ], 200);
     }
 }

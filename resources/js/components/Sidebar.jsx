@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import '../../css/Components/sidebar.css'
 import fireopsLogo from '/public/Images/FireOps_Logo.png'
-import useDarkMode from '../hooks/useDarkMode'   // NEW
+import useDarkMode from '../hooks/useDarkMode'
 
 export default function Sidebar() {
     const navigate  = useNavigate()
@@ -10,7 +10,7 @@ export default function Sidebar() {
     const firstName = localStorage.getItem('first_name') || ''
     const lastName  = localStorage.getItem('last_name')  || ''
     const fullName  = `${firstName} ${lastName}`.trim()
-    const { isDark, toggle } = useDarkMode()      // NEW
+    const { isDark, toggle } = useDarkMode()
 
     function handleLogout() {
         localStorage.removeItem('token')
@@ -51,7 +51,8 @@ export default function Sidebar() {
                             <i className="bi bi-calendar-event-fill"></i>
                             Events
                         </NavLink>
-                        <NavLink to="/staff" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
+                        {/* CHANGED — was /staff, now /staff-management */}
+                        <NavLink to="/staff-management" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
                             <i className="bi bi-people-fill"></i>
                             Staff Management
                         </NavLink>
@@ -62,10 +63,6 @@ export default function Sidebar() {
                         <NavLink to="/certificates" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
                             <i className="bi bi-patch-check-fill"></i>
                             Certificates
-                        </NavLink>
-                        <NavLink to="/reports" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
-                            <i className="bi bi-bar-chart-fill"></i>
-                            Reports
                         </NavLink>
                     </>
                 )}
@@ -81,6 +78,11 @@ export default function Sidebar() {
                             <i className="bi bi-calendar-event-fill"></i>
                             Events Management
                         </NavLink>
+                        {/* NEW — Certifications */}
+                        <NavLink to="/staff/certifications" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
+                            <i className="bi bi-patch-check-fill"></i>
+                            Certifications
+                        </NavLink>
                     </>
                 )}
 
@@ -89,7 +91,6 @@ export default function Sidebar() {
             {/* ── FOOTER ───────────────────────────────── */}
             <div className="sb-footer">
 
-                {/* NEW — dark mode toggle */}
                 <button className="sb-theme" onClick={toggle}>
                     <span className="sb-theme-l">
                         <i className={`bi ${isDark ? 'bi-moon-stars-fill' : 'bi-sun-fill'}`}></i>

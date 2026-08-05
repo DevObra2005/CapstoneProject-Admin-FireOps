@@ -3,16 +3,18 @@
 ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+/* Score-tier colors now reference the global pass scale,
+   so they follow the theme instead of being hardcoded. */
 :root {
-    --d1: #278a43;
-    --d2: #4fb36b;
-    --d3: #aeddbc;
+    --d1: var(--pass);
+    --d2: var(--pass-mid);
+    --d3: var(--pass-light);
 }
 
 [data-theme="dark"] {
-    --d1: #34b857;
-    --d2: #238a40;
-    --d3: #155e2c;
+    --d1: var(--pass);
+    --d2: var(--pass-mid);
+    --d3: var(--pass-light);
 }
 
 /* ============================================================
@@ -152,11 +154,11 @@
     color: var(--muted);
 }
 
-/* Filled green highlight variant (first KPI) */
+/* Filled brand highlight variant (first KPI) */
 .db-kpi-card.fill {
     background: linear-gradient(150deg, var(--green), var(--green-2));
     border-color: transparent;
-    box-shadow: 0 14px 28px rgba(47, 162, 77, .28);
+    box-shadow: 0 14px 28px var(--brand-glow);   /* was hardcoded green */
 }
 
 .db-kpi-card.fill .db-kpi-icon { background: rgba(255, 255, 255, .22); color: #fff; }
@@ -263,41 +265,141 @@
 }
 
 /* ============================================================
-   SCORE CHART
+   SCORE DISTRIBUTION — donut + tier rows (Scheme A)
 ============================================================ */
-.db-score-chart-wrap {
+
+:root {
+    --tier-excellent: #22c55e;   /* green  */
+    --tier-good:      #f4a300;   /* amber  */
+    --tier-passed:    #38bdf8;   /* blue   */
+}
+
+[data-theme="light"] {
+    --tier-excellent: #16a34a;
+    --tier-good:      #d98800;
+    --tier-passed:    #0284c7;
+}
+
+/* ── Layout: donut on the left, tier rows on the right ────── */
+.db-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+/* ── The donut itself ─────────────────────────────────────── */
+.db-donut {
     position: relative;
-    height: 170px;
-    margin-bottom: 14px;
-}
-
-.db-dl-dot {
+    width: 200px;
+    height: 200px;
     flex-shrink: 0;
-    width: 9px;
-    height: 9px;
-    border-radius: 3px;
 }
 
-.db-dl-dot.e { background: var(--d1); }
-.db-dl-dot.g { background: var(--d2); }
-.db-dl-dot.p { background: var(--d3); }
-
-.db-dl-text {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
+/* The total sits in the hole. pointer-events:none so it never
+   blocks the chart's own hover/tooltips. */
+.db-donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
 }
 
-.db-dl-text strong {
+.db-donut-total {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+}
+
+.db-donut-label {
+    font-size: 10.5px;
+    letter-spacing: .9px;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 4px;
+}
+
+/* ── Tier rows beside the donut ───────────────────────────── */
+.db-tier-list {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+.db-tier-row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 14px 16px;
+    background: var(--soft, var(--panel));
+    border: 1px solid var(--line);
+    border-left-width: 3px;
+    border-radius: 11px;
+    transition: transform .18s ease, border-color .18s ease;
+}
+
+.db-tier-row:hover {
+    transform: translateX(4px);
+}
+
+/* Each tier tints its own left edge, so the row is colour-linked
+   to its donut segment even before you read the label. */
+.db-tier-row.e { border-left-color: var(--tier-excellent); }
+.db-tier-row.g { border-left-color: var(--tier-good); }
+.db-tier-row.p { border-left-color: var(--tier-passed); }
+
+.db-tier-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.db-tier-dot.e { background: var(--tier-excellent); }
+.db-tier-dot.g { background: var(--tier-good); }
+.db-tier-dot.p { background: var(--tier-passed); }
+
+.db-tier-info { flex: 1; min-width: 0; }
+
+.db-tier-name {
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--ink);
 }
 
-.db-dl-range {
-    font-size: 10.5px;
+.db-tier-range {
+    font-size: 11px;
     color: var(--faint);
 }
 
+.db-tier-val { text-align: right; }
+
+.db-tier-count {
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+}
+
+.db-tier-pct {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+/* ── Small screens: stack the donut above the rows ────────── */
+@media (max-width: 640px) {
+    .db-donut-wrap {
+        justify-content: center;
+        gap: 24px;
+    }
+    .db-tier-list { min-width: 100%; }
+}
 /* ============================================================
    ENVIRONMENT CARDS
 ============================================================ */
@@ -372,7 +474,8 @@
     border-radius: 50%;
 }
 
-.db-event-dot.open   { background: var(--green); }
+/* "Open" means active/accepting registration → success green */
+.db-event-dot.open   { background: var(--pass); }
 .db-event-dot.closed { background: var(--faint); }
 
 .db-event-name {
@@ -398,8 +501,8 @@
     border-radius: 99px;
 }
 
-.db-ev-badge.open   { color: var(--green-ink); background: var(--green-soft); border: none; }
-.db-ev-badge.closed { color: var(--muted);     background: var(--soft);       border: none; }
+.db-ev-badge.open   { color: var(--pass-ink); background: var(--pass-soft); border: none; }
+.db-ev-badge.closed { color: var(--muted);    background: var(--soft);      border: none; }
 
 /* ============================================================
    FAILED STEPS (Recent activity → steps)
@@ -440,9 +543,10 @@
     border-radius: 99px;
 }
 
+/* These are FAILED steps, so the bar and count read as failure */
 .db-step-bar {
     height: 100%;
-    background: var(--green);
+    background: var(--fail);
     border-radius: 99px;
     transition: width .4s ease;
 }
@@ -451,7 +555,7 @@
     min-width: 24px;
     font-size: 13px;
     font-weight: 800;
-    color: var(--green);
+    color: var(--fail);
     text-align: right;
 }
 

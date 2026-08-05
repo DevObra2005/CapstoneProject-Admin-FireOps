@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
+import api from '../../api/axios'
 import '../../../css/staff/register.css'
 import fireopsLogo from '/public/Images/FireOps_Logo.png';
 
@@ -59,7 +59,7 @@ export default function Register() {
     // If valid → show the form + start GPS in background
     // If invalid → show error screen
     useEffect(() => {
-        axios.get(`/api/events/validate/${token}`)
+        api.get(`/events/validate/${token}`)
             .then(res => {
                 setEvent(res.data)
                 setStep('form')       // Show form immediately — don't wait for GPS
@@ -215,7 +215,7 @@ export default function Register() {
             // POST to /api/register/{token}
             // We don't send confirm_password — backend doesn't need it
             // coords are sent separately for the geolocation check
-            await axios.post(`/api/register/${token}`, {
+            await api.post(`/register/${token}`, {
                 name:           form.name,
                 email:          form.email,
                 organization:   form.organization,

@@ -5,6 +5,7 @@
 body {
     background: var(--bg);
     color: var(--ink);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 /* ===== Desktop sidebar: fixed to the left ===== */
@@ -29,17 +30,106 @@ body {
     }
 }
 
-/* ===== Mobile topbar (hidden on desktop) ===== */
+/* Keeps content readable on very wide monitors */
+.main-wrapper > * {
+    max-width: 1500px;
+}
+
+/* ============================================================
+   MOBILE TOPBAR (hidden on desktop)
+   Brand red pools on the right and fades left into the panel.
+   Menu + wordmark sit left; the logo anchors the red on the right.
+============================================================ */
 .mobile-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
     z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 56px;
+    padding: 0 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--sh-sm);
+    overflow: hidden;         /* clips the gradient to the bar */
+}
+
+/* Gradient wash — sits behind the contents */
+.mobile-topbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+/* Thin brand line under the bar — mirrored to match the wash,
+   so the red is heaviest on the right in both. */
+.mobile-topbar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    height: 2px;
+    background: linear-gradient(270deg, var(--green), transparent 70%);
+}
+
+/* Contents ride above the gradient */
+.mt-burger,
+.mt-name,
+.mt-logo {
+    position: relative;
+    z-index: 2;
+}
+
+.mt-burger {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 21px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background .18s ease;
+}
+
+.mt-burger:active {
+    background: var(--soft);
+}
+
+.mt-name {
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: -.3px;
+    line-height: 1;
+    color: var(--green);
+}
+
+.mt-spacer {
+    flex: 1;
+}
+
+.mt-logo {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+}
+
+.mt-logo img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
 }
 
 @media (min-width: 992px) {
@@ -58,4 +148,9 @@ body {
 
 .offcanvas-body {
     background: var(--panel);
+}
+
+/* Softer backdrop that works in both themes */
+.offcanvas-backdrop.show {
+    opacity: 0.4;
 }

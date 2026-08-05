@@ -5,42 +5,37 @@
 }
 
 /* ── Page wrapper ─────────────────────────────────────────────────────────── */
-/* min-height: 100vh makes the page always fill the full screen height         */
-/* display: flex + align/justify centers the card both vertically+horizontally */
 .reg-page {
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0d1117;
+    min-height: 100vh;
     padding: 24px 16px;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #f2f2f2;
 }
 
-/* ── Card — the white box that holds left + right panels ─────────────────── */
-/* max-width increased to 860px to give more room for the new password fields  */
-/* display: flex makes left and right panels sit side by side                  */
+/* ── Card ─────────────────────────────────────────────────────────────────── */
 .reg-card {
-    background: #0f1923;
+    display: flex;
     width: 100%;
     max-width: 860px;
-    border-radius: 8px;
-    border: 1px solid #1c2333;
     overflow: hidden;
-    display: flex;
+    background: #ffffff;
+    border: 1px solid #e3e7e4;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(20,45,30,.06), 0 2px 6px rgba(20,45,30,.04);
 }
 
-/* ── Left panel — branding, event info, location notice ──────────────────── */
-/* width increased to 260px so the location notice text has room to breathe    */
-/* flex-direction: column stacks children vertically                           */
+/* ── Left panel ───────────────────────────────────────────────────────────── */
 .reg-left {
-    width: 260px;
-    flex-shrink: 0;
-    background: #0a0d12;
-    border-right: 1px solid #1c2333;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
+    width: 260px;
     padding: 28px 20px;
+    background: #f6f8f6;
+    border-right: 1px solid #e3e7e4;
 }
 
 /* ── Brand row ───────────────────────────────────────────────────────────── */
@@ -48,60 +43,61 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 
 .reg-flame {
-    width: 38px;
-    height: 38px;
-    background: #1a0b0b;
-    border: 1px solid #2d1212;
-    border-radius: 7px;
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
+    width: 38px;
+    height: 38px;
     font-size: 18px;
-    flex-shrink: 0;
+    background: #e8f5ec;
+    border: 1px solid #2fa24d;
+    border-radius: 9px;
 }
 
 .reg-brand-name {
-    color: #f0f4f8;
     font-size: 15px;
     font-weight: 700;
-    letter-spacing: -0.2px;
     line-height: 1.2;
+    color: #18241f;
+    letter-spacing: -0.2px;
 }
 
 .reg-brand-sub {
-    color: #7f8081;
-    font-size: 10px;
     margin-top: 2px;
+    font-size: 10.5px;
     line-height: 1.4;
+    color: #7c877f;
 }
 
 /* ── Event info card ─────────────────────────────────────────────────────── */
 .reg-ev-card {
-    background: #111927;
-    border: 1px solid #1c2333;
-    border-radius: 6px;
     padding: 14px;
+    background: #ffffff;
+    border: 1px solid #e3e7e4;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(20,45,30,.05);
 }
 
 .reg-ev-section-label {
-    color: #2a3d52;
-    font-size: 9px;
-    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #a7b0a9;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    margin-bottom: 8px;
 }
 
 .reg-ev-name {
-    color: #c8d8e8;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.4;
     margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #18241f;
 }
 
 /* ── Open pill badge ─────────────────────────────────────────────────────── */
@@ -109,39 +105,38 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #1a0b0b;
-    border: 1px solid #2d1212;
-    border-radius: 3px;
     padding: 3px 8px;
-    color: #c0392b;
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1c6b33;
     text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: #e8f5ec;
+    border: 1px solid #2fa24d;
+    border-radius: 4px;
 }
 
-/* Blinking dot inside the open pill */
 .reg-open-dot {
     width: 5px;
     height: 5px;
-    background: #c0392b;
+    background: #2fa24d;
     border-radius: 50%;
     animation: reg-blink 2s ease-in-out infinite;
 }
 
 @keyframes reg-blink {
     0%, 100% { opacity: 1; }
-    50%       { opacity: 0.3; }
+    50%      { opacity: 0.3; }
 }
 
-/* ── Event meta rows (date, venue, radius) ───────────────────────────────── */
+/* ── Event meta rows ──────────────────────────────────────────────────────── */
 .reg-ev-meta {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #1c2333;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid #e3e7e4;
 }
 
 .reg-ev-meta-row {
@@ -151,114 +146,106 @@
 }
 
 .reg-ev-meta-icon {
-    color: #c0392b;
-    font-size: 11px;
-    margin-top: 1px;
     flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 11px;
+    color: #2fa24d;
 }
 
 .reg-ev-meta-val {
-    color: #3d5166;
-    font-size: 11px;
+    font-size: 11.5px;
     line-height: 1.4;
+    color: #3b4842;
 }
 
 /* ── Location notice ─────────────────────────────────────────────────────── */
-/* This is the new block explaining WHY location is needed                     */
-/* It sits below the event card on the left panel                              */
-/* display: flex puts the icon and text side by side                           */
 .reg-location-notice {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    background: #080d12;
-    border: 1px solid #1c2333;
-    border-radius: 6px;
     padding: 12px;
     margin-top: 14px;
+    background: #ffffff;
+    border: 1px solid #e3e7e4;
+    border-radius: 10px;
 }
 
-/* The shield icon — flex-shrink: 0 prevents it from squishing */
 .reg-notice-icon {
-    color: #c0392b;
-    font-size: 13px;
-    margin-top: 2px;
     flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 13px;
+    color: #2fa24d;
 }
 
 .reg-notice-title {
-    color: #8a9bb0;
-    font-size: 10px;
-    font-weight: 600;
     margin-bottom: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #3b4842;
 }
 
-/* The body text — kept small so it fits in the narrow left panel */
 .reg-notice-body {
-    color: #b1b1b1;
-    font-size: 9.5px;
+    font-size: 10px;
     line-height: 1.6;
+    color: #7c877f;
 }
 
-/* ── Left footer (download button) ──────────────────────────────────────── */
-/* margin-top: auto pushes the footer to the very bottom of the left panel    */
+/* ── Left footer ──────────────────────────────────────────────────────────── */
 .reg-left-footer {
-    margin-top: auto;
     padding-top: 20px;
+    margin-top: auto;
 }
 
 .reg-dl-label {
-    color: #7e7e80;
-    font-size: 10px;
     margin-bottom: 8px;
+    font-size: 10.5px;
     line-height: 1.4;
+    color: #7c877f;
 }
 
 .reg-dl-btn {
     display: flex;
     align-items: center;
     gap: 7px;
-    border: 1px solid #1c2333;
-    border-radius: 4px;
-    padding: 8px 12px;
-    color: #3d5166;
-    font-size: 11px;
-    font-weight: 500;
-    text-decoration: none;
+    padding: 9px 12px;
     font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #7c877f;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid #e3e7e4;
+    border-radius: 8px;
     transition: border-color 0.15s, color 0.15s;
 }
 
-.reg-dl-btn:hover { border-color: #3d5166; color: #8a9bb0; }
+.reg-dl-btn:hover { color: #18241f; border-color: #a7b0a9; }
 .reg-dl-btn i { font-size: 15px; }
 
-/* ── Right panel — the form ──────────────────────────────────────────────── */
-/* flex: 1 makes it take all remaining space after the left panel             */
-/* min-width: 0 prevents flex overflow on narrow screens                      */
+/* ── Right panel — form ───────────────────────────────────────────────────── */
 .reg-right {
-    flex: 1;
-    padding: 28px 28px 24px;
     display: flex;
+    flex: 1;
     flex-direction: column;
     min-width: 0;
+    padding: 28px 28px 24px;
 }
 
 .reg-form-title {
-    color: #f0f4f8;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.2px;
     margin-bottom: 3px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #18241f;
+    letter-spacing: -0.2px;
 }
 
 .reg-form-sub {
-    color: #2a3d52;
-    font-size: 11px;
     margin-bottom: 20px;
+    font-size: 12px;
+    color: #7c877f;
 }
 
-/* ── Section divider — the horizontal line with text in the middle ────────── */
-/* ::before and ::after create the lines on each side of the text             */
+/* ── Section divider ─────────────────────────────────────────────────────── */
 .reg-section-divider {
     display: flex;
     align-items: center;
@@ -268,26 +255,24 @@
 
 .reg-section-divider::before,
 .reg-section-divider::after {
-    content: '';
     flex: 1;
     height: 1px;
-    background: #1c2333;
+    content: '';
+    background: #e3e7e4;
 }
 
 .reg-section-divider span {
-    color: #2a3d52;
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #a7b0a9;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     white-space: nowrap;
 }
 
 /* ── Form layout ─────────────────────────────────────────────────────────── */
-.reg-form { flex: 1; display: flex; flex-direction: column; }
+.reg-form { display: flex; flex: 1; flex-direction: column; }
 
-/* Two-column grid for fields side by side */
-/* 1fr 1fr = each column takes equal space */
 .reg-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -298,24 +283,23 @@
 .reg-field { display: flex; flex-direction: column; gap: 5px; }
 
 .reg-label {
-    color: #2a3d52;
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
     display: flex;
     align-items: center;
     gap: 4px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #a7b0a9;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
 }
 
-.reg-req { color: #c0392b; }
+.reg-req { color: #1c6b33; }
 
-/* Character counter for contact number — pushed to the right with margin-left: auto */
 .reg-count {
     margin-left: auto;
-    color: #1c2333;
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 400;
+    color: #a7b0a9;
     text-transform: none;
     letter-spacing: 0;
     font-variant-numeric: tabular-nums;
@@ -323,163 +307,169 @@
 
 /* ── Standard text input ─────────────────────────────────────────────────── */
 .reg-input {
-    background: #080d12;
-    border: 1px solid #1c2333;
-    border-radius: 4px;
-    padding: 9px 11px;
-    color: #8a9bb0;
-    font-size: 13px;
-    font-family: inherit;
-    outline: none;
     width: 100%;
-    transition: border-color 0.15s, color 0.15s;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: #18241f;
+    background: #f6f8f6;
+    border: 1.5px solid #e3e7e4;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
 }
 
-.reg-input::placeholder { color: #1e2d3d; }
-.reg-input:hover        { border-color: #243347; }
-.reg-input:focus        { border-color: #c0392b; color: #c8d8e8; }
-.reg-input-error        { border-color: #7a1a1a !important; }
+.reg-input::placeholder { color: #a7b0a9; }
+.reg-input:hover        { border-color: #a7b0a9; }
+.reg-input:focus        { color: #18241f; background: #ffffff; border-color: #2fa24d; }
+.reg-input-error        { border-color: #c0392b !important; }
 
 /* ── Password field wrapper ──────────────────────────────────────────────── */
-/* position: relative is REQUIRED for the eye button to position itself       */
-/* inside the input. Without it, the eye button would float outside.          */
-/* Think of it like a picture frame — the eye button is the corner decoration */
-/* that only stays in the right place because the frame has position: relative */
 .reg-input-wrap {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-/* Password input — extra right padding so text doesn't go under the eye icon */
 .reg-input-pass {
-    padding-right: 38px;
     width: 100%;
+    padding-right: 40px;
 }
 
 /* ── Eye toggle button ───────────────────────────────────────────────────── */
-/* position: absolute + right: 10px places it inside the input on the right   */
-/* It works because .reg-input-wrap has position: relative                    */
-/* Without position: relative on the parent, 'absolute' would jump to the     */
-/* nearest positioned ancestor — possibly the whole page                       */
 .reg-eye {
     position: absolute;
     right: 10px;
     top: 50%;
-    transform: translateY(-50%);  /* Perfect vertical center regardless of height */
-    background: none;
-    border: none;
-    color: #3d5166;
-    cursor: pointer;
-    padding: 4px;
-    font-size: 14px;
-    line-height: 1;
-    transition: color 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 6px;
+    font-size: 14px;
+    line-height: 1;
+    color: #a7b0a9;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transform: translateY(-50%);
+    transition: color 0.15s;
 }
 
-.reg-eye:hover { color: #8a9bb0; }
+.reg-eye:hover { color: #7c877f; }
 
 /* ── Credentials note ────────────────────────────────────────────────────── */
-/* The small info box explaining what the password is for                      */
 .reg-cred-note {
     display: flex;
     align-items: flex-start;
     gap: 7px;
-    color: #3d5166;
-    font-size: 10px;
-    line-height: 1.5;
+    padding: 9px 11px;
     margin-bottom: 12px;
-    padding: 8px 10px;
-    background: #080d12;
-    border: 1px solid #1c2333;
-    border-radius: 4px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #7c877f;
+    background: #f6f8f6;
+    border: 1px solid #e3e7e4;
+    border-radius: 8px;
 }
 
-.reg-cred-note i { font-size: 11px; margin-top: 1px; flex-shrink: 0; }
+.reg-cred-note i { flex-shrink: 0; margin-top: 1px; font-size: 11px; color: #2fa24d; }
 
-/* ── GPS status box ──────────────────────────────────────────────────────── */
-/* Shows between password fields and submit button                             */
-/* Color changes dynamically via inline style in JSX based on gpsStatus        */
+/* ── GPS status box ───────────────────────────────────────────────────────── */
 .reg-gps-box {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    background: #080d12;
-    border: 1px solid #1c2333;  /* overridden inline per status */
-    border-radius: 4px;
-    padding: 10px 12px;
-    margin-bottom: 12px;
+    padding: 11px 13px;
     margin-top: 4px;
+    margin-bottom: 12px;
+    background: #f6f8f6;
+    border: 1px solid #e3e7e4;
+    border-radius: 8px;
 }
 
-.reg-gps-icon { font-size: 14px; margin-top: 2px; flex-shrink: 0; }
-.reg-gps-text { font-size: 11px; font-weight: 600; line-height: 1.3; }
-.reg-gps-sub  { font-size: 10px; color: #2a3d52; margin-top: 2px; line-height: 1.4; }
+.reg-gps-icon { flex-shrink: 0; margin-top: 2px; font-size: 14px; }
+.reg-gps-text { font-size: 11.5px; font-weight: 700; line-height: 1.3; }
+.reg-gps-sub  { margin-top: 2px; font-size: 10.5px; line-height: 1.4; color: #a7b0a9; }
 
-/* Retry button — only shown when GPS failed */
+/* GPS status color variants */
+.reg-gps-box.status-requesting { border-color: #e3e7e4; }
+.reg-gps-box.status-requesting .reg-gps-icon,
+.reg-gps-box.status-requesting .reg-gps-text { color: #7c877f; }
+
+.reg-gps-box.status-granted { border-color: #2fa24d; background: #e8f5ec; }
+.reg-gps-box.status-granted .reg-gps-icon,
+.reg-gps-box.status-granted .reg-gps-text { color: #1c6b33; }
+
+.reg-gps-box.status-far,
+.reg-gps-box.status-denied,
+.reg-gps-box.status-failed { border-color: #c0392b; background: rgba(192,57,43,.06); }
+.reg-gps-box.status-far .reg-gps-icon,
+.reg-gps-box.status-far .reg-gps-text,
+.reg-gps-box.status-denied .reg-gps-icon,
+.reg-gps-box.status-denied .reg-gps-text,
+.reg-gps-box.status-failed .reg-gps-icon,
+.reg-gps-box.status-failed .reg-gps-text { color: #c0392b; }
+
+/* Retry button */
 .reg-gps-retry {
-    margin-left: auto;
     flex-shrink: 0;
-    background: none;
-    border: 1px solid #3d5166;
-    border-radius: 3px;
-    color: #3d5166;
-    font-size: 10px;
-    padding: 3px 8px;
-    cursor: pointer;
+    padding: 4px 9px;
+    margin-left: auto;
     font-family: inherit;
+    font-size: 10.5px;
+    color: #7c877f;
+    cursor: pointer;
+    background: none;
+    border: 1px solid #a7b0a9;
+    border-radius: 6px;
     transition: border-color 0.15s, color 0.15s;
 }
 
-.reg-gps-retry:hover { border-color: #8a9bb0; color: #8a9bb0; }
+.reg-gps-retry:hover { color: #18241f; border-color: #3b4842; }
 
-/* ── Error message ───────────────────────────────────────────────────────── */
+/* ── Error message ────────────────────────────────────────────────────────── */
 .reg-err {
-    color: #c0392b;
-    font-size: 10px;
     display: flex;
     align-items: center;
     gap: 4px;
     margin-top: 1px;
+    font-size: 10.5px;
+    color: #c0392b;
 }
 
 .reg-err i { font-size: 10px; }
 
-/* ── Submit button ───────────────────────────────────────────────────────── */
-/* disabled state shows 50% opacity — visual cue that GPS hasn't confirmed yet */
+/* ── Submit button ────────────────────────────────────────────────────────── */
 .reg-submit {
-    width: 100%;
-    background: #c0392b;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    margin-top: auto;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
     gap: 8px;
+    padding: 13px;
+    margin-top: auto;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #fff;
     letter-spacing: 0.01em;
-    transition: background 0.15s;
+    cursor: pointer;
+    background: #2fa24d;
+    border: none;
+    border-radius: 9px;
+    transition: background 0.15s, box-shadow 0.15s;
 }
 
-.reg-submit:hover:not(:disabled)  { background: #a93226; }
-.reg-submit:active:not(:disabled) { background: #922b21; }
-.reg-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-.reg-submit i { font-size: 15px; }
+.reg-submit:hover:not(:disabled)  { background: #268a41; box-shadow: 0 4px 12px rgba(47,162,77,.28); }
+.reg-submit:active:not(:disabled) { background: #268a41; }
+.reg-submit:disabled { cursor: not-allowed; opacity: 0.5; }
+.reg-submit i { font-size: 16px; }
 
-/* ── Loading spinner inside submit button ────────────────────────────────── */
+/* ── Loading spinner ──────────────────────────────────────────────────────── */
 .reg-spinner {
     width: 14px;
     height: 14px;
-    border: 2px solid rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,.3);
     border-top-color: #fff;
     border-radius: 50%;
     animation: reg-spin 0.7s linear infinite;
@@ -487,110 +477,159 @@
 
 @keyframes reg-spin { to { transform: rotate(360deg); } }
 
-/* ── Status screens (validating / error / success) ───────────────────────── */
+/* ── Status screens ───────────────────────────────────────────────────────── */
 .reg-status-page {
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0d1117;
+    min-height: 100vh;
     padding: 20px;
     font-family: 'Inter', system-ui, sans-serif;
+    background: #f2f2f2;
 }
 
 .reg-status-box {
-    background: #0f1923;
-    border: 1px solid #1c2333;
-    border-radius: 8px;
+    width: 100%;
+    max-width: 320px;
     padding: 40px 32px;
     text-align: center;
-    max-width: 320px;
-    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e3e7e4;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(20,45,30,.06), 0 2px 6px rgba(20,45,30,.04);
 }
 
 .reg-status-spinner {
     width: 36px;
     height: 36px;
-    border: 2px solid #1c2333;
-    border-top-color: #c0392b;
+    margin: 0 auto 18px;
+    border: 2px solid #e3e7e4;
+    border-top-color: #2fa24d;
     border-radius: 50%;
     animation: reg-spin 0.8s linear infinite;
-    margin: 0 auto 18px;
 }
 
-.reg-status-icon  { font-size: 36px; margin-bottom: 16px; display: block; }
-.reg-status-title { color: #f0f4f8; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-.reg-status-sub   { color: #3d5166; font-size: 12px; line-height: 1.7; max-width: 240px; margin-inline: auto; }
+.reg-status-icon  { display: block; margin-bottom: 16px; font-size: 36px; }
+.reg-status-title { margin-bottom: 8px; font-size: 16px; font-weight: 700; color: #18241f; }
+.reg-status-sub   { max-width: 240px; margin-inline: auto; font-size: 12.5px; line-height: 1.7; color: #7c877f; }
 
-/* ── Success screen ──────────────────────────────────────────────────────── */
+/* ── Success screen ───────────────────────────────────────────────────────── */
 .reg-success-box {
-    background: #0f1923;
-    border: 1px solid #1c2333;
-    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
     padding: 40px 32px;
     text-align: center;
-    max-width: 400px;
-    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e3e7e4;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(20,45,30,.06), 0 2px 6px rgba(20,45,30,.04);
 }
 
 .reg-success-check {
-    width: 56px;
-    height: 56px;
-    background: #0c1f0e;
-    border: 1px solid #1e3d22;
-    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 56px;
+    height: 56px;
     margin: 0 auto 18px;
+    background: #e8f5ec;
+    border: 1px solid #2fa24d;
+    border-radius: 14px;
 }
 
-.reg-success-check i  { font-size: 24px; color: #4a9d5a; }
-.reg-success-title    { color: #f0f4f8; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.reg-success-sub      { color: #3d5166; font-size: 13px; line-height: 1.7; }
-.reg-success-sub strong { color: #8a9bb0; }
-.reg-success-divider  { height: 1px; background: #1c2333; margin: 22px 0; }
-.reg-success-dl-label { color: #2a3d52; font-size: 11px; margin-bottom: 12px; }
+.reg-success-check i  { font-size: 24px; color: #2fa24d; }
+.reg-success-title    { margin-bottom: 8px; font-size: 18px; font-weight: 700; color: #18241f; }
+.reg-success-sub      { font-size: 13px; line-height: 1.7; color: #7c877f; }
+.reg-success-sub strong { color: #3b4842; }
+.reg-success-divider  { height: 1px; margin: 22px 0; background: #e3e7e4; }
+.reg-success-dl-label { margin-bottom: 12px; font-size: 11.5px; color: #a7b0a9; }
 
 .reg-success-dl-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #0c1f0e;
-    border: 1px solid #1e3d22;
-    border-radius: 4px;
-    padding: 10px 20px;
-    color: #4a9d5a;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 11px 22px;
     font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1c6b33;
     text-decoration: none;
-    transition: border-color 0.15s, color 0.15s;
+    background: #e8f5ec;
+    border: 1px solid #2fa24d;
+    border-radius: 9px;
+    transition: box-shadow 0.15s;
 }
 
-.reg-success-dl-btn:hover { border-color: #4a9d5a; color: #5fb870; }
+.reg-success-dl-btn:hover { box-shadow: 0 4px 12px rgba(47,162,77,.18); }
 .reg-success-dl-btn i     { font-size: 16px; }
-.reg-success-note         { color: #1c2333; font-size: 10px; margin-top: 10px; }
+.reg-success-note         { margin-top: 10px; font-size: 10.5px; color: #a7b0a9; }
 
-/* ── Responsive — mobile (max 600px) ────────────────────────────────────── */
-/* On mobile, the card stacks vertically instead of side by side              */
-/* The left panel becomes a top header, the form goes below                   */
-@media (max-width: 600px) {
-    .reg-page         { padding: 0; align-items: flex-start; }
-    .reg-card         { flex-direction: column; border-radius: 0; min-height: 100vh; max-width: 100%; border: none; }
-    .reg-left         { width: 100%; border-right: none; border-bottom: 1px solid #1c2333; padding: 20px; }
-    .reg-brand        { margin-bottom: 16px; }
-    .reg-ev-card      { margin-bottom: 0; }
-    .reg-left-footer  { display: none; }
-    .reg-right        { padding: 20px; }
-    .reg-grid         { grid-template-columns: 1fr; }
-    .reg-input        { font-size: 16px; }
-    .reg-submit       { margin-top: 16px; }
-    .reg-ev-meta      { flex-direction: row; flex-wrap: wrap; gap: 10px; border-top: none; margin-top: 8px; padding-top: 0; }
-    .reg-mobile-dl    { display: flex !important; }
-    .reg-location-notice { margin-top: 12px; }
+/* ── Responsive — tablet ──────────────────────────────────────────────────── */
+@media (max-width: 780px) {
+    .reg-card { max-width: 620px; }
+    .reg-left { width: 220px; padding: 24px 16px; }
 }
 
-@media (min-width: 601px) {
+/* ── Responsive — mobile ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .reg-page {
+        align-items: flex-start;
+        padding: 0;
+    }
+    .reg-card {
+        flex-direction: column;
+        min-height: 100vh;
+        max-width: 100%;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    .reg-left {
+        width: 100%;
+        padding: 18px 16px;
+        border-right: none;
+        border-bottom: 1px solid #e3e7e4;
+    }
+    .reg-brand { margin-bottom: 14px; }
+    .reg-ev-card { margin-bottom: 0; }
+    .reg-left-footer { display: none; }
+    .reg-right { padding: 18px 16px 24px; }
+    .reg-grid { grid-template-columns: 1fr; gap: 10px; }
+    /* Prevents iOS auto-zoom on focus — inputs must be ≥16px */
+    .reg-input { font-size: 16px; }
+    .reg-submit {
+        padding: 14px;
+        margin-top: 16px;
+        font-size: 14px;
+    }
+    .reg-ev-meta {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-top: 0;
+        margin-top: 10px;
+        border-top: none;
+    }
+    .reg-mobile-dl { display: flex !important; justify-content: center; margin-top: 16px; }
+    .reg-location-notice { margin-top: 12px; }
+    .reg-status-box,
+    .reg-success-box {
+        max-width: 100%;
+        padding: 32px 22px;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+
+/* ── Extra small phones ───────────────────────────────────────────────────── */
+@media (max-width: 380px) {
+    .reg-form-title { font-size: 15.5px; }
+    .reg-brand-name { font-size: 14px; }
+    .reg-input { padding: 9px 10px; }
+    .reg-submit { font-size: 13px; }
+}
+
+@media (min-width: 641px) {
     .reg-mobile-dl { display: none !important; }
 }

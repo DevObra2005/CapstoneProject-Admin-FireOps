@@ -3,8 +3,10 @@
 ============================================================ */
 .ae-page-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
+    gap: 12px;
     margin-bottom: 22px;
 }
 
@@ -37,6 +39,7 @@
 
 .ae-stat-icon {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     width: 40px;
@@ -47,9 +50,10 @@
     border-radius: 12px;
 }
 
+/* "Open" events are a positive state → success green */
 .ae-stat-icon.green {
-    color: var(--green);
-    background: var(--green-soft);
+    color: var(--pass-ink);
+    background: var(--pass-soft);
 }
 
 .ae-stat-icon.muted {
@@ -58,12 +62,14 @@
 }
 
 .ae-stat-tag {
+    flex-shrink: 0;
     padding: 4px 10px;
     font-size: 10px;
     font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: .04em;
+    white-space: nowrap;
     background: var(--soft);
     border-radius: 8px;
 }
@@ -77,18 +83,18 @@
     letter-spacing: -0.8px;
 }
 
-.ae-stat-number.green { color: var(--ink); }
+.ae-stat-number.green { color: var(--pass); }
 
 .ae-stat-label {
     font-size: 12px;
     color: var(--muted);
 }
 
-/* Filled highlight variant (Total events card) — same green gradient as dashboard */
+/* Filled highlight variant (Total events card) — matches dashboard */
 .ae-stat-card.fill {
     background: linear-gradient(150deg, var(--green), var(--green-2));
     border-color: transparent;
-    box-shadow: 0 14px 28px rgba(47, 162, 77, .28);
+    box-shadow: 0 14px 28px var(--brand-glow);
 }
 
 .ae-stat-card.fill .ae-stat-icon { color: #fff; background: rgba(255, 255, 255, .22); }
@@ -124,13 +130,14 @@
 .ae-search {
     width: 100%;
     padding: 10px 14px 10px 38px;
+    font-family: inherit;
     font-size: 13px;
     color: var(--ink);
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 11px;
     outline: none;
-    transition: border-color .15s;
+    transition: border-color .15s, box-shadow .15s;
 }
 
 .ae-search::placeholder {
@@ -139,6 +146,7 @@
 
 .ae-search:focus {
     border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--green-soft);
 }
 
 .ae-filter-group {
@@ -152,9 +160,11 @@
 
 .ae-filter-btn {
     padding: 7px 15px;
+    font-family: inherit;
     font-size: 12px;
     font-weight: 600;
     color: var(--muted);
+    white-space: nowrap;
     background: transparent;
     border: none;
     border-radius: 8px;
@@ -195,12 +205,13 @@
 
 .ae-card:hover {
     border-color: var(--green);
-    box-shadow: 0 10px 24px rgba(47, 162, 77, .10);
+    box-shadow: var(--sh);
     transform: translateY(-1px);
 }
 
 .ae-card-body {
     flex: 1;
+    min-width: 0;
     padding: 16px 18px;
 }
 
@@ -213,9 +224,11 @@
 }
 
 .ae-card-name {
+    min-width: 0;
     font-size: 15px;
     font-weight: 700;
     color: var(--ink);
+    overflow-wrap: anywhere;
 }
 
 .ae-badge {
@@ -226,17 +239,20 @@
     padding: 4px 11px;
     font-size: 11px;
     font-weight: 600;
+    white-space: nowrap;
     border-radius: 99px;
 }
 
 .ae-badge-dot {
+    flex-shrink: 0;
     width: 6px;
     height: 6px;
     border-radius: 50%;
 }
 
-.ae-badge-open   { color: var(--green-ink); background: var(--green-soft); }
-.ae-badge-open .ae-badge-dot { background: var(--green); }
+/* "Open" = accepting registration → success green */
+.ae-badge-open   { color: var(--pass-ink); background: var(--pass-soft); }
+.ae-badge-open .ae-badge-dot { background: var(--pass); }
 
 .ae-badge-closed { color: var(--muted); background: var(--soft); }
 .ae-badge-closed .ae-badge-dot { background: var(--faint); }
@@ -252,6 +268,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    max-width: 100%;
     padding: 5px 10px;
     font-size: 12px;
     font-weight: 500;
@@ -261,6 +278,7 @@
 }
 
 .ae-meta-chip i {
+    flex-shrink: 0;
     font-size: 11px;
     color: var(--faint);
 }
@@ -269,6 +287,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
     padding-top: 12px;
     border-top: 1px solid var(--line);
 }
@@ -285,7 +304,7 @@
     color: #fff;
     background: linear-gradient(150deg, var(--green), var(--green-2));
     border-radius: 50%;
-    box-shadow: 0 3px 8px rgba(47, 162, 77, .25);
+    box-shadow: 0 3px 8px var(--brand-glow);
 }
 
 .ae-incharge-label {
@@ -299,6 +318,7 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--ink);
+    overflow-wrap: anywhere;
 }
 
 .ae-card-arrow {
@@ -351,4 +371,172 @@
     margin-bottom: 12px;
     font-size: 32px;
     opacity: 0.4;
+}
+
+/* ============================================================
+   STAFF ADDITIONS (create button + card actions)
+============================================================ */
+.ae-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    background: var(--green);
+    border: none;
+    border-radius: 11px;
+    cursor: pointer;
+    box-shadow: 0 8px 18px var(--brand-glow);
+    transition: background .15s ease;
+}
+
+.ae-btn-primary:hover {
+    background: var(--green-2);
+}
+
+/* participants chip on the right of a staff card */
+.ae-card-count {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 74px;
+    gap: 2px;
+    background: var(--soft);
+    border-left: 1px solid var(--line);
+    transition: background .15s ease;
+}
+
+.ae-card-count b {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -.5px;
+}
+
+.ae-card-count span {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .ae-page-title { font-size: 21px; }
+
+    .ae-stat-card { padding: 15px 16px; }
+    .ae-stat-number { font-size: 25px; }
+
+    .ae-card-body { padding: 14px 16px; }
+}
+
+/* ── Phones ─────────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .ae-page-header {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 18px;
+    }
+
+    .ae-page-title { font-size: 19px; }
+    .ae-page-sub   { font-size: 12.5px; }
+
+    .ae-btn-primary {
+        width: 100%;
+        padding: 12px 18px;
+        font-size: 14px;
+    }
+
+    /* Search takes its own row; the filter group spans the next
+       one so all three options stay tappable. */
+    .ae-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 9px;
+    }
+
+    .ae-search-wrap { min-width: 0; }
+
+    /* 16px stops iOS Safari zooming the page on focus */
+    .ae-search { font-size: 16px; }
+
+    .ae-filter-group { width: 100%; }
+
+    .ae-filter-btn {
+        flex: 1;
+        padding: 8px 6px;
+        text-align: center;
+    }
+
+    .ae-stat-card {
+        padding: 13px 14px;
+        border-radius: 14px;
+    }
+
+    .ae-stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+
+    .ae-stat-number { font-size: 23px; }
+    .ae-stat-label  { font-size: 11.5px; }
+    .ae-stat-tag    { padding: 3px 8px; font-size: 9.5px; }
+
+    .ae-card { border-radius: 14px; }
+    .ae-card-body { padding: 13px 14px; }
+
+    /* Event name and status badge stack rather than squeezing */
+    .ae-card-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 7px;
+        margin-bottom: 9px;
+    }
+
+    .ae-card-name { font-size: 14.5px; }
+
+    .ae-meta-chip {
+        padding: 4px 9px;
+        font-size: 11.5px;
+    }
+
+    /* Narrower chevron column leaves more room for content */
+    .ae-card-arrow { width: 36px; }
+
+    .ae-card-count { width: 62px; }
+    .ae-card-count b { font-size: 16px; }
+
+    .ae-loading,
+    .ae-empty { padding: 40px 18px; }
+}
+
+/* ── Very small phones ──────────────────────────────────── */
+@media (max-width: 400px) {
+    .ae-card-body { padding: 12px; }
+
+    .ae-card-arrow { width: 30px; font-size: 13px; }
+
+    .ae-incharge-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .ae-incharge-name { font-size: 12.5px; }
+
+    .ae-stat-tag { display: none; }
 }

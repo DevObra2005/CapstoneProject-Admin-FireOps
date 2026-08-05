@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios'
 import DataTable from '../../Components/datatable';
 import '../../../css/Superadmin/staff.css';
 import { useNavigate } from 'react-router-dom';
@@ -14,17 +14,13 @@ export default function Staff() {
     const [loading,   setLoading]   = useState(false);
     const [fetching,  setFetching]  = useState(true);
     const [archiving, setArchiving] = useState(null);
-    
-
-    const token = localStorage.getItem('token');
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
     useEffect(() => { fetchStaff(); }, []);
 
     const fetchStaff = async () => {
         setFetching(true);
         try {
-            const res = await axios.get('/api/superadmin/staff');
+            const res = await api.get('/superadmin/staff');
             setStaffList(res.data);
         } catch (err) {
             console.log('Error fetching staff:', err);
@@ -59,10 +55,10 @@ export default function Staff() {
         setLoading(true); setError('');
         try {
             if (editing) {
-                await axios.put(`/api/superadmin/staff/${editing.id}`, form);
+                await api.put(`/superadmin/staff/${editing.id}`, form);
                 setSuccess('Staff account updated successfully.');
             } else {
-                await axios.post('/api/superadmin/staff', form);
+                await api.post('/superadmin/staff', form);
                 setSuccess('Staff account created. Credentials sent to their email.');
             }
             fetchStaff();
@@ -84,7 +80,7 @@ export default function Staff() {
 
         setArchiving(staff.id);
         try {
-            await axios.patch(`/api/superadmin/staff/${staff.id}/${action}`);
+            await api.patch(`/superadmin/staff/${staff.id}/${action}`);
             fetchStaff();
         } catch (err) {
             console.log('Archive/Restore error:', err);
@@ -92,7 +88,9 @@ export default function Staff() {
             setArchiving(null);
         }
     };
+
     const navigate = useNavigate();
+
     const columns = [
         {
             key: '_index',
@@ -100,22 +98,17 @@ export default function Staff() {
             width: '36px',
             render: (_, __, index) => index + 1,
         },
-        
         {
             key: 'full_name',
             label: 'Name',
             render: (value, row) => (
-                <div className="dt-name-cell" 
-                     onClick={() => navigate(`/staff/${row.id}`)}
-                     style={{ cursor: 'pointer' }}
-                    >
+               <div className="dt-name-cell" onClick={() => navigate(`/staff-management/${row.id}`)}>
                     <div className="dt-avatar">{row.first_name.charAt(0).toUpperCase()}</div>
                     <div>
-                        <div>{value}</div>
-                        <div className="dt-muted" style={{ fontSize: '12px' }}>{row.email}</div>
+                        <div className="dt-name-text">{value}</div>
+                        <div className="dt-muted dt-email-text">{row.email}</div>
                     </div>
                 </div>
-                
             ),
         },
         {
@@ -123,6 +116,7 @@ export default function Staff() {
             label: 'Status',
             render: (value) => (
                 <span className={value ? 'sm-badge-active' : 'sm-badge-archived'}>
+                    <span className="sm-badge-dot"></span>
                     {value ? 'Active' : 'Archived'}
                 </span>
             ),
@@ -195,9 +189,19 @@ export default function Staff() {
                     <div className="sm-modal" onClick={e => e.stopPropagation()}>
 
                         <div className="sm-modal-header">
-                            <h5 className="sm-modal-title">
-                                {editing ? 'Edit staff account' : 'Add new staff'}
-                            </h5>
+                            <div className="sm-modal-header-left">
+                                <div className="sm-modal-header-icon">
+                                    <i className={`bi ${editing ? 'bi-pencil-fill' : 'bi-person-plus-fill'}`}></i>
+                                </div>
+                                <div>
+                                    <h5 className="sm-modal-title">
+                                        {editing ? 'Edit staff account' : 'Add new staff'}
+                                    </h5>
+                                    <p className="sm-modal-subtitle">
+                                        {editing ? 'Update account details' : 'Create a new BFP staff login'}
+                                    </p>
+                                </div>
+                            </div>
                             <button className="sm-close" onClick={closeModal}>
                                 <i className="bi bi-x-lg"></i>
                             </button>
@@ -217,7 +221,7 @@ export default function Staff() {
                                         placeholder="Juan"
                                         value={form.first_name}
                                         onChange={e => setForm({ ...form, first_name: e.target.value })}
-                                        
+                                        required
                                     />
                                 </div>
                                 <div className="sm-field">

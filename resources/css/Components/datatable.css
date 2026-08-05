@@ -1,9 +1,13 @@
 /* ── Card / Table ─────────────────────────────────────────────────────────── */
 .dt-card {
-    background: #0d1320;
-    border: 1px solid #162032;
-    border-radius: 12px;
-    overflow: hidden;
+    /* auto rather than hidden so a wide table can still scroll if it must,
+       but the mobile rules below aim to avoid scrolling entirely. */
+    overflow-x: auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--sh-sm);
+    -webkit-overflow-scrolling: touch;
 }
 
 .dt-table {
@@ -12,135 +16,235 @@
 }
 
 .dt-table thead tr {
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid var(--line);
 }
 
 .dt-table thead th {
-    padding: 11px 16px;
+    padding: 13px 18px;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 700;
+    color: var(--faint);
+    text-align: left;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: #64748b;
-    text-align: left;
     white-space: nowrap;
+    background: var(--soft);
 }
 
 .dt-table tbody tr {
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    transition: background 0.1s;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.12s;
 }
 
 .dt-table tbody tr:last-child { border-bottom: none; }
-.dt-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.dt-table tbody tr:hover { background: var(--soft); }
 
 .dt-table td {
-    padding: 12px 16px;
+    padding: 13px 18px;
     font-size: 13px;
-    color: #e2e8f0;
+    color: var(--ink);
     vertical-align: middle;
 }
 
-.dt-num   { color: #475569; font-size: 12px; width: 36px; }
-.dt-muted { color: #64748b; }
-
-/* ── Avatar + name cell ───────────────────────────────────────────────────── */
-.dt-name-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.dt-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(220, 38, 38, 0.15);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    color: #f87171;
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
+.dt-num   { width: 36px; font-size: 12px; color: var(--faint); }
+.dt-muted { color: var(--muted); }
 
 /* ── Action buttons ───────────────────────────────────────────────────────── */
 .dt-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 6px;
 }
 
 .dt-btn-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
-    border: 1px solid transparent;
     display: flex;
+    flex: none;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    width: 32px;
+    height: 32px;
     font-size: 13px;
+    cursor: pointer;
     background: none;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s;
 }
 
+.dt-btn-icon:hover { transform: translateY(-1px); }
+
 .dt-btn-edit {
-    color: #94a3b8;
-    border-color: rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    background: var(--soft);
+    border-color: var(--line);
 }
 .dt-btn-edit:hover {
-    background: rgba(255,255,255,0.08);
-    color: #e2e8f0;
+    color: var(--ink);
+    background: var(--line);
 }
 
 .dt-btn-del {
-    color: #f87171;
-    border-color: rgba(248,113,113,0.15);
-    background: rgba(248,113,113,0.05);
+    color: var(--muted);
+    background: var(--soft);
+    border-color: var(--line);
 }
 .dt-btn-del:hover {
-    background: rgba(248,113,113,0.12);
-    border-color: rgba(248,113,113,0.3);
+    color: var(--ink);
+    background: var(--line);
+    border-color: var(--faint);
 }
-.dt-btn-del:disabled { opacity: 0.4; cursor: not-allowed; }
+.dt-btn-del:disabled { cursor: not-allowed; opacity: 0.4; }
+
+.dt-spin {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid var(--line);
+    border-top-color: var(--muted);
+    border-radius: 50%;
+    animation: dt-spin 0.7s linear infinite;
+}
+@keyframes dt-spin { to { transform: rotate(360deg); } }
 
 /* ── Empty state ──────────────────────────────────────────────────────────── */
 .dt-empty {
-    padding: 52px 24px;
+    padding: 56px 24px;
     text-align: center;
 }
 
 .dt-empty-icon {
-    font-size: 28px;
-    color: #334155;
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    font-size: 30px;
+    color: var(--faint);
 }
 
 .dt-empty-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #94a3b8;
     margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
 }
 
 .dt-empty-sub {
-    font-size: 12px;
-    color: #475569;
     margin: 0;
+    font-size: 12.5px;
+    color: var(--muted);
 }
 
 /* ── Skeleton loader ──────────────────────────────────────────────────────── */
-@keyframes sm-pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.4; }
+.dt-skeleton {
+    background: var(--soft);
+    border-radius: 6px;
+    animation: dt-pulse 1.4s ease-in-out infinite;
 }
 
-/* ── Responsive: hide columns on mobile ──────────────────────────────────── */
+@keyframes dt-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+
+   Strategy: instead of scrolling sideways, shed low-value columns and
+   tighten spacing until the important ones fit. A pinned column technically
+   works but leaves a visible seam and hides Status behind it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Columns flagged hidden640 drop off on small screens */
 @media (max-width: 640px) {
     .dt-col-hide640 { display: none; }
+}
+
+/* ── Tablet ───────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .dt-table thead th,
+    .dt-table td {
+        padding: 12px 14px;
+    }
+}
+
+/* ── Phones ───────────────────────────────────────────────────────────────── */
+@media (max-width: 576px) {
+    /* The row number adds nothing on a phone and costs horizontal space. */
+    .dt-table thead th:first-child,
+    .dt-table td:first-child {
+        display: none;
+    }
+
+    .dt-table thead th,
+    .dt-table td {
+        padding: 12px 10px;
+    }
+
+    .dt-table thead th {
+        font-size: 10px;
+        letter-spacing: 0.05em;
+    }
+
+    .dt-table td { font-size: 12.5px; }
+
+    /* Name column absorbs the leftover width and truncates, rather than
+       forcing the table wider than the screen. */
+    .dt-table td:nth-child(2) {
+        max-width: 0;
+        width: 100%;
+    }
+
+    .dt-name-cell { gap: 9px; }
+
+    .dt-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .dt-name-text,
+    .dt-email-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dt-name-text  { font-size: 13px; }
+    .dt-email-text { font-size: 11px; }
+
+    /* Status and Actions shrink to fit their contents */
+    .dt-table thead th:nth-last-child(-n+2),
+    .dt-table td:nth-last-child(-n+2) {
+        width: 1%;
+        white-space: nowrap;
+    }
+
+    .dt-actions { gap: 5px; }
+
+    .dt-btn-icon {
+        width: 33px;
+        height: 33px;
+        font-size: 13.5px;
+    }
+}
+
+/* ── Very small phones ────────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+    .dt-table thead th,
+    .dt-table td {
+        padding: 11px 8px;
+    }
+
+    /* Email is secondary — drop it before the layout starts scrolling */
+    .dt-email-text { display: none; }
+
+    .dt-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 11.5px;
+    }
+
+    .dt-btn-icon {
+        width: 31px;
+        height: 31px;
+    }
 }

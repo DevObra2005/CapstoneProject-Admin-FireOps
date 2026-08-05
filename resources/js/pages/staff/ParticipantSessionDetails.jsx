@@ -11,7 +11,7 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
             'SoundAlarm':       'Sound the Alarm',
             'GrabExtinguisher': 'Grab Extinguisher',
             'GrabWetBlanket':   'Grab Wet Blanket',
-            'TPASS_Twist':      'T — Twist the seal',
+            'TPASS_Twist':      'T — Twist the pin',
             'TPASS_Pull':       'P — Pull the pin',
             'TPASS_Aim':        'A — Aim at base',
             'TPASS_Squeeze':    'S — Squeeze handle',
@@ -26,11 +26,6 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
     }
 
     // ── GROUP STEPS BY STEP NAME ──────────────────────────────────
-    // session.steps[] has one row per action (including wrong attempts)
-    // We group them so all attempts for the same step are together
-    //
-    // reduce() builds an object as it loops:
-    // { SoundAlarm: [{...}, {...}], GrabExtinguisher: [{...}] }
     const groupedSteps = session.steps.reduce((groups, step) => {
         const key = step.step_name
         if (!groups[key]) groups[key] = []
@@ -39,9 +34,6 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
     }, {})
 
     // ── STEP ORDER ────────────────────────────────────────────────
-    // Defines the correct display order per environment
-    // JavaScript objects don't guarantee key order
-    // so we control the order manually with these arrays
     const officeClassroomOrder = [
         'SoundAlarm',
         'GrabExtinguisher',
@@ -63,66 +55,60 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
         'Evacuate',
     ]
 
-    // Pick correct order based on environment
     const stepOrder = session.environment === 'kitchen'
         ? kitchenOrder
         : officeClassroomOrder
 
-    // Only show steps that exist in the recorded session data
-    // filter() keeps only keys that exist in groupedSteps
     const orderedStepKeys = stepOrder.filter(key => groupedSteps[key])
 
     // ── HELPERS ───────────────────────────────────────────────────
-    // Did this step have ANY wrong attempts?
-    // some() returns true if at least one item matches
     const stepHadError = (stepKey) =>
         groupedSteps[stepKey].some(s => !s.was_correct)
 
-    // Total penalty seconds for one step
-    // reduce() adds up all penalty_seconds for that step's attempts
     const stepTotalPenalty = (stepKey) =>
         groupedSteps[stepKey].reduce((sum, s) => sum + s.penalty_seconds, 0)
 
     // ── FORMATTERS ────────────────────────────────────────────────
-    // "office" → "Office"
     const envDisplay = session.environment.charAt(0).toUpperCase()
         + session.environment.slice(1)
 
-    // ISO date → "June 20, 2026"
     const playedDate = new Date(session.played_at).toLocaleDateString('en-US', {
         month: 'long', day: 'numeric', year: 'numeric'
     })
 
-    // Returns color based on score label
+    /* CHANGED — green scale: every tier is a pass, so all stay green.
+       Deep green = Excellent, mid = Good, pale = Passed. */
     const scoreColor = (label) => {
         const map = {
-            'Excellent': '#22c55e',  // green
-            'Good':      '#3b82f6',  // blue
-            'Passed':    '#f59e0b',  // amber
-        };
-        return map[label] || '#64748b';
+            'Excellent': 'var(--pass)',
+            'Good':      'var(--pass-mid)',
+            'Passed':    'var(--pass-light)',
+        }
+        return map[label] || 'var(--muted)'
     }
+
     // ── BODY ─────────────────────────────────────────────────────
-    // This is the reusable part: score cards + phase 1 + phase 2.
-    // Used both standalone (own page) and embedded (inside
-    // ParticipantAllSessions, under a pill-selected tab).
     const body = (
         <>
             {/* ── SCORE SUMMARY CARDS ─────────────────────────────── */}
-            {/* Shows: Timer Start | Total Penalties | Final Score | Environment */}
             <div className="psd-score-grid">
 
                <div className="psd-score-card">
                     <div className="psd-score-label">Time Remaining</div>
                     <div className="psd-score-value">
-                        <i className="bi bi-stopwatch me-2 text-danger"></i>
+                        {/* CHANGED — brand red instead of Bootstrap red */}
+                        <i className="bi bi-stopwatch me-2" style={{ color: 'var(--green)' }}></i>
                         {session.phase2_score}s
                     </div>
                 </div>
 
                 <div className="psd-score-card">
                     <div className="psd-score-label">Total Penalties</div>
-                    <div className="psd-score-value red">
+                    {/* CHANGED — no penalties is a good thing, so show it green */}
+                    <div
+                        className="psd-score-value"
+                        style={{ color: session.total_penalties > 0 ? 'var(--fail)' : 'var(--pass)' }}
+                    >
                         <i className="bi bi-dash-circle-fill me-2"></i>
                         {session.total_penalties}s
                     </div>
@@ -142,7 +128,8 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
                 <div className="psd-score-card">
                     <div className="psd-score-label">Environment</div>
                     <div className="psd-score-value">
-                        <i className="bi bi-building me-2 text-danger"></i>
+                        {/* CHANGED — brand red */}
+                        <i className="bi bi-building me-2" style={{ color: 'var(--green)' }}></i>
                         {envDisplay}
                     </div>
                 </div>
@@ -152,7 +139,8 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
             {/* ── PHASE 1 ──────────────────────────────────────────── */}
             <div className="psd-card">
                 <div className="psd-section-label">
-                    <i className="bi bi-search text-danger"></i>
+                    {/* CHANGED — brand red */}
+                    <i className="bi bi-search" style={{ color: 'var(--green)' }}></i>
                     Phase 1 — Hazard Identification
                 </div>
                 <div className="psd-phase1-ok">
@@ -164,37 +152,31 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
             {/* ── PHASE 2 STEPS ────────────────────────────────────── */}
             <div className="psd-card">
                 <div className="psd-section-label">
-                    <i className="bi bi-lightning-fill text-danger"></i>
+                    {/* CHANGED — brand red */}
+                    <i className="bi bi-lightning-fill" style={{ color: 'var(--green)' }}></i>
                     Phase 2 — Simulation Steps
                 </div>
 
                 <div className="psd-steps-list">
                     {orderedStepKeys.map((stepKey, index) => (
 
+                        /* CHANGED — border moved to CSS classes (was hardcoded green/red inline) */
                         <div
                             key={stepKey}
-                            className="psd-step-block"
-                            style={{
-                                border: `1px solid ${stepHadError(stepKey)
-                                    ? 'rgba(192,57,43,0.3)'
-                                    : 'rgba(34,197,94,0.2)'}`,
-                            }}
+                            className={`psd-step-block ${stepHadError(stepKey) ? 'error' : 'ok'}`}
                         >
 
                             {/* Step Header */}
                             <div className="psd-step-header">
 
-                                {/* Step number circle — red if error, green if ok */}
                                 <div className={`psd-step-number ${stepHadError(stepKey) ? 'error' : 'ok'}`}>
                                     {index + 1}
                                 </div>
 
-                                {/* Human-readable step name from our dictionary */}
                                 <span className="psd-step-name">
                                     {formatStepName(stepKey)}
                                 </span>
 
-                                {/* Total penalty badge for this step */}
                                 <span className={`psd-step-penalty ${stepTotalPenalty(stepKey) > 0 ? 'has-penalty' : 'no-penalty'}`}>
                                     {stepTotalPenalty(stepKey) > 0
                                         ? `-${stepTotalPenalty(stepKey)}s`
@@ -204,22 +186,20 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
                             </div>
 
                             {/* Individual Attempts */}
-                            {/* One row per action — including wrong attempts */}
                             {groupedSteps[stepKey].map((attempt, attemptIndex) => (
                                 <div key={attemptIndex} className="psd-attempt-row">
 
-                                    {/* Green check or red X icon */}
+                                    {/* CHANGED — theme variables instead of hardcoded hex */}
                                     <i className={`bi ${attempt.was_correct
                                         ? 'bi-check-circle-fill'
                                         : 'bi-x-circle-fill'}`}
                                         style={{
-                                            color: attempt.was_correct ? '#22c55e' : '#c0392b',
+                                            color: attempt.was_correct ? 'var(--pass)' : 'var(--fail)',
                                             fontSize: 13,
                                             flexShrink: 0,
                                         }}
                                     />
 
-                                    {/* Label + action name */}
                                     <span className="psd-attempt-label">
                                         {attempt.was_correct ? 'Correct: ' : 'Wrong: '}
                                         <span className={`psd-attempt-action ${attempt.was_correct ? 'correct' : 'wrong'}`}>
@@ -227,7 +207,6 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
                                         </span>
                                     </span>
 
-                                    {/* Penalty per attempt — only shown if penalized */}
                                     {attempt.penalty_seconds > 0 && (
                                         <span className="psd-attempt-penalty">
                                             -{attempt.penalty_seconds}s
@@ -246,16 +225,11 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
     )
 
     // ── EMBEDDED MODE ────────────────────────────────────────────
-    // Used inside ParticipantAllSessions — no page header, no back
-    // button, no own page wrapper. The parent already shows the
-    // participant name, pass/fail badge, and date for this pill.
     if (embedded) {
         return body
     }
 
     // ── STANDALONE MODE ──────────────────────────────────────────
-    // Original full-page behavior, kept for backward compatibility
-    // in case this component is ever used on its own elsewhere.
     return (
         <div className="ev-page psd-page">
 
