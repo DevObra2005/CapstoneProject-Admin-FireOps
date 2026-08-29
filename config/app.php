@@ -65,7 +65,14 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
+
+    /*
+     * Timezone used for DISPLAY only — reports, emails, and anything a
+     * person reads. Storage stays in UTC so timestamps written before
+     * and after this change remain directly comparable.
+     */
+    'display_timezone' => env('DISPLAY_TIMEZONE', 'Asia/Manila'),
 
     /*
     |--------------------------------------------------------------------------

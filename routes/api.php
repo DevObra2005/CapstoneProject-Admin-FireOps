@@ -27,9 +27,7 @@ Route::get('/me',      [AuthController::class, 'me'])->middleware('auth:sanctum'
 Route::get('/events/validate/{token}', [EventController::class, 'validateToken']);
 Route::post('/register/{token}',       [ParticipantController::class, 'store']);
 Route::post('/participant/login',      [ParticipantController::class, 'login']);
-Route::post('/participant/change-password',
-    [ParticipantPasswordController::class, 'changePassword'])
-    ->middleware('throttle:5,1');
+Route::post('/participant/change-password',[ParticipantPasswordController::class, 'changePassword'])->middleware('throttle:5,1');
 
 // Password Reset
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
@@ -86,7 +84,9 @@ Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
     Route::get('/staff/certifications', [CertificateController::class, 'index']);
 
     // Reports
+        // Reports
     Route::get('/staff/reports/event/{eventId}', [ReportController::class, 'eventSummary']);
+    Route::get('/staff/reports/steps',           [ReportController::class, 'stepAnalysis']);
 });
 
 //Unity - Participant protected routes (requires Sanctum token)

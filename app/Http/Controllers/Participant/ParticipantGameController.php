@@ -269,7 +269,9 @@ class ParticipantGameController extends Controller
             'environment'      => $session->environment,
             'percentageScore'  => $percentage,
             'scoreLabel'       => $label,
-            'issuedAt'         => now()->format('F j, Y'),
+            'issuedAt'         => now()
+                                    ->setTimezone(config('app.display_timezone'))
+                                    ->format('F j, Y'),
             'qrCode'           => $qrCode,
             'verificationCode' => $verificationCode,
             'bfpLogo'          => $embed('Images/BFP_Logo.png'),
@@ -379,7 +381,9 @@ class ParticipantGameController extends Controller
                 'time_remaining'   => $best->phase2_score,
                 'total_penalties'  => $best->total_penalties,
                 'played_at'        => $best->played_at
-                                        ? $best->played_at->format('Y-m-d')
+                                        ? $best->played_at
+                                            ->setTimezone(config('app.display_timezone'))
+                                            ->format('Y-m-d')
                                         : null,
                 'steps'            => $steps,
             ];

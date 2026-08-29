@@ -97,7 +97,7 @@
             @endif
             <div class="row">
                 <span class="k">Issued</span>
-                <span class="v">{{ $certificate->issued_at->format('F j, Y') }}</span>
+                <span class="v">{{ $certificate->issued_at->setTimezone(config('app.display_timezone'))->format('F j, Y') }}</span>
             </div>
         </div>
 

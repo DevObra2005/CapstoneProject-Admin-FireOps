@@ -31,114 +31,22 @@ class ReportController extends Controller
         return response()->json($data);
     }
 
-    protected function buildEventSummary(Request $request, $eventId)
+    /**
+     * Current time formatted for a human reader.
+     *
+     * The app stores everything in UTC so timestamps stay directly
+     * comparable regardless of where the server runs. Anything a person
+     * READS — reports, emails, PDFs — has to be converted to local time
+     * first, or a report generated at 1:09 PM in Natividad prints 5:09 AM.
+     */
+    protected function displayTime(): string
     {
-        $event = DB::table('events')
-            ->where('id', $eventId)
-            ->select('id', 'name', 'description', 'date', 'location_name')
-            ->first();
-
-        if (!$event) {
-            return null;
-        }
-
-        $sessions = DB::table('game_sessions')
-            ->join('participants', 'game_sessions.participant_id', '=', 'participants.id')
-            ->where('game_sessions.event_id', $eventId)
-            ->select(
-                'game_sessions.participant_id',
-                'participants.name as participant_name',
-                'game_sessions.environment',
-                'game_sessions.attempt_number',
-                'game_sessions.percentage_score',
-                'game_sessions.score_label',
-                'game_sessions.passed',
-                'game_sessions.fail_reason'
-            )
-            ->get();
-
-        // One row per participant-environment pair, keeping only the final
-        // attempt. This is the unit everything below is measured against —
-        // a participant who ran Office and Kitchen counts as two scenarios.
-        $pairs = $sessions
-            ->groupBy(fn($s) => $s->participant_id . '|' . $s->environment)
-            ->map(fn($group) => $group->sortByDesc('attempt_number')->first())
-            ->values();
-
-        $participantsAttempted = $sessions->pluck('participant_id')->unique()->count();
-        $scenariosAttempted    = $pairs->count();
-        $scenariosPassed       = $pairs->where('passed', 1)->count();
-
-        $byEnvironment = $pairs
-            ->groupBy('environment')
-            ->map(function ($group, $env) use ($sessions) {
-                $attemptsForEnv = $sessions->where('environment', $env)->count();
-
-                return array_merge(
-                    [
-                        'environment'    => $env,
-                        'total_attempts' => $attemptsForEnv,
-                    ],
-                    $this->summarize($group)
-                );
-            })
-            ->sortBy('environment')
-            ->values();
-
-        $participants = $pairs
-            ->sortBy('participant_name')
-            ->values()
-            ->map(function ($s) {
-                return [
-                    'participant_name' => $s->participant_name,
-                    'environment'      => $s->environment,
-                    'attempts_made'    => (int) $s->attempt_number,
-                    'score'            => (int) $s->percentage_score,
-                    'score_label'      => $s->score_label,
-                    'passed'           => (bool) $s->passed,
-                ];
-            });
-
-        return [
-            'event'        => $event,
-            'generated_at' => now()->format('d M Y, g:i A'),
-            'generated_by' => trim($request->user()->first_name . ' ' . $request->user()->last_name),
-            'overview' => [
-                'participants_attempted' => $participantsAttempted,
-                'scenarios_attempted'    => $scenariosAttempted,
-                'scenarios_passed'       => $scenariosPassed,
-                'scenarios_failed'       => $scenariosAttempted - $scenariosPassed,
-                'scenario_pass_rate'     => $scenariosAttempted > 0
-                    ? round(($scenariosPassed / $scenariosAttempted) * 100)
-                    : 0,
-                'final_average_score'    => $scenariosAttempted > 0
-                    ? round($pairs->avg('percentage_score'))
-                    : 0,
-                'total_attempts'         => $sessions->count(),
-                'attempts_per_scenario'  => $scenariosAttempted > 0
-                    ? round($sessions->count() / $scenariosAttempted, 1)
-                    : 0,
-            ],
-            'by_environment' => $byEnvironment,
-            'participants'   => $participants,
-        ];
+        return now()
+            ->setTimezone(config('app.display_timezone'))
+            ->format('d M Y, g:i A');
     }
 
-    protected function summarize($pairs): array
-    {
-        $total  = $pairs->count();
-        $passed = $pairs->where('passed', 1)->count();
-
-        return [
-            'scenarios'     => $total,
-            'passed'        => $passed,
-            'failed'        => $total - $passed,
-            'pass_rate'     => $total > 0 ? round(($passed / $total) * 100) : 0,
-            'average_score' => $total > 0 ? round($pairs->avg('percentage_score')) : 0,
-        ];
-    }
-
-    public function stepAnalysis(Request $request)
+        public function stepAnalysis(Request $request)
     {
         $data = $this->buildStepAnalysis($request);
 
@@ -152,6 +60,30 @@ class ReportController extends Controller
         }
 
         return response()->json($data);
+    }
+     /**
+     * Turns a raw step key into something a BFP reader recognises.
+     * The database stores 'TPASS_Aim'; a printed report should say
+     * 'TPASS — Aim'. Mirrors the map used on the dashboard.
+     */
+    protected function formatStepName(string $name): string
+    {
+        return [
+            'SoundAlarm'       => 'Sound alarm',
+            'GrabExtinguisher' => 'Grab extinguisher',
+            'GrabWetBlanket'   => 'Grab wet blanket',
+            'GrabTowel'        => 'Grab towel',
+            'TPASS_Twist'      => 'TPASS — Twist',
+            'TPASS_Pull'       => 'TPASS — Pull',
+            'TPASS_Aim'        => 'TPASS — Aim',
+            'TPASS_Squeeze'    => 'TPASS — Squeeze',
+            'TPASS_Sweep'      => 'TPASS — Sweep',
+            'WCTL_Wet'         => 'WCTL — Wet',
+            'WCTL_Cover'       => 'WCTL — Cover',
+            'WCTL_TurnOff'     => 'WCTL — Turn off',
+            'WCTL_Leave'       => 'WCTL — Leave',
+            'Evacuate'         => 'Evacuate',
+        ][$name] ?? $name;
     }
 
     protected function buildStepAnalysis(Request $request)
@@ -182,6 +114,7 @@ class ReportController extends Controller
                 return [
                     'environment'   => $first->environment,
                     'step_name'     => $first->step_name,
+                    'step_label'    => $this->formatStepName($first->step_name),
                     'times_run'     => $total,
                     'times_missed'  => $missed,
                     'failure_rate'  => $total > 0 ? round(($missed / $total) * 100) : 0,
@@ -193,16 +126,32 @@ class ReportController extends Controller
             ->sortByDesc('failure_rate')
             ->values();
 
-        $worst = $byStep->first();
+        $worst        = $byStep->first();
+        $totalMissed  = $steps->where('was_correct', 0)->count();
+
+        // A readable description of the period, used in the report's
+        // meta block. Both bounds are optional, so there are four cases.
+        $fmt = fn($d) => \Carbon\Carbon::parse($d)->format('d F Y');
+
+        $periodLabel = match (true) {
+            $from && $to => $fmt($from) . ' – ' . $fmt($to),
+            (bool) $from => $fmt($from) . ' onward',
+            (bool) $to   => 'Up to ' . $fmt($to),
+            default      => 'All recorded simulations',
+        };
 
         return [
-            'generated_at' => now()->format('d M Y, g:i A'),
+            'generated_at' => $this->displayTime(),
             'generated_by' => trim($request->user()->first_name . ' ' . $request->user()->last_name),
             'range_from'   => $from,
             'range_to'     => $to,
+            'period_label' => $periodLabel,
             'total_steps'  => $steps->count(),
+            'overall_failure_rate' => $steps->count() > 0
+                ? round(($totalMissed / $steps->count()) * 100)
+                : 0,
             'headline'     => $worst
-                ? ucfirst($worst['step_name']) . ' was missed in ' . $worst['failure_rate']
+                ? $worst['step_label'] . ' was missed in ' . $worst['failure_rate']
                 . '% of ' . ucfirst($worst['environment']) . ' attempts — the most common failure.'
                 : null,
             'by_step'      => $byStep,

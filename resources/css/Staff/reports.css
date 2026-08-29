@@ -1,504 +1,616 @@
 /* ============================================================
    REPORTS PAGE
-   Uses the same token set as events.css (--panel, --line, --ink,
-   --muted, --faint, --soft) so the page follows the light/dark
-   toggle. The previous version hardcoded #fff and stayed white.
+
+   Mirrors dashboard.css: same tokens, same radii, same shadow,
+   same section-label rhythm, Bootstrap grid for layout.
    Class prefix: rp-
 ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 .rp-page {
+    /* display/min-width guard against a parent that is display:flex —
+       without them this page becomes a flex item and its columns
+       collapse until text wraps letter by letter. */
     display: block;
     width: 100%;
     min-width: 0;
-    box-sizing: border-box;
-    padding: 32px;
-    max-width: 880px;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     color: var(--ink);
 }
 
-/* ── Header ───────────────────────────────────────────────── */
-.rp-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 28px;
-}
-
+/* ============================================================
+   HEADER
+============================================================ */
 .rp-title {
-    margin: 0 0 4px;
-    font-family: 'Titan One', cursive;
-    font-size: 30px;
-    font-weight: 400;
+    font-size: 26px;
+    font-weight: 800;
     color: var(--ink);
+    letter-spacing: -0.5px;
 }
 
 .rp-sub {
-    margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--muted);
 }
 
-.rp-chips {
+/* Stat pills — same shape language as .db-toggle */
+.rp-pills {
     display: flex;
-    gap: 8px;
-    flex-shrink: 0;
+    gap: 2px;
+    padding: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 11px;
 }
 
-.rp-chip {
+.rp-pill {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 9px 16px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: var(--sh-sm);
+    min-width: 72px;
+    padding: 5px 14px;
+    border-radius: 8px;
 }
 
-.rp-chip-n {
-    font-size: 19px;
+.rp-pill-val {
+    font-size: 17px;
     font-weight: 800;
     line-height: 1.1;
     color: var(--ink);
+    letter-spacing: -0.5px;
 }
 
-.rp-chip-l {
-    font-size: 11px;
-    color: var(--faint);
-}
-
-/* ── Section label ────────────────────────────────────────── */
-.rp-section-label {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-    font-size: 11px;
-    font-weight: 700;
+.rp-pill-lbl {
+    font-size: 10px;
+    font-weight: 600;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: .05em;
+}
+
+/* ============================================================
+   SECTION LABEL
+============================================================ */
+.rp-section-label {
+    margin: 18px 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: .06em;
 }
 
 .rp-search {
-    flex: 1;
-    min-width: 160px;
-    max-width: 260px;
-    margin-left: auto;
-    padding: 7px 12px;
+    width: 220px;
+    max-width: 100%;
+    padding: 8px 13px;
     font-family: inherit;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0;
-    text-transform: none;
+    font-size: 12.5px;
     color: var(--ink);
-    background: var(--soft);
+    background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 10px;
     outline: none;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color .15s;
 }
 
 .rp-search::placeholder { color: var(--faint); }
+.rp-search:focus        { border-color: var(--green); }
 
-.rp-search:focus {
-    background: var(--panel);
-    border-color: var(--green);
-}
-
-/* ── Report type cards ────────────────────────────────────── */
-.rp-types {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 12px;
-    margin-bottom: 28px;
-}
-
-.rp-type {
-    padding: 16px 18px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: var(--sh-sm);
-}
-
-/* 2px border is deliberate — marks the one report you can
-   actually run right now. */
-.rp-type-active {
-    border: 2px solid var(--green);
-    padding: 15px 17px;
-}
-
-.rp-type-soon { opacity: 0.6; }
-
-.rp-type-head {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    margin-bottom: 8px;
-}
-
-.rp-type-head .bi {
-    font-size: 17px;
-    color: var(--green);
-}
-
-.rp-type-soon .rp-type-head .bi { color: var(--faint); }
-
-.rp-type-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--ink);
-}
-
-.rp-badge-pdf {
-    padding: 2px 8px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: #fff;
-    background: var(--green);
-    border-radius: 5px;
-}
-
-.rp-badge-soon {
-    padding: 2px 9px;
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--faint);
-    background: var(--soft);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-}
-
-.rp-type-desc {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--muted);
-}
-
-/* ── Event list ───────────────────────────────────────────── */
-.rp-event-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 28px;
-}
-
-/* Buttons, not divs — keyboard focus and Enter come for free,
-   which a clickable div would need extra handlers to match. */
-.rp-event {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+/* ============================================================
+   REPORT TYPE CARDS
+   Buttons, not divs — the selected card drives which report the
+   page configures, so keyboard focus and Enter need to work.
+============================================================ */
+.rp-type-card {
+    display: block;
+    position: relative;
     width: 100%;
-    padding: 14px 16px;
+    height: 100%;
+    padding: 20px;
     font-family: inherit;
     text-align: left;
     cursor: pointer;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 18px;
     box-shadow: var(--sh-sm);
-    transition: border-color 0.15s, transform 0.15s;
+    transition: border-color .15s;
 }
 
-.rp-event:hover {
-    border-color: var(--green);
-    transform: translateY(-1px);
-}
+.rp-type-card:hover { border-color: var(--green); }
 
-.rp-event-active {
+/* 2px marks the selected report. Padding drops by 1px so the card
+   doesn't shift position when the border thickens. */
+.rp-type-card.active {
+    padding: 19px;
     border: 2px solid var(--green);
-    padding: 13px 15px;
 }
 
-.rp-event-main { flex: 1; min-width: 0; }
+.rp-type-card:focus-visible {
+    outline: none;
+    border-color: var(--green);
+}
 
-.rp-event-name {
-    font-size: 15px;
+.rp-type-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: 19px;
+    color: var(--green);
+    background: var(--green-soft);
+    border-radius: 13px;
+}
+
+.rp-type-tag {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: var(--soft);
+    border-radius: 8px;
+}
+
+.rp-type-name {
+    margin: 14px 0 5px;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -.5px;
+}
+
+.rp-type-desc {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+/* ============================================================
+   DATE RANGE — shown when the training analysis report is selected
+============================================================ */
+.rp-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.rp-range-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.rp-range-lbl {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.rp-date {
+    width: 100%;
+    padding: 10px 13px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    outline: none;
+    transition: border-color .15s, background .15s;
+}
+
+.rp-date:focus {
+    background: var(--panel);
+    border-color: var(--green);
+}
+
+/* The native calendar icon is dark by default and disappears
+   against a dark input, so invert it in dark mode. */
+[data-theme="dark"] .rp-date::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6);
+}
+
+.rp-range-note {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 11px 13px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    background: var(--soft);
+    border-radius: 11px;
+}
+
+.rp-range-note i { flex-shrink: 0; color: var(--faint); }
+
+.rp-range-clear {
+    margin-left: auto;
+    padding: 0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+}
+
+/* ============================================================
+   EVENT ROWS — same shape as .db-tier-row
+============================================================ */
+.rp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+/* Buttons rather than divs so keyboard focus and Enter work
+   without extra handlers. */
+.rp-row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    min-width: 0;
+    padding: 14px 16px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-left-width: 3px;
+    border-left-color: var(--line);
+    border-radius: 11px;
+    transition: transform .18s ease, border-color .18s ease;
+}
+
+.rp-row:hover { transform: translateX(4px); }
+
+.rp-row:focus-visible {
+    outline: none;
+    border-left-color: var(--green);
+    transform: translateX(4px);
+}
+
+.rp-row.active {
+    background: var(--green-soft);
+    border-left-color: var(--green);
+}
+
+.rp-row-radio {
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--faint);
+}
+
+.rp-row.active .rp-row-radio { color: var(--green); }
+
+.rp-row-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+}
+
+.rp-row-name {
+    overflow: hidden;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--ink);
-    overflow-wrap: anywhere;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.rp-event-meta {
+.rp-row-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 5px;
-    margin-top: 3px;
-    font-size: 12.5px;
+    font-size: 11px;
     color: var(--muted);
 }
 
-.rp-event-meta .bi { font-size: 12px; color: var(--faint); }
-.rp-dot { color: var(--faint); }
+.rp-row-meta i  { font-size: 10.5px; color: var(--faint); }
+.rp-row-sep     { color: var(--faint); }
 
-.rp-event-stats {
+.rp-row-side {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 11px;
     flex-shrink: 0;
 }
 
-.rp-stat {
-    display: flex;
-    flex-direction: column;
+.rp-row-count {
+    display: inline-flex;
     align-items: center;
-}
-
-.rp-stat-n {
-    font-size: 17px;
+    gap: 5px;
+    font-size: 13px;
     font-weight: 800;
-    line-height: 1.1;
     color: var(--ink);
 }
 
-.rp-stat-l {
-    font-size: 10px;
-    color: var(--faint);
-}
+.rp-row-count i { font-size: 11px; font-weight: 400; color: var(--faint); }
 
-.rp-status {
-    padding: 3px 11px;
-    font-size: 11px;
+.rp-row-badge {
+    flex-shrink: 0;
+    padding: 4px 11px;
+    font-size: 10px;
     font-weight: 700;
-    border-radius: 20px;
+    border-radius: 99px;
     white-space: nowrap;
 }
 
-.rp-status-open   { color: var(--pass-ink); background: var(--pass-soft); }
-.rp-status-closed { color: var(--muted);    background: var(--soft); }
+.rp-row-badge.open   { color: var(--pass-ink); background: var(--pass-soft); }
+.rp-row-badge.closed { color: var(--muted);    background: var(--panel); }
 
-.rp-event-check {
-    flex-shrink: 0;
-    font-size: 20px;
-    color: var(--line);
-}
-
-.rp-event-active .rp-event-check { color: var(--green); }
-
-/* ── Skeleton loading ─────────────────────────────────────── */
-/* Placeholder rows sized like real cards, so the layout doesn't
-   jump when the data lands. */
-.rp-skeleton-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 28px;
-}
-
-.rp-skeleton {
-    height: 70px;
-    background: var(--soft);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    animation: rpPulse 1.4s ease-in-out infinite;
-}
-
-.rp-skeleton:nth-child(2) { animation-delay: 0.15s; }
-.rp-skeleton:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes rpPulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.45; }
-}
-
-/* ── Empty state ──────────────────────────────────────────── */
-.rp-empty {
-    padding: 44px 24px;
-    margin-bottom: 28px;
-    text-align: center;
+/* ============================================================
+   PANEL — matches .db-panel
+============================================================ */
+.rp-panel {
+    height: 100%;
+    padding: 22px;
     background: var(--panel);
-    border: 1px dashed var(--line);
-    border-radius: 14px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--sh-sm);
 }
 
-.rp-empty .bi {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 30px;
-    color: var(--faint);
+/* Keeps Generate reachable however long the event list runs */
+.rp-panel-sticky {
+    position: sticky;
+    top: 20px;
+    height: auto;
 }
 
-.rp-empty-title {
-    margin: 0;
+.rp-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 15px;
     font-weight: 700;
     color: var(--ink);
 }
 
-.rp-empty-sub {
-    margin: 4px 0 0;
-    font-size: 13px;
-    color: var(--muted);
-}
+.rp-panel-title i { font-size: 15px; color: var(--green); }
 
-/* ── Generate panel ───────────────────────────────────────── */
-.rp-generate {
-    padding: 18px 20px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    box-shadow: var(--sh-sm);
-}
-
-.rp-includes-label {
-    margin-bottom: 10px;
+.rp-panel-badge {
+    padding: 5px 11px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    background: var(--soft);
+    border-radius: 8px;
 }
 
+/* ── Includes list ────────────────────────────────────────── */
 .rp-includes {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    gap: 2px;
     margin-bottom: 16px;
 }
 
-.rp-pill {
-    padding: 5px 12px;
-    font-size: 12px;
+.rp-include {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 12.5px;
+    line-height: 1.45;
     color: var(--muted);
-    background: var(--soft);
-    border-radius: 20px;
 }
 
+.rp-include i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--pass);
+}
+
+/* ── Error ────────────────────────────────────────────────── */
 .rp-error {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    padding: 11px 14px;
-    margin-bottom: 14px;
-    font-size: 13px;
+    padding: 11px 13px;
+    margin-bottom: 13px;
+    font-size: 12px;
     line-height: 1.5;
     color: var(--fail-ink);
     background: var(--fail-soft);
-    border-radius: 10px;
+    border-radius: 11px;
 }
 
-.rp-error .bi { flex-shrink: 0; margin-top: 2px; }
+.rp-error i { flex-shrink: 0; margin-top: 1px; }
 
-.rp-generate-bar {
+/* ── Target ───────────────────────────────────────────────── */
+.rp-target {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
+    flex-direction: column;
+    justify-content: center;
+    min-height: 56px;
+    padding: 11px 13px;
+    margin-bottom: 13px;
+    background: var(--soft);
+    border-radius: 12px;
 }
 
-.rp-generate-target {
+.rp-target-lbl {
+    margin-bottom: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.rp-target-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.rp-target-empty {
     display: flex;
     align-items: center;
     gap: 7px;
-    min-width: 0;
-    font-size: 13px;
-    color: var(--muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 12px;
+    color: var(--faint);
 }
 
-.rp-generate-target .bi { flex-shrink: 0; color: var(--green); }
-
+/* ── Button ───────────────────────────────────────────────── */
 .rp-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    flex-shrink: 0;
-    padding: 11px 22px;
+    width: 100%;
+    padding: 12px 20px;
     font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 13.5px;
+    font-weight: 700;
     color: #fff;
     cursor: pointer;
     background: var(--green);
     border: none;
-    border-radius: 10px;
-    transition: all 0.15s;
+    border-radius: 12px;
+    transition: all .15s;
 }
 
 .rp-btn:hover:not(:disabled) {
     background: var(--green-2);
-    box-shadow: 0 4px 12px var(--brand-glow);
+    box-shadow: 0 6px 16px var(--brand-glow);
     transform: translateY(-1px);
 }
 
 .rp-btn:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: .45;
     transform: none;
     box-shadow: none;
 }
 
-.rp-spinner {
+/* ============================================================
+   LOADING / EMPTY
+============================================================ */
+.rp-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 300px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* A bordered circle with one edge coloured. Geometrically perfect,
+   so it spins true — unlike an icon glyph, whose artwork can sit
+   off-centre inside its em box and wobble as it rotates. */
+.rp-ring {
     display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    border-top-color: #fff;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 2.5px solid var(--line);
+    border-top-color: var(--green);
     border-radius: 50%;
-    animation: rpSpin 0.65s linear infinite;
+    animation: rpSpin .7s linear infinite;
 }
 
-@keyframes rpSpin { to { transform: rotate(360deg); } }
+.rp-ring-sm {
+    width: 15px;
+    height: 15px;
+    border-width: 2px;
+}
 
-/* ═══════════════════════════════════════════════════════════
+/* On the filled button a grey track disappears, so the ring goes
+   translucent white with a solid white leading edge. */
+.rp-ring-light {
+    border-color: rgba(255, 255, 255, .35);
+    border-top-color: #fff;
+}
+
+@keyframes rpSpin {
+    to { transform: rotate(360deg); }
+}
+
+.rp-empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.rp-empty i {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 28px;
+    color: var(--faint);
+}
+
+.rp-empty-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.rp-empty-sub {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--faint);
+}
+
+/* ============================================================
    RESPONSIVE
-   ═══════════════════════════════════════════════════════════ */
+============================================================ */
 
-@media (max-width: 768px) {
-    .rp-page  { padding: 24px 20px; }
-    .rp-title { font-size: 26px; }
+/* Panel unsticks when it drops below the list */
+@media (max-width: 991px) {
+    .rp-panel-sticky { position: static; }
 }
 
-@media (max-width: 560px) {
-    .rp-page { padding: 20px 16px; }
+@media (max-width: 640px) {
+    .rp-title { font-size: 22px; }
 
-    .rp-title { font-size: 23px; }
+    .rp-pills  { width: 100%; }
+    .rp-pill   { flex: 1; min-width: 0; }
 
-    .rp-header { gap: 14px; }
-    .rp-chips  { width: 100%; }
-    .rp-chip   { flex: 1; }
+    .rp-search { width: 100%; font-size: 16px; }
 
-    .rp-search {
-        max-width: none;
-        margin-left: 0;
-        width: 100%;
-        font-size: 16px;   /* stops iOS Safari zooming on focus */
-    }
+    /* Date inputs stack, and 16px stops iOS Safari zooming on focus */
+    .rp-range { grid-template-columns: 1fr; }
+    .rp-date  { font-size: 16px; }
 
-    /* Stats drop below the name instead of squeezing it */
-    .rp-event {
+    /* Name takes the full row so a long event title never gets
+       squeezed to a few characters wide */
+    .rp-row {
         flex-wrap: wrap;
-        row-gap: 10px;
-        padding: 14px;
+        row-gap: 9px;
     }
 
-    .rp-event-active { padding: 13px; }
+    .rp-row-info { flex: 1 1 calc(100% - 29px); }
+    .rp-row-name { white-space: normal; }
 
-    .rp-event-main { flex: 1 1 100%; order: 1; }
-
-    .rp-event-stats {
-        order: 2;
-        flex: 1;
+    .rp-row-side {
+        flex: 1 1 100%;
         justify-content: flex-start;
+        padding-left: 29px;
     }
 
-    .rp-event-check { order: 3; }
-
-    /* Full-width button, target line above it */
-    .rp-generate-bar { flex-direction: column; align-items: stretch; }
-    .rp-btn          { width: 100%; justify-content: center; padding: 13px 22px; }
+    /* Hover translate is meaningless on touch and can cause
+       horizontal overflow */
+    .rp-row:hover { transform: none; }
 }
