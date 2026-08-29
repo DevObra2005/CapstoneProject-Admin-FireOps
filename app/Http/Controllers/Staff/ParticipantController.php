@@ -51,7 +51,6 @@ class ParticipantController extends Controller
      * Route: POST /api/staff/events/{eventId}/participants
      *
      * Unlike the public QR route, this one:
-     *   - does NOT require the event to be open (staff override)
      *   - does NOT ask for a password (staff is already authenticated)
      *   - GENERATES a password for brand new accounts and emails it
      */
@@ -59,6 +58,12 @@ class ParticipantController extends Controller
     {
         $event = Event::where('id', $eventId)->firstOrFail();
 
+        if (!$event->is_open) {
+            return response()->json([
+                'message' => 'Registration for this event is closed. Reopen it to add participants.',
+                'status'  => 'closed',
+            ], 403);
+        }
         // organization is REQUIRED here because the DB column is NOT NULL.
         //
         // contact_number uses ARRAY syntax, not a pipe string. A regex

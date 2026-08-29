@@ -84,9 +84,9 @@ Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
     Route::get('/staff/certifications', [CertificateController::class, 'index']);
 
     // Reports
-        // Reports
-    Route::get('/staff/reports/event/{eventId}', [ReportController::class, 'eventSummary']);
-    Route::get('/staff/reports/steps',           [ReportController::class, 'stepAnalysis']);
+    Route::get('/staff/reports/event/{eventId}',     [ReportController::class, 'eventSummary']);
+    Route::get('/staff/reports/steps',               [ReportController::class, 'stepAnalysis']);
+    Route::get('/staff/reports/follow-up/{eventId}', [ReportController::class, 'followUp']);
 });
 
 //Unity - Participant protected routes (requires Sanctum token)

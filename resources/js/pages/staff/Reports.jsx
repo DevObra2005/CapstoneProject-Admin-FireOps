@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import api from '../../api/axios';
-import { generateEventReport, generateStepAnalysisReport } from '../../utils/reports';
+import { generateEventReport, generateStepAnalysisReport, generateFollowUpReport } from '../../utils/reports';
 import '../../../css/Staff/reports.css'
 
 // Below this count a search box is clutter — you can see everything.
@@ -8,7 +8,7 @@ const SEARCH_THRESHOLD = 6;
 
 export default function Reports() {
 
-  // Which report the page is configuring: 'event' or 'steps'
+  // Which report the page is configuring: 'event', 'steps', or 'followup'
   const [reportType, setReportType] = useState('event');
 
   const [events, setEvents]     = useState([]);
@@ -35,13 +35,18 @@ export default function Reports() {
     setBusy(true);
     setError('');
 
-    const result = reportType === 'event'
-      ? await generateEventReport(selected, { preview: true })
-      : await generateStepAnalysisReport({
-          from: rangeFrom || null,
-          to:   rangeTo   || null,
-          preview: true,
-        });
+    let result;
+    if (reportType === 'steps') {
+      result = await generateStepAnalysisReport({
+        from: rangeFrom || null,
+        to:   rangeTo   || null,
+        preview: true,
+      });
+    } else if (reportType === 'followup') {
+      result = await generateFollowUpReport(selected, { preview: true });
+    } else {
+      result = await generateEventReport(selected, { preview: true });
+    }
 
     if (!result.ok) setError(result.message);
     setBusy(false);
@@ -74,7 +79,8 @@ export default function Reports() {
 
   // The event report needs a selected event; the steps report is
   // always runnable because an empty range means all time.
-  const canGenerate = reportType === 'event' ? Boolean(selected) : true;
+  // Follow-up needs an event, same as the event summary
+  const canGenerate = reportType === 'steps' ? true : Boolean(selected);
 
   const includes = reportType === 'event'
     ? [
@@ -85,15 +91,25 @@ export default function Reports() {
         'Participant results table',
         'Signature line',
       ]
-    : [
+    : reportType === 'steps'
+    ? [
         'BFP letterhead and reference number',
         'Date range covered',
         'Headline failure finding',
         'Step-by-step failure rates',
         'Average penalty per missed step',
         'Signature line',
+      ]
+    : [
+        'BFP letterhead and reference number',
+        'Summary finding',
+        'Overview metrics',
+        'Participants requiring follow-up',
+        'Step each participant kept missing',
+        'Recommended action',
+        'Signature line',
       ];
-
+    
   if (loading) {
     return (
       <div className="rp-page">
@@ -135,7 +151,7 @@ export default function Reports() {
       <div className="rp-section-label">Report type</div>
       <div className="row g-2 mb-2">
 
-        <div className="col-12 col-md-6">
+        <div className="col-12 col-md-4">
           <button
             type="button"
             className={`rp-type-card ${reportType === 'event' ? 'active' : ''}`}
@@ -149,13 +165,13 @@ export default function Reports() {
             </div>
             <div className="rp-type-name">Event summary</div>
             <div className="rp-type-desc">
-              One event: registered participants, pass rates,
-              per-environment performance, and a full results table.
+              What happened in one event: who joined, who passed, and
+              how they did in each environment.
             </div>
           </button>
         </div>
 
-        <div className="col-12 col-md-6">
+        <div className="col-12 col-md-4">
           <button
             type="button"
             className={`rp-type-card ${reportType === 'steps' ? 'active' : ''}`}
@@ -169,8 +185,30 @@ export default function Reports() {
             </div>
             <div className="rp-type-name">Training analysis</div>
             <div className="rp-type-desc">
-              Across a date range: which TPASS and WCTL steps
-              participants fail most, and the cost of each mistake.
+              Which steps participants get wrong most often, across any
+              period you choose. Tells you what to emphasise in the next
+              session.
+            </div>
+          </button>
+        </div>
+
+        <div className="col-12 col-md-4">
+          <button
+            type="button"
+            className={`rp-type-card ${reportType === 'followup' ? 'active' : ''}`}
+            onClick={() => { setReportType('followup'); setError(''); }}
+          >
+            <div className="d-flex align-items-start justify-content-between mb-2 mt-1">
+              <div className="rp-type-icon">
+                <i className="bi bi-person-exclamation"></i>
+              </div>
+              <span className="rp-type-tag">PDF</span>
+            </div>
+            <div className="rp-type-name">Needs more training</div>
+            <div className="rp-type-desc">
+              Participants who tried a simulation at least three times and
+              still could not pass it. Shows the step each one kept getting
+              wrong, so you know what to teach them.
             </div>
           </button>
         </div>
@@ -180,9 +218,9 @@ export default function Reports() {
       {/* ── CONFIG SECTION ───────────────────────────── */}
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div className="rp-section-label mb-0">
-          {reportType === 'event' ? 'Select event' : 'Date range'}
+          {reportType === 'steps' ? 'Date range' : 'Select event'}
         </div>
-        {reportType === 'event' && events.length > SEARCH_THRESHOLD && (
+        {reportType !== 'steps' && events.length > SEARCH_THRESHOLD && (
           <input
             type="text"
             className="rp-search"

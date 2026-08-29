@@ -29,9 +29,30 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
             }
         }, [event.id])
 
-        useEffect(() => {
+    useEffect(() => {
             fetchParticipants()
         }, [fetchParticipants])
+    useEffect(() => {
+        const fetchResults = async () => {
+            try {
+                // include_failed=1 returns EVERY attempt, not just passes.
+                // The participant detail view needs the full history to show
+                // attempt-by-attempt progress. The overview stats below filter
+                // it back down themselves — see passedResults.
+                const res = await api.get(
+                    `/staff/events/${event.id}/results?include_failed=1`)
+                setResults(Array.isArray(res.data) ? res.data : [])
+            } catch (err) {
+                // Logged rather than swallowed. A failed request and an event
+                // with no data used to look identical, which hid this bug.
+                console.error('Results fetch failed:', err.response?.status, err.response?.data)
+                setResults([])
+            } finally {
+                setLoadingR(false)
+            }
+        }
+        fetchResults()
+    }, [event.id])
 
     const handleToggleClick = async () => {
         setToggling(true)
@@ -173,7 +194,12 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
                     <button className="ev-btn ev-btn-qr" onClick={() => onQR(event)}>
                         <i className="bi bi-qr-code-scan"></i> QR Code
                     </button>
-                    <button className="ev-btn ev-btn-amber" onClick={() => setShowAddModal(true)}>
+                    <button
+                        className="ev-btn ev-btn-amber"
+                        onClick={() => setShowAddModal(true)}
+                        disabled={!event.is_open}
+                        title={!event.is_open ? 'Reopen registration to add participants' : undefined}
+                    >
                         <i className="bi bi-person-plus-fill"></i> Add Participant
                     </button>
                     <button className="ev-btn ev-btn-ghost" onClick={() => onEdit(event)}>
@@ -301,11 +327,6 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
                                             </span>
                                             <span className="db-env-row-val">
                                                 {stat?.passed ?? 0}
-                                                {stat?.attempted > (stat?.passed ?? 0) && (
-                                                    <span className="db-env-row-sub">
-                                                        {' '}of {stat.attempted} tried
-                                                    </span>
-                                                )}
                                             </span>
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between py-2">

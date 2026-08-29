@@ -136,12 +136,22 @@ export default function AddParticipantModal({ event, onClose, onSuccess }) {
                     message: err.response.data.message,
                 })
 
+            } else if (status === 403) {
+                // Registration closed
+                setFeedback({
+                    type: 'warning',
+                    message: err.response.data.message,
+            })
+
+            } else if (status === 409) {
             } else {
                 setFeedback({
                     type: 'error',
                     message: 'Something went wrong. Please try again.',
                 })
             }
+
+            
         } finally {
             setSaving(false)
         }
