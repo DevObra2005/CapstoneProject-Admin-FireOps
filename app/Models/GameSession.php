@@ -14,24 +14,27 @@ class GameSession extends Model
         'participant_id',
         'event_id',
         'environment',
+        'attempt_number',
         'phase1_completed',
         'phase2_score',
         'percentage_score',
-        'score_label',   
+        'score_label',
         'total_penalties',
         'phase2_passed',
+        'passed',
+        'fail_reason',
         'played_at',
     ];
 
     // Tell Laravel which columns are true/false (boolean)
     // Without this, Laravel treats them as 0/1 integers
     // With this, PHP sees them as actual true/false values
-    protected $casts = [
+   protected $casts = [
         'phase1_completed' => 'boolean',
         'phase2_passed'    => 'boolean',
+        'passed'           => 'boolean',
         'played_at'        => 'datetime',
     ];
-
     // RELATIONSHIP — One session has MANY simulation steps
     // This is like saying "give me all the steps that belong
     // to this session"

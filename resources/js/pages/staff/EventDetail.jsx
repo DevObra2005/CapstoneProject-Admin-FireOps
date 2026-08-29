@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import api from '../../api/axios'
 import ParticipantCardList from './ParticipantCardList'
 import ParticipantAllSessions from './ParticipantAllSessions'
+import AddParticipantModal from './AddParticipantModal'
 
 export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onToggle }) {
     const [participants, setParticipants] = useState([])
@@ -11,9 +12,13 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
     const [results, setResults]           = useState([])
     const [loadingR, setLoadingR]         = useState(true)
     const [selectedParticipant, setSelectedParticipant] = useState(null)
+    const [showAddModal, setShowAddModal] = useState(false)
 
-    useEffect(() => {
-        const fetchParticipants = async () => {
+        // Pulled out of useEffect so the Add Participant modal can call it
+        // again after a successful add. useCallback keeps the function
+        // identity stable across renders — without it, the useEffect below
+        // would see a "new" function every render and loop forever.
+        const fetchParticipants = useCallback(async () => {
             try {
                 const res = await api.get(`/staff/events/${event.id}/participants`)
                 setParticipants(Array.isArray(res.data) ? res.data : [])
@@ -22,23 +27,11 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
             } finally {
                 setLoadingP(false)
             }
-        }
-        fetchParticipants()
-    }, [event.id])
+        }, [event.id])
 
-    useEffect(() => {
-        const fetchResults = async () => {
-            try {
-               const res = await api.get(`/staff/events/${event.id}/results`)
-                setResults(Array.isArray(res.data) ? res.data : [])
-            } catch {
-                setResults([])
-            } finally {
-                setLoadingR(false)
-            }
-        }
-        fetchResults()
-    }, [event.id])
+        useEffect(() => {
+            fetchParticipants()
+        }, [fetchParticipants])
 
     const handleToggleClick = async () => {
         setToggling(true)
@@ -54,12 +47,29 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
         p.email?.toLowerCase().includes(search.toLowerCase())
     )
 
+    // ── PASSES ONLY, for the overview stats ───────────────────────
+    // `results` now contains failed attempts as well, so every "how did
+    // people do" number below must come from this filtered list. Without
+    // it, a participant who failed three times counts as three separate
+    // completions.
+    //
+    // Filters on `passed`, NOT `phase2_passed` — the latter only means
+    // "the timer did not hit zero", so a low-score failure has it set to
+    // true and used to be counted here as a pass.
+    const passedResults = results.filter(r => r.passed)
+
+    // Full history for one participant — deliberately UNFILTERED.
+    // ParticipantAllSessions groups these by environment and renders the
+    // attempt list, so it needs the failures.
     const sessionsForParticipant = (participant) =>
         results.filter(r => r.participant_email === participant.email)
 
-    const uniqueCompletedEmails = new Set(results.map(r => r.participant_email))
+    const uniqueCompletedEmails = new Set(passedResults.map(r => r.participant_email))
     const totalCompleted = uniqueCompletedEmails.size
 
+    // Registered but never passed anything. Now genuinely accurate —
+    // it used to lump "never tried" and "tried and failed" together
+    // because failures were not stored at all.
     const totalFailed = participants.filter(
         p => !uniqueCompletedEmails.has(p.email)
     ).length
@@ -67,7 +77,7 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
     const avgScore = totalCompleted > 0
         ? Math.round(
             [...uniqueCompletedEmails].reduce((sum, email) => {
-                const personSessions = results.filter(r => r.participant_email === email)
+                const personSessions = passedResults.filter(r => r.participant_email === email)
                 const bestScore = Math.max(...personSessions.map(s => s.percentage_score))
                 return sum + bestScore
             }, 0) / totalCompleted
@@ -76,26 +86,39 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
 
     const ENVIRONMENTS = ['office', 'classroom', 'kitchen']
     const envStats = ENVIRONMENTS.map(env => {
-        const envResults = results.filter(r => r.environment === env)
-        const envPassed  = envResults.filter(r => r.phase2_passed)
-        const envAvg     = envPassed.length > 0
+        const envAll    = results.filter(r => r.environment === env)
+        const envPassed = passedResults.filter(r => r.environment === env)
+
+        // Distinct PARTICIPANTS, not sessions. Someone who passed Office on
+        // attempt 1 and passed again on attempt 4 is still one person — the
+        // old count would have shown 2.
+        const distinctPassed    = new Set(envPassed.map(r => r.participant_email)).size
+        const distinctAttempted = new Set(envAll.map(r => r.participant_email)).size
+
+        const envAvg = envPassed.length > 0
             ? Math.round(envPassed.reduce((sum, r) => sum + r.percentage_score, 0) / envPassed.length)
             : 0
+
         return {
             env,
             label: env.charAt(0).toUpperCase() + env.slice(1),
-            attempted: envResults.length,
-            passed: envPassed.length,
+            attempted: distinctAttempted,
+            passed: distinctPassed,
             avgScore: envAvg,
         }
     })
 
+    /// ── MOST FAILED STEPS — PASSING RUNS ONLY ────────────────────
+    // Reads passedResults, not results. This chart is about the
+    // mistakes made along the way to a successful run — errors mild
+    // enough to recover from. Including failed attempts turns it into
+    // "every mistake anyone ever made", which is dominated by whoever
+    // retried the most rather than by which steps are genuinely hard.
     const stepFailCounts = {}
-    results.forEach(session => {
-        session.steps.forEach(step => {
+    passedResults.forEach(session => {
+        session.steps?.forEach(step => {
             if (!step.was_correct) {
-                stepFailCounts[step.step_name] =
-                    (stepFailCounts[step.step_name] || 0) + 1
+                stepFailCounts[step.step_name] = (stepFailCounts[step.step_name] || 0) + 1
             }
         })
     })
@@ -149,6 +172,9 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
                     </button>
                     <button className="ev-btn ev-btn-qr" onClick={() => onQR(event)}>
                         <i className="bi bi-qr-code-scan"></i> QR Code
+                    </button>
+                    <button className="ev-btn ev-btn-amber" onClick={() => setShowAddModal(true)}>
+                        <i className="bi bi-person-plus-fill"></i> Add Participant
                     </button>
                     <button className="ev-btn ev-btn-ghost" onClick={() => onEdit(event)}>
                         <i className="bi bi-pencil-fill"></i> Edit
@@ -273,7 +299,14 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
                                                 <i className="bi bi-people-fill me-2"></i>
                                                 Participants passed
                                             </span>
-                                            <span className="db-env-row-val">{stat?.passed ?? 0}</span>
+                                            <span className="db-env-row-val">
+                                                {stat?.passed ?? 0}
+                                                {stat?.attempted > (stat?.passed ?? 0) && (
+                                                    <span className="db-env-row-sub">
+                                                        {' '}of {stat.attempted} tried
+                                                    </span>
+                                                )}
+                                            </span>
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between py-2">
                                             <span className="db-env-row-lbl">
@@ -335,12 +368,20 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
                         onChange={e => setSearch(e.target.value)}
                     />
                 </div>
-                <ParticipantCardList
+                    <ParticipantCardList
                     participants={filteredParticipants}
                     loading={loadingP}
                     onRowClick={(participant) => setSelectedParticipant(participant)}
                 />
             </div>
+
+            {showAddModal && (
+                <AddParticipantModal
+                    event={event}
+                    onClose={() => setShowAddModal(false)}
+                    onSuccess={fetchParticipants}
+                />
+            )}
 
         </div>
         )}

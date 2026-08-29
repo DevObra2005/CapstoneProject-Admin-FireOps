@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import '../../css/Components/sidebar.css'
 import fireopsLogo from '/public/Images/FireOps_Logo.png'
@@ -78,10 +77,15 @@ export default function Sidebar() {
                             <i className="bi bi-calendar-event-fill"></i>
                             Events Management
                         </NavLink>
-                        {/* NEW — Certifications */}
+                        
                         <NavLink to="/staff/certifications" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
                             <i className="bi bi-patch-check-fill"></i>
                             Certifications
+                        </NavLink>
+             
+                        <NavLink to="/staff/reports" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
+                            <i className="bi bi-file-earmark-bar-graph-fill"></i>
+                            Reports
                         </NavLink>
                     </>
                 )}

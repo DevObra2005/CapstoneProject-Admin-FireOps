@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { QRCodeCanvas } from 'qrcode.react'
 
 export default function QRModal({ show, event, onClose }) {
     const [copied,     setCopied]     = useState(false)
     const [downloaded, setDownloaded] = useState(false)
+
+    // Locks background scrolling while the modal is open, and restores
+    // whatever the previous value was on close. Must sit above the early
+    // return below — Hooks have to run on every render.
+    useEffect(() => {
+        if (!show || !event) return
+        const previous = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = previous }
+    }, [show, event])
 
     if (!show || !event) return null
 
@@ -80,7 +91,13 @@ export default function QRModal({ show, event, onClose }) {
         link.click()
     }
 
-    return (
+    // ── Portal ────────────────────────────────────────────────────────────────
+    // Rendered into <body> for the same reason as EventModal: a parent in the
+    // staff layout carries a transform/filter, which both re-anchors and clips
+    // `position: fixed` children. Attached to <body> the overlay covers the
+    // real viewport. React events still bubble normally, so onClose and every
+    // button handler below are unaffected.
+    return createPortal(
         <div className="ev-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
             <div className="ev-modal ev-modal-qr">
 
@@ -123,12 +140,11 @@ export default function QRModal({ show, event, onClose }) {
                         </div>
                     </div>
 
-                 
                 </div>
 
                 <div className="ev-modal-footer ev-qr-footer">
                     <button
-                        className={`ev-btn ev-qr-download-btn ${downloaded ? 'ev-btn-success' : 'ev-btn-primary'}`}
+                        className={`ev-btn ev-qr-download-btn ${downloaded ? 'ev-btn-qr' : 'ev-btn-primary'}`}
                         onClick={downloadQR}
                         style={{ transition: 'background 0.3s, border-color 0.3s, color 0.3s' }}
                     >
@@ -153,6 +169,7 @@ export default function QRModal({ show, event, onClose }) {
                 </p>
 
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }

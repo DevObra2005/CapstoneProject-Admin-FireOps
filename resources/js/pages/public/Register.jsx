@@ -18,12 +18,6 @@ export default function Register() {
     const [message, setMessage] = useState('')
 
     // ── Form state ─────────────────────────────────────────────────────────
-    // One object holding all field values
-    // Changes from old version:
-    //   - 'department' renamed to 'organization'
-    //   - 'password' added
-    //   - 'confirm_password' added
-    //   - coords removed from form (sent separately)
     const [form, setForm] = useState({
         name:             '',
         email:            '',
@@ -36,28 +30,21 @@ export default function Register() {
     const [errors,  setErrors]  = useState({})
     const [loading, setLoading] = useState(false)
 
+    // Shown above the submit button when validation fails, so the user
+    // isn't left staring at a form that appears to do nothing when the
+    // failing field is scrolled out of view on a phone.
+    const [formAlert, setFormAlert] = useState(null)
+
     // ── Password visibility toggles ────────────────────────────────────────
-    // false = show dots (●●●●), true = show plain text
-    // Two separate states — one per password field
-    // Toggling one doesn't affect the other
     const [showPass,    setShowPass]    = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
 
     // ── Geolocation state ──────────────────────────────────────────────────
-    // 'requesting' = GPS permission popup just appeared
-    // 'granted'    = we have coordinates, distance calculated
-    // 'denied'     = user tapped Deny or browser blocked it
-    // 'failed'     = GPS timed out or hardware error
-    // 'far'        = we have coords but participant is outside the radius
     const [gpsStatus,  setGpsStatus]  = useState('requesting')
     const [coords,     setCoords]     = useState(null)   // { latitude, longitude }
     const [distance,   setDistance]   = useState(null)   // distance in meters from venue
 
     // ── Step 1: Validate QR token ──────────────────────────────────────────
-    // Runs once when the page loads (empty dependency array [token])
-    // Calls your backend GET /api/events/validate/{token}
-    // If valid → show the form + start GPS in background
-    // If invalid → show error screen
     useEffect(() => {
         api.get(`/events/validate/${token}`)
             .then(res => {
@@ -72,28 +59,18 @@ export default function Register() {
     }, [token])
 
     // ── Step 2: Request GPS in background ─────────────────────────────────
-    // This runs AFTER the form is already visible
-    // The participant can start filling in their name/email while GPS loads
-    // By the time they finish typing, GPS is usually already done
-    //
-    // We pass 'eventData' as a parameter because when this function runs,
-    // the 'event' state might not be set yet (state updates are async in React)
     const requestGPS = (eventData) => {
         if (!navigator.geolocation) {
-            // Browser doesn't support GPS (very rare in 2026)
             setGpsStatus('denied')
             return
         }
 
         navigator.geolocation.getCurrentPosition(
-            // SUCCESS — participant allowed location access
             (pos) => {
                 const lat = pos.coords.latitude
                 const lng = pos.coords.longitude
                 setCoords({ latitude: lat, longitude: lng })
 
-                // Calculate how far they are from the event venue
-                // Only calculate if the event has coordinates set
                 if (eventData.latitude && eventData.longitude) {
                     const dist = haversine(
                         eventData.latitude, eventData.longitude,
@@ -101,45 +78,35 @@ export default function Register() {
                     )
                     setDistance(Math.round(dist))
 
-                    // Are they within the allowed radius?
                     if (dist <= eventData.radius_meters) {
-                        setGpsStatus('granted')  // ✅ Within range
+                        setGpsStatus('granted')
                     } else {
-                        setGpsStatus('far')      // ❌ Too far away
+                        setGpsStatus('far')
                     }
                 } else {
-                    // Event has no coordinates set — skip distance check
                     setGpsStatus('granted')
                 }
             },
 
-            // FAILURE — participant denied or GPS timed out
             (err) => {
                 if (err.code === 1) {
-                    // Code 1 = PERMISSION_DENIED — user tapped "Deny"
                     setGpsStatus('denied')
                 } else {
-                    // Code 2 = UNAVAILABLE, Code 3 = TIMEOUT
                     setGpsStatus('failed')
                 }
             },
 
-            // GPS options
             {
-                enableHighAccuracy: true,  // Use GPS chip, not just WiFi triangulation
-                timeout:            15000, // Give it 15 seconds before giving up
-                maximumAge:         0,     // Don't use cached location — get fresh coords
+                enableHighAccuracy: true,
+                timeout:            15000,
+                maximumAge:         0,
             }
         )
     }
 
     // ── Haversine formula ──────────────────────────────────────────────────
-    // Calculates real-world distance between two GPS coordinates in meters
-    // The Earth is a sphere, so you can't just subtract lat/lng directly
-    // This formula accounts for Earth's curvature
-    // Same formula as in your ParticipantController.php — both sides check
     const haversine = (lat1, lon1, lat2, lon2) => {
-        const R  = 6371000  // Earth's radius in meters
+        const R  = 6371000
         const φ1 = lat1 * Math.PI / 180
         const φ2 = lat2 * Math.PI / 180
         const Δφ = (lat2 - lat1) * Math.PI / 180
@@ -151,22 +118,20 @@ export default function Register() {
     }
 
     // ── handleChange ───────────────────────────────────────────────────────
-    // Updates form state when user types in any input
-    // 'name' = which field, 'value' = what they typed
     const handleChange = (name, value) => {
         if (name === 'contact_number') {
-            // Strip non-digits and cap at 11 characters
-            // "09abc123" → "09123", "091234567890" → "09123456789"
             value = value.replace(/\D/g, '').slice(0, 11)
         }
         setForm(prev => ({ ...prev, [name]: value }))
         setErrors(prev => ({ ...prev, [name]: null }))
+        setFormAlert(null)
     }
 
     // ── validate() ─────────────────────────────────────────────────────────
-    // Client-side validation — runs BEFORE the API call
-    // Returns an object of errors. Empty object {} = no errors = safe to submit
-    // This catches obvious mistakes without wasting an API call
+    // Client-side validation — runs BEFORE the API call.
+    // These rules MIRROR the server rules in ParticipantController::store().
+    // If they drift apart, users get 422s they can't understand, because
+    // the form told them the value was fine.
     const validate = () => {
         const e = {}
 
@@ -175,7 +140,11 @@ export default function Register() {
 
         if (!form.email.trim())
             e.email = ['Email address is required.']
+        else if (!/^\S+@\S+\.\S+$/.test(form.email.trim()))
+            e.email = ['Please enter a valid email address.']
 
+        // REQUIRED on the server — the participants.organization column
+        // is NOT NULL, so a blank value is rejected with a 422.
         if (!form.organization)
             e.organization = ['Please select your organization type.']
 
@@ -189,40 +158,37 @@ export default function Register() {
         else if (form.password !== form.confirm_password)
             e.confirm_password = ['Passwords do not match.']
 
-        if (form.contact_number && !/^\d{11}$/.test(form.contact_number))
-            e.contact_number = ['Must be exactly 11 digits.']
+        // Optional field, but if filled it must match the server regex
+        // /^09\d{9}$/ exactly. A plain 11-digit check would let through
+        // numbers like 12345678901 that the API then rejects.
+        if (form.contact_number && !/^09\d{9}$/.test(form.contact_number))
+            e.contact_number = ['Must be 11 digits starting with 09.']
 
         return e
     }
 
     // ── handleSubmit ───────────────────────────────────────────────────────
-    // Runs when the participant taps "Register for this event"
-    // Order: validate → call API → handle response
     const handleSubmit = async ev => {
-        ev.preventDefault()  // Prevent browser's default form refresh behavior
+        ev.preventDefault()
 
-        // Run client-side validation first
         const clientErrors = validate()
         if (Object.keys(clientErrors).length > 0) {
             setErrors(clientErrors)
-            return  // Stop here — don't call the API with invalid data
+            setFormAlert('Please check the highlighted fields above.')
+            return
         }
 
         setLoading(true)
         setErrors({})
+        setFormAlert(null)
 
         try {
-            // POST to /api/register/{token}
-            // We don't send confirm_password — backend doesn't need it
-            // coords are sent separately for the geolocation check
             await api.post(`/register/${token}`, {
                 name:           form.name,
                 email:          form.email,
                 organization:   form.organization,
-                contact_number: form.contact_number,
+                contact_number: form.contact_number || null,
                 password:       form.password,
-                // Include coordinates for backend radius validation
-                // Backend double-checks even if frontend already checked
                 latitude:       coords?.latitude  ?? null,
                 longitude:      coords?.longitude ?? null,
             })
@@ -233,22 +199,21 @@ export default function Register() {
             const msg    = err.response?.data?.message
 
             if (status === 422) {
-                // Validation errors from Laravel
-                // e.g. { errors: { email: ['The email field is required.'] } }
+                // Validation errors from Laravel. Shown inline per field,
+                // plus a summary line so the user isn't left wondering why
+                // nothing happened when the bad field is off-screen.
                 setErrors(err.response.data.errors || {})
+                setFormAlert(msg || 'Please check the highlighted fields above.')
 
             } else if (status === 401) {
-                // Email exists but wrong password
                 setMessage(msg)
                 setStep('error')
 
             } else if (status === 409) {
-                // Already registered for THIS specific event
                 setMessage(msg || 'You are already registered for this event.')
                 setStep('error')
 
             } else if (status === 403) {
-                // Registration closed OR outside radius (backend caught it)
                 setMessage(msg || 'Registration is not available.')
                 setStep('error')
 
@@ -262,7 +227,6 @@ export default function Register() {
     }
 
     // ── formatDate() ───────────────────────────────────────────────────────
-    // Converts "2026-06-12" → "Jun 12, 2026"
     const formatDate = d => {
         if (!d) return ''
         return new Date(d).toLocaleDateString('en-US', {
@@ -271,8 +235,6 @@ export default function Register() {
     }
 
     // ── field() helper ─────────────────────────────────────────────────────
-    // Renders a standard text/email/date input with label and error message
-    // Keeps the JSX below clean — no repeated markup for each field
     const field = (name, label, placeholder, type = 'text', required = false) => (
         <div className="reg-field" key={name}>
             <label className="reg-label">
@@ -305,8 +267,6 @@ export default function Register() {
     )
 
     // ── passwordField() helper ─────────────────────────────────────────────
-    // Like field() but with a show/hide toggle button on the right
-    // 'show' = current boolean state, 'onToggle' = function to flip it
     const passwordField = (name, label, show, onToggle, required = false) => (
         <div className="reg-field" key={name}>
             <label className="reg-label">
@@ -322,12 +282,11 @@ export default function Register() {
                     autoComplete={name === 'password' ? 'new-password' : 'new-password'}
                     onChange={e => handleChange(name, e.target.value)}
                 />
-                {/* Toggle button — flips show/hide state */}
                 <button
                     type="button"
                     className="reg-eye"
                     onClick={onToggle}
-                    tabIndex={-1}  // Skip this button when tabbing through form fields
+                    tabIndex={-1}
                 >
                     <i className={`bi ${show ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                 </button>
@@ -342,15 +301,7 @@ export default function Register() {
     )
 
     // ── GPS status indicator ───────────────────────────────────────────────
-    // Shows near the submit button — tells participant their location status
-    // This is the key UX piece that replaces the blocking "locating" screen
     const gpsIndicator = () => {
-        // Is submit disabled because of GPS?
-        // Only block submit if GPS actively failed or they're too far
-        const blocked = gpsStatus === 'denied' ||
-                        gpsStatus === 'failed' ||
-                        gpsStatus === 'far'
-
         const indicators = {
             requesting: {
                 icon:  'bi-broadcast',
@@ -395,7 +346,6 @@ export default function Register() {
                     </div>
                     <div className="reg-gps-sub">{curr.sub}</div>
                 </div>
-                {/* Retry button — only shown when GPS failed (not denied) */}
                 {gpsStatus === 'failed' && (
                     <button
                         type="button"
@@ -413,8 +363,6 @@ export default function Register() {
     }
 
     // ── canSubmit ──────────────────────────────────────────────────────────
-    // Submit button is only enabled when GPS confirms they're within range
-    // This is the frontend guard — backend also checks on the server
     const canSubmit = gpsStatus === 'granted' && !loading
 
     // ════════════════════════════════════════════════════════════════════════
@@ -521,7 +469,6 @@ export default function Register() {
                     </div>
 
                     {/* Location notice — explains WHY GPS is needed */}
-                    {/* This is the key UX addition you requested */}
                     <div className="reg-location-notice">
                         <i className="bi bi-shield-lock-fill reg-notice-icon"></i>
                         <div>
@@ -565,6 +512,7 @@ export default function Register() {
                            <div className="reg-field">
                             <label className="reg-label">
                                 Organization Type
+                                <span className="reg-req">*</span>
                             </label>
                             <select
                                 className={`reg-input${errors.organization ? ' reg-input-error' : ''}`}
@@ -612,6 +560,14 @@ export default function Register() {
                         {/* GPS status indicator */}
                         {gpsIndicator()}
 
+                        {/* Validation summary — only when something failed */}
+                        {formAlert && (
+                            <div className="reg-form-alert">
+                                <i className="bi bi-exclamation-triangle-fill"></i>
+                                {formAlert}
+                            </div>
+                        )}
+
                         {/* Submit button */}
                         <button
                             type="submit"
@@ -632,12 +588,8 @@ export default function Register() {
                         </button>
 
                         {/* Mobile download link */}
-                        <a
-                            href="/downloads/FireOps.apk"
-                            download
-                            className="reg-dl-btn reg-mobile-dl"
-                            style={{ marginTop: 16, justifyContent: 'center' }}
-                        >
+                        <a href="/downloads/FireOps.apk" download className="reg-dl-btn reg-mobile-dl" style={{ marginTop: 16, justifyContent: 'center' }}>
+
                             <i className="bi bi-android2"></i>
                             Download FireOps app
                         </a>

@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+/* ============================================================
+   EVENTS — shared stylesheet
+   Covers: events list, create/edit modal, QR modal, event detail.
+   Class prefix: ev-
+============================================================ */
+
 /* ── Base ── */
 .ev-page {
     box-sizing: border-box;
@@ -49,7 +55,13 @@
     gap: 8px;
 }
 
-/* ── Buttons ── */
+/* ============================================================
+   BUTTONS
+
+   .ev-btn is the base — it sets shape and typography only, with
+   background:none. A colour variant is ALWAYS required, or the
+   button renders transparent.
+============================================================ */
 .ev-btn {
     display: inline-flex;
     align-items: center;
@@ -66,6 +78,7 @@
     transition: all 0.15s;
 }
 
+/* Primary — brand colour */
 .ev-btn-primary {
     color: #fff;
     background: var(--green);
@@ -77,11 +90,7 @@
     transform: translateY(-1px);
 }
 
-.ev-btn-primary:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-}
-
+/* Ghost — outlined, for secondary actions like Edit */
 .ev-btn-ghost {
     color: var(--muted);
     background: var(--panel);
@@ -93,7 +102,7 @@
     background: var(--soft);
 }
 
-/* Delete — red, filled so it reads as destructive */
+/* Danger — Delete, and Close Registration */
 .ev-btn-danger {
     color: #fff;
     background: var(--fail);
@@ -106,7 +115,21 @@
     transform: translateY(-1px);
 }
 
-/* QR button — green (a scannable/shareable action, not destructive) */
+/* Success — Open Registration. Shares the QR button's colour
+   because both are safe, non-destructive actions. */
+.ev-btn-success {
+    color: #fff;
+    background: var(--pass);
+    border: 1px solid transparent;
+}
+
+.ev-btn-success:hover:not(:disabled) {
+    background: var(--pass-ink);
+    box-shadow: 0 4px 12px rgba(20, 82, 42, .30);
+    transform: translateY(-1px);
+}
+
+/* QR — a scannable/shareable action, not destructive */
 .ev-btn-qr {
     color: #fff;
     background: var(--pass);
@@ -119,10 +142,32 @@
     transform: translateY(-1px);
 }
 
-/* Back button */
+/* Back */
 .ev-btn-back {
     color: #fff;
     background: var(--green);
+}
+
+/* Amber — Add Participant. Hardcoded because the token set in this
+   theme is green/red/neutral only; there is no amber variable. */
+.ev-btn-amber {
+    color: #1C232C;
+    background: #f4a300;
+    border: 1px solid transparent;
+}
+
+.ev-btn-amber:hover:not(:disabled) {
+    background: #ffb51f;
+    box-shadow: 0 4px 12px rgba(244, 163, 0, .30);
+    transform: translateY(-1px);
+}
+
+.ev-btn-primary:disabled,
+.ev-btn-success:disabled,
+.ev-btn-amber:disabled,
+.ev-btn-danger:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 
 /* ── Empty states ── */
@@ -171,7 +216,7 @@
 }
 
 /* ============================================================
-   MODAL
+   MODAL — create / edit event
 ============================================================ */
 .ev-overlay {
     position: fixed;
@@ -182,7 +227,9 @@
     justify-content: center;
     padding: 20px 16px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
 }
 
@@ -191,7 +238,7 @@
     flex-direction: column;
     width: 100%;
     max-width: 640px;
-    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
     margin: auto;
     overflow: hidden;
     background: var(--panel);
@@ -351,7 +398,7 @@
     gap: 14px;
 }
 
-/* ── Range slider ── */
+/* ── Range slider (registration radius) ── */
 .ev-range {
     width: 100%;
     height: 5px;
@@ -849,7 +896,8 @@
 .ev-stat-white  { color: var(--ink); }
 .ev-stat-green  { color: var(--pass); }
 .ev-stat-red    { color: var(--fail); }
-/* Brand red, not amber — kept under this name for compatibility */
+
+/* Name kept for compatibility — resolves to --green, not amber */
 .ev-stat-yellow { color: var(--green); }
 
 /* ── Overview card ── */
@@ -880,8 +928,8 @@
     border-top: 1px solid var(--line);
 }
 
-/* Replaces Bootstrap's border-dark, which is a fixed near-black
-   line that reads wrong in both themes. */
+/* Theme-aware replacement for Bootstrap's border-dark, which is a
+   fixed near-black line that reads wrong in light mode. */
 .ev-env-row-divider {
     border-bottom: 1px solid var(--line);
 }
@@ -1047,7 +1095,8 @@
 /* ── Icon accent helpers ── */
 .ev-icon-accent { color: var(--green); }
 .ev-icon-green  { color: var(--pass); }
-/* Brand red, not amber — name kept for compatibility */
+
+/* Name kept for compatibility — resolves to --green, not amber */
 .ev-icon-yellow { color: var(--green); }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1067,12 +1116,14 @@
 /* ── Detail header buttons ──────────────────────────────── */
 @media (max-width: 700px) {
     .ev-page-header > div:first-child { flex-wrap: wrap; }
+
     .ev-page-header > div:last-child {
         display: flex;
         flex-wrap: wrap;
         width: 100%;
         gap: 8px;
     }
+
     .ev-page-header > div:last-child .ev-btn {
         flex: 1 1 calc(50% - 4px);
         justify-content: center;
@@ -1088,15 +1139,17 @@
     .ev-overlay {
         padding: 0;
         align-items: flex-end;
-        height: 100dvh;
     }
 
     .ev-modal {
-        margin-bottom: 1;
+        margin: auto 0 0;
         max-height: 95dvh;
         border-radius: 20px 20px 0 0;
         border-bottom: 0;
     }
+
+    .ev-modal-qr { border-radius: 20px 20px 0 0; }
+
     /* Leaflet puts its zoom buttons top-left, directly underneath
        the search bar. Pinch-to-zoom works on touch, so they are
        redundant here. */
@@ -1109,8 +1162,6 @@
         font-size: 8px;
         padding: 0 3px;
     }
-
-    .ev-modal-qr { border-radius: 20px 20px 0 0; }
 
     .ev-modal-header { padding: 15px 16px; }
     .ev-modal-body   { padding: 16px; }
@@ -1172,7 +1223,7 @@
         padding: 11px 12px;
     }
 
-    /* QR modal */
+    /* ── QR modal ── */
     .ev-qr-body { padding: 18px 16px; gap: 12px; }
 
     .ev-qr-badge {
@@ -1201,15 +1252,15 @@
        so the generic split rule above must not apply here. */
     .ev-qr-footer .ev-btn { flex: none; }
 
-    /* Event detail */
+    /* ── Event detail ── */
     .ev-page-title { font-size: 19px; }
 
-    .ev-detail-grid { grid-template-columns: 1fr 1fr; }
-    .ev-detail-card { padding: 13px 14px; }
+    .ev-detail-grid  { grid-template-columns: 1fr 1fr; }
+    .ev-detail-card  { padding: 13px 14px; }
     .ev-detail-value { font-size: 14px; }
 
-    .ev-stats-grid { grid-template-columns: 1fr 1fr; }
-    .ev-stat-card  { padding: 13px; }
+    .ev-stats-grid  { grid-template-columns: 1fr 1fr; }
+    .ev-stat-card   { padding: 13px; }
     .ev-stat-number { font-size: 25px; }
 
     .ev-overview-card { padding: 15px 14px; }

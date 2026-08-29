@@ -16,8 +16,21 @@ class DashboardController extends Controller
     {
         $period = $request->query('period', 'all');
 
-        // Base query — reusable filter by period
+        // ── BASE QUERY — PASSING RUNS ONLY ────────────────────
+        // game_sessions now stores failed attempts too, so every
+        // quality metric below MUST filter on passed = true, or
+        // failures drag the averages down and inflate the counts.
         $base = function () use ($period) {
+            $q = GameSession::query()->where('passed', true);
+            if ($period === '30days') {
+                $q->where('played_at', '>=', now()->subDays(30));
+            }
+            return $q;
+        };
+
+        // ── ALL ATTEMPTS — passes AND failures ────────────────
+        // "How much was it used", not "how well did people do".
+        $allAttempts = function () use ($period) {
             $q = GameSession::query();
             if ($period === '30days') {
                 $q->where('played_at', '>=', now()->subDays(30));
@@ -26,39 +39,52 @@ class DashboardController extends Controller
         };
 
         // ── OVERVIEW STATS ────────────────────────────────────
-        // Total registered participants in the app
         $totalParticipants = Participant::count();
 
-        // Participants who completed at least one simulation
         $played = $base()
             ->distinct('participant_id')
             ->count('participant_id');
 
-        // Average score across all simulations
         $avgScore = round($base()->avg('percentage_score') ?? 0, 1);
 
         // ── ACTIVITY STATS ────────────────────────────────────
-        // Total events — always all-time
         $totalEvents = Event::count();
 
-        // Total simulations completed
         $totalSimulations = $base()->count();
 
-        // Total active staff
         $totalStaff = User::where('role', 'staff')
             ->where('is_active', true)
             ->count();
 
         // ── SCORE DISTRIBUTION ────────────────────────────────
-        // Count simulations per score label
+        // "Failed" rows are excluded by the passed filter, so the
+        // donut keeps its existing three slices.
         $scoreDistribution = [
             'Excellent' => (clone $base())->where('score_label', 'Excellent')->count(),
             'Good'      => (clone $base())->where('score_label', 'Good')->count(),
             'Passed'    => (clone $base())->where('score_label', 'Passed')->count(),
         ];
 
+        // ── ATTEMPT STATS (NEW) ───────────────────────────────
+        // Additive — nothing on the current dashboard reads these
+        // yet. Here so the frontend needs no further backend work.
+        $totalAttempts = $allAttempts()->count();
+
+        $attemptedParticipants = $allAttempts()
+            ->distinct('participant_id')
+            ->count('participant_id');
+
+        $failBreakdown = [
+            'timeout'   => (clone $allAttempts())->where('fail_reason', 'timeout')->count(),
+            'low_score' => (clone $allAttempts())->where('fail_reason', 'low_score')->count(),
+        ];
+
+        // Average tries needed before finally passing. Reads
+        // attempt_number on passing rows — a pass on attempt 3
+        // means it took them 3 goes.
+        $avgAttemptsToPass = round($base()->avg('attempt_number') ?? 0, 1);
+
         // ── ENVIRONMENTS ──────────────────────────────────────
-        // Per environment: participants passed + avg score
         $environments = [];
         foreach (['office', 'classroom', 'kitchen'] as $env) {
             $passed = $base()
@@ -97,9 +123,13 @@ class DashboardController extends Controller
             });
 
         // ── MOST FAILED STEPS ─────────────────────────────────
+        // Filtered to passing sessions so this chart keeps its
+        // current meaning. See the note about revisiting this —
+        // failed runs are arguably the richer teaching data.
         $mostFailedSteps = DB::table('simulation_steps')
             ->join('game_sessions', 'simulation_steps.session_id', '=', 'game_sessions.id')
             ->where('simulation_steps.was_correct', false)
+            ->where('game_sessions.passed', true)
             ->when($period === '30days', function ($q) {
                 $q->where('game_sessions.played_at', '>=', now()->subDays(30));
             })
@@ -122,6 +152,12 @@ class DashboardController extends Controller
                 'total_events'       => $totalEvents,
                 'total_simulations'  => $totalSimulations,
                 'total_staff'        => $totalStaff,
+            ],
+            'attempts' => [
+                'total_attempts'         => $totalAttempts,
+                'attempted_participants' => $attemptedParticipants,
+                'avg_attempts_to_pass'   => $avgAttemptsToPass,
+                'fail_breakdown'         => $failBreakdown,
             ],
             'score_distribution' => $scoreDistribution,
             'environments'       => $environments,

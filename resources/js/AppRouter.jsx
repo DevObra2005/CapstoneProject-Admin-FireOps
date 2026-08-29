@@ -9,6 +9,9 @@ import StaffDetail from './pages/superadmin/StaffDetail';
 import AdminEvents from './pages/superadmin/AdminEvents';
 import AdminCertifications from './pages/superadmin/Certifications';
 import ActivityLogs from './pages/superadmin/ActivityLogs';
+import Reports from './pages/staff/Reports';
+import ParticipantChangePassword from './pages/public/ParticipantChangePassword';
+
 
 // Superadmin pages
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
@@ -48,6 +51,7 @@ export default function AppRouter() {
             <Route path="/register/:token" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/participant/change-password" element={<ParticipantChangePassword />} />
 
             {/* Superadmin routes
                 NOTE: staff management now lives under /staff-management so it
@@ -58,7 +62,7 @@ export default function AppRouter() {
                 <Route path="dashboard" element={<SuperAdminDashboard />} />
                 <Route path="staff-management" element={<Staff />} />
                 <Route path="staff-management/:id" element={<StaffDetail />} />
-                <Route path="/events" element={<AdminEvents />} />
+                <Route path="events" element={<AdminEvents />} />
                 <Route path="certificates" element={<AdminCertifications />} />
                 <Route path="activity-logs" element={<ActivityLogs />} />
             </Route>
@@ -70,6 +74,7 @@ export default function AppRouter() {
                 <Route path="dashboard" element={<StaffDashboard />} />
                 <Route path="events" element={<Events />} />
                 <Route path="certifications" element={<Certifications />} />
+                <Route path="reports" element={<Reports />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/login" />} />

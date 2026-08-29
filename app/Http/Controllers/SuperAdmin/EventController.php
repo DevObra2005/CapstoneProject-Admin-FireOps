@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -32,7 +33,7 @@ class EventController extends Controller
 
         return response()->json($events);
     }
-    
+
     public function participants($id)
     {
         $event = Event::findOrFail($id);
@@ -49,22 +50,49 @@ class EventController extends Controller
         return response()->json($participants);
     }
 
-    public function results($id)
+    /**
+     * GET /api/superadmin/events/{id}/results
+     * GET /api/superadmin/events/{id}/results?include_failed=1
+     *
+     * Defaults to PASSING sessions only — that is what the event
+     * overview stats expect.
+     *
+     * With include_failed=1 it returns every attempt, pass and fail.
+     * The participant detail view needs this to render attempt
+     * history; the summary numbers do not, and filter it back down
+     * on the frontend.
+     */
+    public function results($id, Request $request)
     {
-        $sessions = \App\Models\GameSession::with(['participant', 'steps'])
-            ->where('event_id', $id)
+        $includeFailed = $request->boolean('include_failed');
+
+        $query = \App\Models\GameSession::with(['participant', 'steps'])
+            ->where('event_id', $id);
+
+        if (!$includeFailed) {
+            $query->where('passed', true);
+        }
+
+        $sessions = $query
+            ->orderBy('participant_id')
+            ->orderBy('environment')
+            ->orderBy('attempt_number')
             ->get()
             ->map(function ($session) {
                 return [
                     'id'                => $session->id,
+                    'session_id'        => $session->id,
                     'participant_name'  => $session->participant->name ?? '',
                     'participant_email' => $session->participant->email ?? '',
                     'environment'       => $session->environment,
+                    'attempt_number'    => $session->attempt_number,
                     'phase2_score'      => $session->phase2_score,
                     'percentage_score'  => $session->percentage_score,
                     'score_label'       => $session->score_label,
                     'total_penalties'   => $session->total_penalties,
                     'phase2_passed'     => $session->phase2_passed,
+                    'passed'            => $session->passed,
+                    'fail_reason'       => $session->fail_reason,
                     'played_at'         => $session->played_at,
                     'steps'             => $session->steps->map(fn($s) => [
                         'step_name'       => $s->step_name,
@@ -74,6 +102,7 @@ class EventController extends Controller
                     ]),
                 ];
             });
+
         return response()->json($sessions);
     }
 }

@@ -11,10 +11,12 @@ use App\Http\Controllers\Staff\CertificateController as AdminCertificateControll
 use App\Http\Controllers\Staff\StaffDashboardController;
 use App\Http\Controllers\Staff\EventController;
 use App\Http\Controllers\Staff\CertificateController;
+use App\Http\Controllers\Staff\ReportController;
 //Participant Controllers
 use App\Http\Controllers\Staff\ParticipantController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\Participant\ParticipantGameController;
+use App\Http\Controllers\Participant\ParticipantPasswordController;
 
 // AUTH
 Route::post('/login',  [AuthController::class, 'login']);
@@ -25,6 +27,9 @@ Route::get('/me',      [AuthController::class, 'me'])->middleware('auth:sanctum'
 Route::get('/events/validate/{token}', [EventController::class, 'validateToken']);
 Route::post('/register/{token}',       [ParticipantController::class, 'store']);
 Route::post('/participant/login',      [ParticipantController::class, 'login']);
+Route::post('/participant/change-password',
+    [ParticipantPasswordController::class, 'changePassword'])
+    ->middleware('throttle:5,1');
 
 // Password Reset
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
@@ -62,6 +67,7 @@ Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
     // Events 
     Route::get('/staff/events',            [EventController::class, 'index']);
     Route::post('/staff/events',           [EventController::class, 'store']);
+    Route::post('/staff/events/{eventId}/participants', [ParticipantController::class, 'storeManual']);
     Route::put('/staff/events/{event}',    [EventController::class, 'update']);
     Route::delete('/staff/events/{event}', [EventController::class, 'destroy']);
     Route::get('/staff/events/{id}/results', [EventController::class, 'getResults']);
@@ -72,9 +78,15 @@ Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
     // Participants - scoped to a specific event
     Route::get('/staff/events/{eventId}/participants',                        [ParticipantController::class, 'index']);
     Route::delete('/staff/events/{eventId}/participants/{participantId}',     [ParticipantController::class, 'destroy']);
+    Route::get('/staff/participants/import-template', [ParticipantController::class, 'importTemplate']);
+    Route::post('/staff/events/{eventId}/participants/import/preview', [ParticipantController::class, 'previewImport']);
+    Route::post('/staff/events/{eventId}/participants/import/commit', [ParticipantController::class, 'commitImport']);
 
     // Certificates
     Route::get('/staff/certifications', [CertificateController::class, 'index']);
+
+    // Reports
+    Route::get('/staff/reports/event/{eventId}', [ReportController::class, 'eventSummary']);
 });
 
 //Unity - Participant protected routes (requires Sanctum token)

@@ -19,8 +19,7 @@ class ParticipantGameController extends Controller
 {
     /**
      * GET /api/participant/events
-     * Returns all open events the logged-in participant has joined
-     * Unity calls this to populate the EventSelectionScene
+     * Returns all open events the logged-in participant has joined.
      */
     public function getMyEvents(Request $request)
     {
@@ -45,35 +44,27 @@ class ParticipantGameController extends Controller
     /**
      * POST /api/participant/results
      *
-     * Receives the result of a Phase 2 simulation run from Unity.
-     * Only saves the FIRST passing attempt per participant + event + environment.
+     * Receives the result of a Phase 2 run from Unity.
      *
-     * Pass conditions (both must be true):
-     *   1. timeRemaining > 0   — timer did not hit zero (Fail Type A handled in Unity)
-     *   2. percentage >= 50%   — not too many wrong actions (Fail Type B handled here)
+     * RECORDING RULE — every attempt UP TO AND INCLUDING the first
+     * pass is saved. After that the participant's record for this
+     * event + environment is final: they can keep playing, they still
+     * see a result screen, but nothing further is written.
      *
-     * Penalty system:
-     *   Wrong object    → -20s (wrong alarm source, wrong extinguisher)
-     *   Wrong technique → -10s (wrong TPASS or WCTL sub-step)
+     * So a participant who fails twice then passes has three rows.
+     * A fourth run saves nothing, whatever the outcome.
      *
-     * Score formula:
-     *   percentage = max(0, round(100 - (total_penalties × (100 / 90))))
+     * Two independent flags describe the outcome:
+     *   phase2_passed → the timer did NOT hit zero
+     *   passed        → timer survived AND percentage >= 50
      *
-     * Score labels (only passing sessions are saved):
-     *   90 - 100% → Excellent
-     *   75 - 89%  → Good
-     *   50 - 74%  → Passed
-     *
-     * A certificate is issued and emailed automatically for every
-     * passing session (see STEP 9.5).
+     * fail_reason is null on a pass, otherwise:
+     *   "timeout"   → ran out of time
+     *   "low_score" → finished in time, too many wrong actions
      */
     public function submitResult(Request $request)
     {
         // ── STEP 1 — VALIDATE ────────────────────────────────────────
-        // Ensure Unity sent all required fields.
-        // phase2_score     = seconds remaining when all steps completed
-        // total_penalties  = total seconds deducted by wrong actions
-        // phase2_passed    = true only when Unity confirms time > 0
         $validated = $request->validate([
             'event_id'                => 'required|integer|exists:events,id',
             'environment'             => 'required|string|in:office,classroom,kitchen',
@@ -88,88 +79,110 @@ class ParticipantGameController extends Controller
             'steps.*.penalty_seconds' => 'required|integer|min:0',
         ]);
 
-        // ── STEP 2 — GET THE PARTICIPANT ─────────────────────────────
-        // Sanctum reads the Bearer token Unity sends in the header
-        // and returns the authenticated participant model.
         $participant = $request->user();
 
-        // ── STEP 3 — GATE 1: TIMER MUST NOT HAVE HIT ZERO ───────────
-        // Unity only POSTs when timeRemaining > 0 (Fail Type A is
-        // handled locally in Unity). This gate is a server-side
-        // safety net in case Unity sends a bad request.
-        if (!$validated['phase2_passed']) {
-            return response()->json([
-                'saved'   => false,
-                'message' => 'Result not saved — simulation not passed.',
-            ], 200);
-        }
+        /// ── STEP 2 — CALCULATE SCORE ─────────────────────────────────
+        // Penalties are clamped to the length of the run. A player only
+        // ever has 90 seconds to lose, so a larger figure means the
+        // client over-counted a hit that ran past the end of the clock.
+        // Laravel is the source of truth for scoring, so it does not
+        // trust the incoming number blindly.
+        $totalTime  = 90;
+        $penalties  = min($validated['total_penalties'], $totalTime);
 
-        // ── STEP 4 — GATE 2: NO EXISTING RECORD ─────────────────────
-        // Only the first passing attempt is saved per
-        // participant + event + environment combination.
-        // If a record already exists, we keep it and reject this one.
-        $existingSession = GameSession::where('participant_id', $participant->id)
-            ->where('event_id', $validated['event_id'])
-            ->where('environment', $validated['environment'])
-            ->exists();
+        // Each penalty second costs 100/90 = 1.11 points.
+        // max(0,...) stops the score going negative.
+        $percentage = max(0, round(100 - ($penalties * (100 / $totalTime))));
 
-        if ($existingSession) {
-            return response()->json([
-                'saved'   => false,
-                'message' => 'Session already recorded — first attempt kept.',
-            ], 200);
-        }
+        // ── STEP 3 — CLASSIFY THE OUTCOME ────────────────────────────
+        // These used to be gates that returned early. Now they only
+        // decide WHAT KIND of row we are about to save.
+        $timerSurvived = $validated['phase2_passed'];
+        $scoreEnough   = $percentage >= 50;
+        $passed        = $timerSurvived && $scoreEnough;
 
-        // ── STEP 5 — CALCULATE SCORE ─────────────────────────────────
-        // Convert total penalty seconds into a 0-100 percentage.
-        // Each second of penalty = 100/90 = 1.11 points deducted.
-        // max(0,...) prevents the score from going negative.
-        $percentage = max(0, round(100 - ($validated['total_penalties'] * (100 / 90))));
+        $failReason = match (true) {
+            !$timerSurvived => 'timeout',
+            !$scoreEnough   => 'low_score',
+            default         => null,
+        };
 
-        // ── STEP 6 — GATE 3: MINIMUM 50% SCORE ───────────────────────
-        // Fail Type B — participant finished all steps but made too
-        // many wrong actions, dropping their score below 50%.
-        // Maximum allowed penalties to still pass = 45 seconds.
-        // Unity reads 'retry: true' and shows the lose screen.
-        if ($percentage < 50) {
-            return response()->json([
-                'saved'            => false,
-                'retry'            => true,
-                'message'          => 'Too many mistakes. Try again.',
-                'percentage_score' => $percentage,
-            ], 200);
-        }
-
-        // ── STEP 7 — DETERMINE SCORE LABEL ───────────────────────────
-        // Every session that reaches this point is a passing session.
-        // "Failed" label is never saved to the database.
-        $label = match(true) {
+        // ── STEP 4 — SCORE LABEL ─────────────────────────────────────
+        // "Failed" is a real stored value now, not just a column default.
+        $label = match (true) {
+            !$passed          => 'Failed',
             $percentage >= 90 => 'Excellent',
             $percentage >= 75 => 'Good',
             default           => 'Passed',
         };
 
-        // ── STEP 8 — SAVE THE GAME SESSION ───────────────────────────
-        // One row in game_sessions per passing attempt.
-        // The UNIQUE constraint on participant_id + event_id +
-        // environment is the final (Gate 4) backup safety net.
+        // ── STEP 4.5 — STOP RECORDING AFTER THE FIRST PASS ───────────
+        // Once a participant has passed this environment for this event,
+        // their record is final. Later runs are practice: they play, they
+        // see a result, but nothing is written and the attempt count
+        // stops growing.
+        //
+        // Placed AFTER the score is calculated so the response can still
+        // report what they scored on this run, and BEFORE the attempt
+        // number is worked out so the count freezes at the passing try.
+        $alreadyPassed = GameSession::where('participant_id', $participant->id)
+            ->where('event_id', $validated['event_id'])
+            ->where('environment', $validated['environment'])
+            ->where('passed', true)
+            ->exists();
+
+        if ($alreadyPassed) {
+            return response()->json([
+                'saved'            => false,
+                'already_recorded' => true,
+                'passed'           => $passed,
+                'retry'            => false,   // nothing to retry — they're done
+                'fail_reason'      => $failReason,
+                'attempt_number'   => 0,       // not a recorded attempt
+                'message'          => 'Practice run — your passing attempt is already recorded.',
+                'session_id'       => 0,
+                'percentage_score' => $percentage,
+                'score_label'      => $label,
+                'time_remaining'   => $validated['phase2_score'],
+            ], 200);
+        }
+
+        // ── STEP 5 — WORK OUT THE ATTEMPT NUMBER ─────────────────────
+        // Count every prior run for this participant + event +
+        // environment, then add one. Attempt 1 is their first try,
+        // pass or fail.
+        $attemptNumber = GameSession::where('participant_id', $participant->id)
+            ->where('event_id', $validated['event_id'])
+            ->where('environment', $validated['environment'])
+            ->count() + 1;
+
+       // ── STEP 6 — SAVE THE SESSION ────────────────────────────────
+        // The old unique constraint is gone, so this succeeds on every
+        // attempt instead of only the first.
+        //
+        // Note total_penalties saves the CLAMPED $penalties, not the raw
+        // value Unity sent. A player only ever has 90 seconds to lose, so
+        // storing a larger figure would make the admin panel show more
+        // penalty time than the run contained.
         $session = GameSession::create([
             'participant_id'   => $participant->id,
             'event_id'         => $validated['event_id'],
             'environment'      => $validated['environment'],
+            'attempt_number'   => $attemptNumber,
             'phase1_completed' => true,
             'phase2_score'     => $validated['phase2_score'],
-            'total_penalties'  => $validated['total_penalties'],
+            'total_penalties'  => $penalties,
             'percentage_score' => $percentage,
             'score_label'      => $label,
-            'phase2_passed'    => true,
+            'phase2_passed'    => $timerSurvived,
+            'passed'           => $passed,
+            'fail_reason'      => $failReason,
             'played_at'        => now(),
         ]);
 
-        // ── STEP 9 — SAVE ALL SIMULATION STEPS ───────────────────────
-        // One row per action the participant took during the simulation.
-        // session_id links each step back to the session above.
-        // Think of it like order items linked to an order.
+        // ── STEP 7 — SAVE THE STEPS ──────────────────────────────────
+        // Saved for failures too — the step breakdown is exactly what
+        // makes a failed attempt worth reviewing.
         foreach ($validated['steps'] as $step) {
             SimulationStep::create([
                 'session_id'      => $session->id,
@@ -181,24 +194,32 @@ class ParticipantGameController extends Controller
             ]);
         }
 
-        // ── STEP 9.5 — ISSUE CERTIFICATE ─────────────────────────────
-        // Every session reaching this point is a passing session, so the
-        // participant has earned a certificate. Wrapped in try/catch so a
-        // PDF or mail failure never breaks the Unity response — the result
-        // is already saved above, and the player still sees their win
-        // screen. Failures are logged for staff to resend manually.
-        try {
-            $this->issueCertificate($participant, $session, $percentage, $label);
-        } catch (\Exception $e) {
-            Log::error('Certificate issuing failed: ' . $e->getMessage());
+        // ── STEP 8 — CERTIFICATE (PASSES ONLY) ───────────────────────
+        // Step 4.5 already blocks a second pass from reaching this
+        // point, but the guard inside issueCertificate stays as a
+        // second line of defence.
+        if ($passed) {
+            try {
+                $this->issueCertificate($participant, $session, $percentage, $label);
+            } catch (\Exception $e) {
+                Log::error('Certificate issuing failed: ' . $e->getMessage());
+            }
         }
 
-        // ── STEP 10 — RETURN SUCCESS ──────────────────────────────────
-        // Unity reads this response to show the Win screen.
-        // percentage_score and score_label drive the result display.
+        // ── STEP 9 — RESPOND ─────────────────────────────────────────
+        // 'saved' is true whenever a row was written. Unity reads
+        // 'passed' to choose Win or Lose, and 'already_recorded' to
+        // know whether this run counted.
         return response()->json([
             'saved'            => true,
-            'message'          => 'Session saved successfully.',
+            'already_recorded' => false,
+            'passed'           => $passed,
+            'retry'            => !$passed,
+            'fail_reason'      => $failReason,
+            'attempt_number'   => $attemptNumber,
+            'message'          => $passed
+                                    ? 'Session saved successfully.'
+                                    : 'Attempt recorded — not passed.',
             'session_id'       => $session->id,
             'percentage_score' => $percentage,
             'score_label'      => $label,
@@ -207,24 +228,18 @@ class ParticipantGameController extends Controller
     }
 
     /**
-     * Creates a certificate record, renders the PDF, and emails it to
-     * the participant. Called only for passing sessions.
-     *
-     * The record is saved BEFORE the email is sent, so that a mail
-     * failure still leaves a certificate staff can resend later.
+     * Creates a certificate record, renders the PDF, and emails it.
+     * Called only for passing sessions.
      */
     private function issueCertificate($participant, GameSession $session, $percentage, string $label)
     {
         $event = Event::find($session->event_id);
 
-        // Guard — no event, no certificate
         if (!$event) {
             Log::warning("Certificate skipped: event {$session->event_id} not found.");
             return;
         }
 
-        // Guard — never issue twice for the same
-        // participant + event + environment combination
         $exists = Certificate::where('participant_id', $participant->id)
             ->where('event_id', $event->id)
             ->where('environment', $session->environment)
@@ -234,9 +249,6 @@ class ParticipantGameController extends Controller
             return;
         }
 
-        // ── 1. Verification code + QR ────────────────────────────
-        // SVG rather than PNG — SVG needs no imagick extension and
-        // stays sharp at any print size.
         $verificationCode = Str::uuid()->toString();
         $verifyUrl        = url('/certificates/verify/' . $verificationCode);
 
@@ -244,10 +256,6 @@ class ParticipantGameController extends Controller
             QrCode::format('svg')->size(220)->margin(1)->generate($verifyUrl)
         );
 
-        // ── 2. Embed logos ───────────────────────────────────────
-        // dompdf cannot fetch images over HTTP, so files are read
-        // from disk and inlined as base64. Missing files return null
-        // and the template simply skips that image.
         $embed = function ($relativePath) {
             $path = public_path($relativePath);
             if (!file_exists($path)) return null;
@@ -255,7 +263,6 @@ class ParticipantGameController extends Controller
             return 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($path));
         };
 
-        // ── 3. Render the PDF ────────────────────────────────────
         $pdf = Pdf::loadView('certificates.certificate', [
             'participantName'  => $participant->name,
             'eventName'        => $event->name,
@@ -269,7 +276,6 @@ class ParticipantGameController extends Controller
             'fireopsLogo'      => $embed('Images/FireOps_Logo.png'),
         ])->setPaper('a4', 'landscape');
 
-        // ── 4. Save the certificate record ───────────────────────
         Certificate::create([
             'participant_id'    => $participant->id,
             'event_id'          => $event->id,
@@ -279,7 +285,6 @@ class ParticipantGameController extends Controller
             'issued_at'         => now(),
         ]);
 
-        // ── 5. Email it to the participant ───────────────────────
         Mail::to($participant->email)->send(new CertificateMail(
             pdfContent:      $pdf->output(),
             participantName: $participant->name,
@@ -294,24 +299,16 @@ class ParticipantGameController extends Controller
     /**
      * GET /api/participant/results?event_id={id}
      *
-     * Returns the logged-in participant's saved results for ONE event,
-     * broken down by the three environments (office, kitchen, classroom).
+     * Returns the participant's results for ONE event, one entry per
+     * environment, for Unity's Performance Results screen.
      *
-     * Performance Results in Unity is scoped to the currently-selected
-     * event. It shows three environment cards; completed ones display a
-     * score + label and open a full step breakdown, not-yet-done ones
-     * show as "locked / not completed".
-     *
-     * For each environment we return either:
-     *   - completed: true  + score, label, stats, and the step list, OR
-     *   - completed: false (no session for that environment yet)
-     *
-     * One call returns everything both Unity screens need (cards + detail),
-     * so tapping a card needs no second request.
+     * This used to call ->keyBy('environment'), which silently kept
+     * whichever row happened to come last once multiple attempts
+     * existed. It now picks the passing attempt explicitly and
+     * reports how many tries it took to get there.
      */
     public function getMyResults(Request $request)
     {
-        // ── VALIDATE ─────────────────────────────────────────────────
         $validated = $request->validate([
             'event_id' => 'required|integer|exists:events,id',
         ]);
@@ -319,35 +316,50 @@ class ParticipantGameController extends Controller
         $participant = $request->user();
         $eventId     = $validated['event_id'];
 
-        // The three environments we always show, in display order.
         $allEnvironments = ['office', 'kitchen', 'classroom'];
 
-        // ── FETCH THIS PARTICIPANT'S SESSIONS FOR THIS EVENT ─────────
-        // Eager-load the steps so we don't run a query per session.
-        // (Assumes GameSession has a `steps` relationship — see note below.)
+        // Every attempt, grouped by environment.
+        // groupBy (not keyBy) keeps ALL rows per environment.
         $sessions = GameSession::with('steps')
             ->where('participant_id', $participant->id)
             ->where('event_id', $eventId)
             ->get()
-            ->keyBy('environment'); // index by environment for easy lookup
+            ->groupBy('environment');
 
-        // ── BUILD ONE ENTRY PER ENVIRONMENT ──────────────────────────
         $environments = [];
 
         foreach ($allEnvironments as $env) {
-            $session = $sessions->get($env);
+            $attempts = $sessions->get($env);
 
-            if (!$session) {
-                // No record yet — this environment is "not completed".
+            // Never played this environment.
+            if (!$attempts || $attempts->isEmpty()) {
                 $environments[] = [
-                    'environment' => $env,
-                    'completed'   => false,
+                    'environment'    => $env,
+                    'completed'      => false,
+                    'attempt_count'  => 0,
                 ];
                 continue;
             }
 
-            // Completed — include score, stats, and the full step breakdown.
-            $steps = $session->steps->map(function ($step) {
+            // The passing attempt. Recording stops at the first pass,
+            // so there can only ever be one — but sortByDesc is kept
+            // as a harmless safeguard against older data.
+            $best = $attempts->where('passed', true)
+                             ->sortByDesc('percentage_score')
+                             ->first();
+
+            // Tried but never passed — no score to show. The card stays
+            // locked, but the attempt count is still reported.
+            if (!$best) {
+                $environments[] = [
+                    'environment'   => $env,
+                    'completed'     => false,
+                    'attempt_count' => $attempts->count(),
+                ];
+                continue;
+            }
+
+            $steps = $best->steps->map(function ($step) {
                 return [
                     'step_name'       => $step->step_name,
                     'sub_step'        => $step->sub_step,
@@ -360,18 +372,19 @@ class ParticipantGameController extends Controller
             $environments[] = [
                 'environment'      => $env,
                 'completed'        => true,
-                'percentage_score' => $session->percentage_score,
-                'score_label'      => $session->score_label,
-                'time_remaining'   => $session->phase2_score,
-                'total_penalties'  => $session->total_penalties,
-                'played_at'        => $session->played_at
-                                        ? $session->played_at->format('Y-m-d')
+                'attempt_count'    => $attempts->count(),
+                'attempt_number'   => $best->attempt_number,
+                'percentage_score' => $best->percentage_score,
+                'score_label'      => $best->score_label,
+                'time_remaining'   => $best->phase2_score,
+                'total_penalties'  => $best->total_penalties,
+                'played_at'        => $best->played_at
+                                        ? $best->played_at->format('Y-m-d')
                                         : null,
                 'steps'            => $steps,
             ];
         }
 
-        // Event name for the header pill (optional but nice).
         $event = Event::find($eventId);
 
         return response()->json([

@@ -15,8 +15,23 @@ class StaffDashboardController extends Controller
     {
         $period = $request->query('period', 'all');
 
-        // Base query — reusable filter by period
+        // ── BASE QUERY — PASSING RUNS ONLY ────────────────────
+        // game_sessions now stores failed attempts too, so every
+        // quality metric below MUST filter on passed = true.
+        // Without this, a participant's three failed attempts
+        // count as three completions and drag the average down.
         $base = function () use ($period) {
+            $q = GameSession::query()->where('passed', true);
+            if ($period === '30days') {
+                $q->where('played_at', '>=', now()->subDays(30));
+            }
+            return $q;
+        };
+
+        // ── ALL ATTEMPTS — passes AND failures ────────────────
+        // Separate closure for activity/volume metrics, which are
+        // about how much the simulation was used, not how well.
+        $allAttempts = function () use ($period) {
             $q = GameSession::query();
             if ($period === '30days') {
                 $q->where('played_at', '>=', now()->subDays(30));
@@ -34,17 +49,37 @@ class StaffDashboardController extends Controller
         $avgScore = round($base()->avg('percentage_score') ?? 0, 1);
 
         // ── ACTIVITY STATS ────────────────────────────────────
-        // NOTE: total_staff intentionally removed — staff-management
-        // numbers are Superadmin-only info.
-        $totalEvents = Event::count();
+        $totalEvents      = Event::count();
         $totalSimulations = $base()->count();
 
         // ── SCORE DISTRIBUTION ────────────────────────────────
+        // "Failed" rows are excluded automatically by the passed
+        // filter, so the donut keeps its existing three slices.
         $scoreDistribution = [
             'Excellent' => (clone $base())->where('score_label', 'Excellent')->count(),
             'Good'      => (clone $base())->where('score_label', 'Good')->count(),
             'Passed'    => (clone $base())->where('score_label', 'Passed')->count(),
         ];
+
+        // ── ATTEMPT STATS (NEW) ───────────────────────────────
+        // Additive only — nothing on the current dashboard reads
+        // these yet. They exist so the frontend can show retry
+        // behaviour without another backend change.
+        $totalAttempts = $allAttempts()->count();
+
+        $attemptedParticipants = $allAttempts()
+            ->distinct('participant_id')
+            ->count('participant_id');
+
+        $failBreakdown = [
+            'timeout'   => (clone $allAttempts())->where('fail_reason', 'timeout')->count(),
+            'low_score' => (clone $allAttempts())->where('fail_reason', 'low_score')->count(),
+        ];
+
+        // Average tries needed before a participant finally passed.
+        // Reads attempt_number on passing rows — a pass on attempt 3
+        // means it took them 3 goes.
+        $avgAttemptsToPass = round($base()->avg('attempt_number') ?? 0, 1);
 
         // ── ENVIRONMENTS ──────────────────────────────────────
         $environments = [];
@@ -85,9 +120,14 @@ class StaffDashboardController extends Controller
             });
 
         // ── MOST FAILED STEPS ─────────────────────────────────
+        // Filtered to passing sessions so this chart keeps its
+        // current meaning: "mistakes made by people who still
+        // passed". See note below — worth revisiting once the
+        // attempt data has built up.
         $mostFailedSteps = DB::table('simulation_steps')
             ->join('game_sessions', 'simulation_steps.session_id', '=', 'game_sessions.id')
             ->where('simulation_steps.was_correct', false)
+            ->where('game_sessions.passed', true)
             ->when($period === '30days', function ($q) {
                 $q->where('game_sessions.played_at', '>=', now()->subDays(30));
             })
@@ -109,7 +149,12 @@ class StaffDashboardController extends Controller
             'activity' => [
                 'total_events'      => $totalEvents,
                 'total_simulations' => $totalSimulations,
-                // total_staff removed — see note above
+            ],
+            'attempts' => [
+                'total_attempts'         => $totalAttempts,
+                'attempted_participants' => $attemptedParticipants,
+                'avg_attempts_to_pass'   => $avgAttemptsToPass,
+                'fail_breakdown'         => $failBreakdown,
             ],
             'score_distribution' => $scoreDistribution,
             'environments'       => $environments,

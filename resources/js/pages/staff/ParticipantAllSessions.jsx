@@ -4,22 +4,77 @@ import ParticipantSessionDetail from './ParticipantSessionDetails'
 
 export default function ParticipantAllSessions({ participant, sessions, onBack }) {
 
-  
     const ENVIRONMENTS = ['office', 'classroom', 'kitchen']
 
-    // Find this participant's session for a given environment, if any
-    const sessionFor = (env) => sessions.find(s => s.environment === env)
+    // Icon + protocol tag per environment, so the tabs read the same way
+    // as the environment cards on the event page.
+    const ENV_META = {
+        office:    { icon: 'bi-building-fill',    tag: 'TPASS' },
+        classroom: { icon: 'bi-mortarboard-fill', tag: 'TPASS' },
+        kitchen:   { icon: 'bi-fire',             tag: 'WCTL'  },
+    }
 
-    // Default active tab = first environment that has a session.
-    // If they haven't attempted anything, nothing is active.
-    const firstAttempted = ENVIRONMENTS.find(env => sessionFor(env))
+    // ── GROUP ATTEMPTS BY ENVIRONMENT ─────────────────────────────
+    // This used to be sessions.find(...), which returns only the FIRST
+    // match. That was correct when the database held one row per
+    // environment — but every attempt is stored now, so .find() would
+    // silently show one arbitrary run and hide the rest.
+    //
+    // Sorted newest first: attempt 3, then 2, then 1.
+    const attemptsFor = (env) =>
+        (sessions || [])
+            .filter(s => s.environment === env)
+            .sort((a, b) => (b.attempt_number || 0) - (a.attempt_number || 0))
+
+    // Which attempt to show when a tab is first opened: the passing run
+    // if there is one, otherwise the most recent try.
+    const defaultAttempt = (attempts) => {
+        if (!attempts.length) return null
+        const passes = attempts.filter(a => a.passed)
+        if (passes.length) {
+            return passes.reduce((best, a) =>
+                a.percentage_score > best.percentage_score ? a : best
+            )
+        }
+        return attempts[0]
+    }
+
+    const firstAttempted = ENVIRONMENTS.find(env => attemptsFor(env).length > 0)
     const [activeEnv, setActiveEnv] = useState(firstAttempted || null)
 
-    const activeSession = activeEnv ? sessionFor(activeEnv) : null
+    // Which attempt is selected, per environment. Keyed by env so
+    // switching tabs and coming back keeps your place.
+    const [selectedIds, setSelectedIds] = useState({})
+
+    const activeAttempts = activeEnv ? attemptsFor(activeEnv) : []
+
+    const activeSession = (() => {
+        if (!activeAttempts.length) return null
+        const chosenId = selectedIds[activeEnv]
+        const found = activeAttempts.find(a => a.id === chosenId || a.session_id === chosenId)
+        return found || defaultAttempt(activeAttempts)
+    })()
+
+    const selectAttempt = (env, session) => {
+        setSelectedIds(prev => ({ ...prev, [env]: session.id ?? session.session_id }))
+    }
 
     // "office" → "Office"
     const envDisplay = (env) =>
         env.charAt(0).toUpperCase() + env.slice(1)
+
+    const shortDate = (value) =>
+        value
+            ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : '—'
+
+    // Short label for an attempt row's outcome.
+    const outcomeLabel = (s) => {
+        if (s.passed) return s.score_label
+        if (s.fail_reason === 'timeout') return 'Timed out'
+        if (s.fail_reason === 'low_score') return 'Too many mistakes'
+        return 'Failed'
+    }
 
     // Initials for the avatar circle — "Mark Joemarie Obra" → "MO"
     const initials = participant.name
@@ -83,11 +138,13 @@ export default function ParticipantAllSessions({ participant, sessions, onBack }
 
             </div>
 
-           
+            {/* ── ENVIRONMENT TABS ─────────────────────────────────── */}
             <div className="psd-env-tabs">
                 {ENVIRONMENTS.map(env => {
-                    const session = sessionFor(env)
-                    const attempted = !!session
+                    const attempts = attemptsFor(env)
+                    const attempted = attempts.length > 0
+                    const anyPassed = attempts.some(a => a.passed)
+                    const meta = ENV_META[env]
 
                     return (
                         <button
@@ -96,16 +153,24 @@ export default function ParticipantAllSessions({ participant, sessions, onBack }
                             onClick={() => attempted && setActiveEnv(env)}
                             disabled={!attempted}
                         >
-                            <i className="bi bi-building"></i>
-                            {envDisplay(env)}
+                            <i className={`bi ${meta.icon}`}></i>
+
+                            <span className="psd-tab-name">{envDisplay(env)}</span>
 
                             {attempted ? (
-                                <span className={`psd-tab-badge ${session.phase2_passed ? 'passed' : 'failed'}`}>
-                                    <i className={`bi ${session.phase2_passed
-                                        ? 'bi-check'
-                                        : 'bi-x'}`}>
-                                    </i>
-                                </span>
+                                <>
+                                    {/* Reads `passed`, NOT `phase2_passed`.
+                                        phase2_passed only means "the timer did
+                                        not hit zero" — a low-score failure has
+                                        it set to true and would show a green
+                                        check on a run that failed. */}
+                                    <span className={`psd-tab-badge ${anyPassed ? 'passed' : 'failed'}`}>
+                                        <i className={`bi ${anyPassed ? 'bi-check' : 'bi-x'}`}></i>
+                                    </span>
+                                    <span className="psd-tab-count">
+                                        {attempts.length} {attempts.length === 1 ? 'try' : 'tries'}
+                                    </span>
+                                </>
                             ) : (
                                 <span className="psd-tab-unattempted">Not attempted</span>
                             )}
@@ -114,17 +179,69 @@ export default function ParticipantAllSessions({ participant, sessions, onBack }
                 })}
             </div>
 
-            {/* ── ACTIVE SESSION DETAIL ────────────────────────────── */}
+            {/* ── ATTEMPT HISTORY + ACTIVE DETAIL ──────────────────── */}
             {activeSession ? (
                 <>
+                    {/* Attempt list — only when there is more than one.
+                        A single attempt needs no picker; the row would
+                        just repeat what the detail below already says. */}
+                   {activeAttempts.length > 1 && (
+                        <div className="psd-attempt-bar">
+                            <span className="psd-attempt-bar-label">Attempt</span>
+
+                            <div className="psd-attempt-pills">
+                                {/* Oldest → newest reads as a progression, which is
+                                    the point of the list. The array is sorted newest
+                                    first for the default selection, so reverse a copy
+                                    here rather than mutating it. */}
+                                {[...activeAttempts].reverse().map(s => {
+                                    const id = s.id ?? s.session_id
+                                    const isActive = (activeSession.id ?? activeSession.session_id) === id
+
+                                    return (
+                                        <button
+                                            key={id}
+                                            className={`psd-attempt-pill ${isActive ? 'active' : ''} ${s.passed ? 'passed' : 'failed'}`}
+                                            onClick={() => selectAttempt(activeEnv, s)}
+                                            title={s.passed
+                                                ? `${outcomeLabel(s)} — ${s.percentage_score}%`
+                                                : `${outcomeLabel(s)} — ${s.total_penalties}s in penalties`}
+                                        >
+                                            {s.attempt_number ?? '—'}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Score ONLY on a pass. A failed run's percentage is not
+                                an achievement — a timeout at 19% just means the clock
+                                ran out. Penalties explain the run instead. */}
+                            <span className={`psd-attempt-bar-meta ${activeSession.passed ? 'passed' : 'failed'}`}>
+                                {outcomeLabel(activeSession)}
+                                <span className="psd-attempt-bar-sub">
+                                    {activeSession.passed
+                                        ? `${activeSession.percentage_score}%`
+                                        : `${activeSession.total_penalties}s penalties`}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+
                     <div className="psd-active-meta">
-                        <span className={`psd-pass-badge ${activeSession.phase2_passed ? 'passed' : 'failed'}`}>
-                            <i className={`bi ${activeSession.phase2_passed
+                        <span className={`psd-pass-badge ${activeSession.passed ? 'passed' : 'failed'}`}>
+                            <i className={`bi ${activeSession.passed
                                 ? 'bi-check-circle-fill'
                                 : 'bi-x-circle-fill'}`}>
                             </i>
-                            {activeSession.phase2_passed ? 'Passed' : 'Failed'}
+                            {activeSession.passed ? 'Passed' : 'Failed'}
                         </span>
+
+                        {activeSession.attempt_number && (
+                            <span className="psd-active-attempt">
+                                Attempt {activeSession.attempt_number}
+                            </span>
+                        )}
+
                         <span className="psd-active-date">
                             {new Date(activeSession.played_at).toLocaleDateString('en-US', {
                                 month: 'long', day: 'numeric', year: 'numeric',
@@ -133,6 +250,7 @@ export default function ParticipantAllSessions({ participant, sessions, onBack }
                     </div>
 
                     <ParticipantSessionDetail
+                        key={activeSession.id ?? activeSession.session_id}
                         session={activeSession}
                         embedded
                     />

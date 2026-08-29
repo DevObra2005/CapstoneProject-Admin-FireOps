@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -224,6 +225,16 @@ export default function EventModal({
     // pin gets set, without touching parent state.
     const [pinError, setPinError] = useState('')
 
+    // Locks background scrolling while the modal is open. Without
+    // this the events list behind the overlay still scrolls when
+    // the wheel is over the dimmed area.
+    useEffect(() => {
+        if (!show) return
+        const previous = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = previous }
+    }, [show])
+
     if (!show) return null
 
     const mapCenter = markerPos ? [markerPos.lat, markerPos.lng] : DEFAULT_CENTER
@@ -260,7 +271,17 @@ export default function EventModal({
         onSubmit(e)
     }
 
-    return (
+    // ── Portal ────────────────────────────────────────────────────────────────
+    // The overlay is rendered into <body> instead of staying nested inside the
+    // staff layout. A parent in that layout carries a transform/filter, which
+    // makes it the containing block for `position: fixed` AND clips anything
+    // that tries to paint outside it — that is what left the right-hand strip
+    // of the screen un-dimmed. Attached to <body> there is no such ancestor,
+    // so `inset: 0` covers the true viewport again.
+    //
+    // React events still bubble normally through a portal, so onClose,
+    // handleSubmit and every field handler below behave exactly as before.
+    return createPortal(
         <div className="ev-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
             <div className="ev-modal">
 
@@ -328,7 +349,7 @@ export default function EventModal({
                             </div>
                         </div>
 
-                        <div className="ev-section-label" style={{ marginTop: 8 }}>Location & Radius</div>
+                        <div className="ev-section-label" style={{ marginTop: 8 }}>Location &amp; Radius</div>
 
                         <div className="ev-field">
                             <label>
@@ -431,6 +452,7 @@ export default function EventModal({
                 </form>
 
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }

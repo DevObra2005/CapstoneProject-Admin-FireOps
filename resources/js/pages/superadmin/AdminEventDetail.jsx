@@ -27,8 +27,12 @@ export default function AdminEventDetail({ event, token, onBack }) {
     useEffect(() => {
         const fetchResults = async () => {
             try {
+                // include_failed=1 returns EVERY attempt, not just passes.
+                // The participant detail view needs the full history to show
+                // attempt-by-attempt progress. The overview stats below filter
+                // it back down themselves — see passedResults.
                 const res = await api.get(
-                    `/superadmin/events/${event.id}/results`)
+                    `/superadmin/events/${event.id}/results?include_failed=1`)
                 setResults(Array.isArray(res.data) ? res.data : [])
             } catch {
                 setResults([])
@@ -42,15 +46,29 @@ export default function AdminEventDetail({ event, token, onBack }) {
         p.email?.toLowerCase().includes(search.toLowerCase())
     )
 
+    // ── PASSES ONLY, for the overview stats ───────────────────────
+    // `results` now contains failed attempts as well, so every "how did
+    // people do" number below must come from this filtered list. Without
+    // it, a participant who failed three times counts as three separate
+    // completions.
+    //
+    // Filters on `passed`, NOT `phase2_passed` — the latter only means
+    // "the timer did not hit zero", so a low-score failure has it set to
+    // true and used to be counted here as a pass.
+    const passedResults = results.filter(r => r.passed)
+
+    // Full history for one participant — deliberately UNFILTERED.
+    // ParticipantAllSessions groups these by environment and renders the
+    // attempt list, so it needs the failures.
     const sessionsForParticipant = (participant) =>
         results.filter(r => r.participant_email === participant.email)
 
-    const uniqueCompletedEmails = new Set(results.map(r => r.participant_email))
+    const uniqueCompletedEmails = new Set(passedResults.map(r => r.participant_email))
     const totalCompleted = uniqueCompletedEmails.size
     const avgScore = totalCompleted > 0
         ? Math.round(
             [...uniqueCompletedEmails].reduce((sum, email) => {
-                const personSessions = results.filter(r => r.participant_email === email)
+                const personSessions = passedResults.filter(r => r.participant_email === email)
                 const bestScore = Math.max(...personSessions.map(s => s.percentage_score))
                 return sum + bestScore
             }, 0) / totalCompleted
@@ -59,21 +77,33 @@ export default function AdminEventDetail({ event, token, onBack }) {
 
     const ENVIRONMENTS = ['office', 'classroom', 'kitchen']
     const envStats = ENVIRONMENTS.map(env => {
-        const envResults = results.filter(r => r.environment === env)
-        const envPassed  = envResults.filter(r => r.phase2_passed)
-        const envAvg     = envPassed.length > 0
+        const envPassed = passedResults.filter(r => r.environment === env)
+
+        // Distinct PARTICIPANTS, not sessions. Someone who passed Office on
+        // attempt 1 and passed again on attempt 4 is still one person — the
+        // old count would have shown 2.
+        const distinctPassed = new Set(envPassed.map(r => r.participant_email)).size
+
+        const envAvg = envPassed.length > 0
             ? Math.round(envPassed.reduce((s, r) => s + r.percentage_score, 0) / envPassed.length)
             : 0
+
         return {
             env,
             label: env.charAt(0).toUpperCase() + env.slice(1),
-            passed: envPassed.length,
+            passed: distinctPassed,
             avgScore: envAvg,
         }
     })
 
+   // ── MOST FAILED STEPS — PASSING RUNS ONLY ────────────────────
+    // Reads passedResults, not results. This chart is about the
+    // mistakes made along the way to a successful run — errors mild
+    // enough to recover from. Including failed attempts turns it into
+    // "every mistake anyone ever made", which is dominated by whoever
+    // retried the most rather than by which steps are genuinely hard.
     const stepFailCounts = {}
-    results.forEach(session => {
+    passedResults.forEach(session => {
         session.steps?.forEach(step => {
             if (!step.was_correct) {
                 stepFailCounts[step.step_name] = (stepFailCounts[step.step_name] || 0) + 1
