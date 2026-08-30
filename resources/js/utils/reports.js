@@ -44,21 +44,10 @@ export async function generateEventReport(eventId, { preview = false } = {}) {
   }
 }
 
-/**
- * Training analysis report — step failure rates across a date range.
- *
- * Both `from` and `to` are optional. The controller uses ->when() on
- * each, so omitting them returns all-time data rather than an empty set.
- */
-export async function generateStepAnalysisReport({ from = null, to = null, preview = false } = {}) {
+export async function generateSimulationAnalysisReport(eventId, { preview = false } = {}) {
   try {
-    const response = await api.get('/staff/reports/steps', {
-      params: {
-        format: 'pdf',
-        ...(from ? { from } : {}),
-        ...(to ? { to } : {}),
-        ...(preview ? { preview: 1 } : {}),
-      },
+    const response = await api.get(`/staff/reports/simulation/${eventId}`, {
+      params: { format: 'pdf', ...(preview ? { preview: 1 } : {}) },
       responseType: 'blob',
     });
 
@@ -72,7 +61,7 @@ export async function generateStepAnalysisReport({ from = null, to = null, previ
       link.target = '_blank';
       link.rel = 'noopener';
     } else {
-      link.download = 'training-analysis.pdf';
+      link.download = `simulation-analysis-${eventId}.pdf`;
     }
 
     document.body.appendChild(link);

@@ -50,19 +50,18 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
     // mean nothing to an instructor reading a report.
     const formatAction = (raw) => {
         const objects = {
-            'ExitDoor':                  'the exit door',
-            'FireAlarm':                 'the alarm panel',
-            'FireExtinguisher_ABC_NEW':  'the fire extinguisher',
-            'TPASS_Sweep':               'Sweep',
+            'ExitDoor':         'the exit door',
+            'FireAlarm':        'the alarm panel',
+            'FireExtinguisher': 'the fire extinguisher',
+            'Towel':            'the towel',
+            'TPASS_Sweep':      'Sweep',
 
-            // Kitchen. towel_rig is the GameObject name, which leaks
-            // through whenever actionName is left blank on
-            // KitchenInteractable — worth setting there, but mapped here
-            // so existing records read properly either way.
-            'towel_rig':                 'the towel',
-            'TowelOnSink':               'the towel',
-            'TowelOnTimba':              'the towel',
-            'DryTowel':                  'the towel (still dry)',
+            // Kitchen towel states. TowelOnSink, TowelOnTimba and DryTowel
+            // are not the Action Name — they come from the towel's own
+            // state reporting, so they stay.
+            'TowelOnSink':      'the towel',
+            'TowelOnTimba':     'the towel',
+            'DryTowel':         'the towel (still dry)',
         }
         if (objects[raw]) return objects[raw]
 

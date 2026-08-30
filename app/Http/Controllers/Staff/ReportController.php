@@ -46,7 +46,7 @@ class ReportController extends Controller
             ->format('d M Y, g:i A');
     }
 
-        protected function buildEventSummary(Request $request, $eventId)
+    protected function buildEventSummary(Request $request, $eventId)
     {
         $event = DB::table('events')
             ->where('id', $eventId)
@@ -151,7 +151,7 @@ class ReportController extends Controller
         // which would read as failure instead of absence.
         $byEnvironment = $pairs
             ->groupBy('environment')
-            ->map(function ($group, $env) use ($sessions) {
+            ->map(function ($group, $env) {
                 $total     = $group->count();
                 $passed    = $group->where('passed', 1)->count();
                 $envPasses = $group->where('passed', 1);
@@ -273,118 +273,264 @@ class ReportController extends Controller
         ];
     }
 
-    public function stepAnalysis(Request $request)
-    {
-        $data = $this->buildStepAnalysis($request);
-
-        if ($request->query('format') === 'pdf') {
-            $pdf = Pdf::loadView('reports.step_analysis', $data)
-                    ->setPaper('a4', 'portrait');
-
-            return $request->query('preview')
-                ? $pdf->stream('training-analysis.pdf')
-                : $pdf->download('training-analysis.pdf');
-        }
-
-        return response()->json($data);
-    }
-     /**
+    /**
      * Turns a raw step key into something a BFP reader recognises.
-     * The database stores 'TPASS_Aim'; a printed report should say
-     * 'TPASS — Aim'. Mirrors the map used on the dashboard.
+     * The database stores 'TPASS_Aim'; a printed report should say 'Aim'.
      */
     protected function formatStepName(string $name): string
     {
         return [
+            // Objects a participant can reach for. These arrive from Unity's
+            // Action Name field on the interactable, not from the GameObject
+            // name — so renaming a prop in the scene does not change them.
+            'ExitDoor'         => 'The exit door',
+            'FireAlarm'        => 'The fire alarm',
+            'FireExtinguisher' => 'The fire extinguisher',
+            'Towel'            => 'The towel',
+
+            // Step names
             'SoundAlarm'       => 'Sound alarm',
             'GrabExtinguisher' => 'Grab extinguisher',
-            'GrabWetBlanket'   => 'Grab wet blanket',
             'GrabTowel'        => 'Grab towel',
-            'TPASS_Twist'      => 'TPASS — Twist',
-            'TPASS_Pull'       => 'TPASS — Pull',
-            'TPASS_Aim'        => 'TPASS — Aim',
-            'TPASS_Squeeze'    => 'TPASS — Squeeze',
-            'TPASS_Sweep'      => 'TPASS — Sweep',
-            'WCTL_Wet'         => 'WCTL — Wet',
-            'WCTL_Cover'       => 'WCTL — Cover',
-            'WCTL_TurnOff'     => 'WCTL — Turn off',
-            'WCTL_Leave'       => 'WCTL — Leave',
+            'TPASS_Twist'      => 'Twist',
+            'TPASS_Pull'       => 'Pull',
+            'TPASS_Aim'        => 'Aim',
+            'TPASS_Squeeze'    => 'Squeeze',
+            'TPASS_Sweep'      => 'Sweep',
+            'WCTL_Wet'         => 'Wet',
+            'WCTL_Cover'       => 'Cover',
+            'WCTL_TurnOff'     => 'Turn off',
+            'WCTL_Leave'       => 'Leave',
             'Evacuate'         => 'Evacuate',
         ][$name] ?? $name;
     }
 
-    protected function buildStepAnalysis(Request $request)
+    /**
+     * GET /api/staff/reports/simulation/{eventId}
+     *
+     * Where participants went wrong during one event's simulations, and
+     * what they did instead. The point is not the failure count — it is
+     * the pattern behind it, which is what an instructor can act on.
+     */
+    public function simulationAnalysis(Request $request, $eventId)
     {
-        $from = $request->query('from');
-        $to   = $request->query('to');
+        $data = $this->buildSimulationAnalysis($request, $eventId);
 
+        if (!$data) {
+            return response()->json(['message' => 'Event not found.'], 404);
+        }
+
+        if ($request->query('format') === 'pdf') {
+            $pdf = Pdf::loadView('reports.simulation_analysis', $data)
+                    ->setPaper('a4', 'portrait');
+
+            $filename = 'simulation-analysis-' . $eventId . '.pdf';
+
+            return $request->query('preview')
+                ? $pdf->stream($filename)
+                : $pdf->download($filename);
+        }
+
+        return response()->json($data);
+    }
+
+    /**
+     * Sorts a wrong action into one of three behaviours.
+     *
+     * Phase 1 teaches participants where every object is before they
+     * reach Phase 2, so these are not people who could not find the
+     * alarm panel. They are people who knew and did something else,
+     * which makes each pattern a genuine training finding.
+     */
+    protected function classifyMistake(string $stepName, ?string $chosenAction): string
+    {
+        if (!$chosenAction) {
+            return 'other';
+        }
+
+        // Anything involving the exit means they broke off the procedure
+        // and headed out. The most common mistake in the data, and the
+        // one fire safety training exists to correct.
+        if (stripos($chosenAction, 'exit') !== false
+            || stripos($chosenAction, 'door') !== false) {
+            return 'left_procedure';
+        }
+
+        // A valid step from the same mnemonic, performed out of turn —
+        // TPASS_Aim when Squeeze was next. They know the actions, not
+        // the order.
+        $stepPrefix   = strtok($stepName, '_');
+        $choicePrefix = strtok($chosenAction, '_');
+
+        if ($stepPrefix === $choicePrefix && str_contains($stepName, '_')) {
+            return 'wrong_order';
+        }
+
+        // Reached for the wrong thing entirely — the extinguisher when
+        // the alarm was next, for instance.
+        return 'wrong_action';
+    }
+
+    protected function buildSimulationAnalysis(Request $request, $eventId)
+    {
+        $event = DB::table('events')
+            ->where('id', $eventId)
+            ->select('id', 'name', 'date', 'location_name')
+            ->first();
+
+        if (!$event) {
+            return null;
+        }
+
+        // Every step from every attempt, passed runs included. A person
+        // can pass a run while still tapping the wrong thing twice along
+        // the way, and those taps are real training gaps — excluding them
+        // because the run ended well would hide the thing this report
+        // exists to find.
         $steps = DB::table('simulation_steps')
             ->join('game_sessions', 'simulation_steps.session_id', '=', 'game_sessions.id')
-            ->when($from, fn($q) => $q->whereDate('game_sessions.played_at', '>=', $from))
-            ->when($to,   fn($q) => $q->whereDate('game_sessions.played_at', '<=', $to))
+            ->where('game_sessions.event_id', $eventId)
             ->select(
                 'simulation_steps.step_name',
-                'simulation_steps.sub_step',
+                'simulation_steps.chosen_action',
                 'simulation_steps.was_correct',
-                'simulation_steps.penalty_seconds',
-                'game_sessions.environment'
+                'game_sessions.environment',
+                'game_sessions.participant_id',
+                'game_sessions.id as session_id'
             )
             ->get();
 
-        $byStep = $steps
-            ->groupBy(fn($s) => $s->environment . '|' . $s->step_name)
-            ->map(function ($group) {
-                $total  = $group->count();
-                $missed = $group->where('was_correct', 0)->count();
-                $first  = $group->first();
+        // Fixed list so Classroom is accounted for now and fills in on
+        // its own once it ships. Environments with no sessions are
+        // dropped below rather than shown as empty sections.
+        $allEnvironments = collect(['office', 'kitchen', 'classroom']);
+
+        $environments = $allEnvironments
+            ->map(function ($env) use ($steps) {
+                $envSteps = $steps->where('environment', $env);
+
+                if ($envSteps->isEmpty()) {
+                    return null;
+                }
+
+                $mistakes = $envSteps->where('was_correct', 0);
+
+                // ── STEPS THAT WENT WRONG ────────────────────────────
+                // A plain count of wrong taps, worst first. An earlier
+                // version showed "15 of 20", but that denominator counted
+                // taps rather than runs or people, so nobody could tell
+                // what it meant. One number, sorted, is enough to say
+                // which step needs attention.
+                $problemSteps = $mistakes
+                    ->groupBy('step_name')
+                    ->map(function ($group, $stepName) {
+                        // What they reached for instead, most often.
+                        // This is what turns a count into a lesson.
+                        $topChoice = $group
+                            ->groupBy('chosen_action')
+                            ->map->count()
+                            ->sortDesc()
+                            ->keys()
+                            ->first();
+
+                        return [
+                            'step_label'  => $this->formatStepName($stepName),
+                            // Count SIMULATIONS that had this mistake, not
+                            // individual wrong taps. Two runs contributed
+                            // five wrong taps each at Sound alarm, which
+                            // made a tap count read 15 against 7 runs —
+                            // a number larger than the total it sits
+                            // beside, and one that reflects two bad runs
+                            // rather than a widespread problem.
+                            'times_wrong' => $group->pluck('session_id')->unique()->count(),
+                            'instead'     => $topChoice
+                                                ? $this->describeChoice($topChoice)
+                                                : null,
+                        ];
+                    })
+                    ->sortByDesc('times_wrong')
+                    ->values();
+
+                // Steps attempted in this environment that were never
+                // missed. Reported as a single line, not a table — nine
+                // rows of zeros buried the rows that mattered.
+                $wrongStepNames = $mistakes->pluck('step_name')->unique();
+
+                $cleanSteps = $envSteps
+                    ->pluck('step_name')
+                    ->unique()
+                    ->diff($wrongStepNames)
+                    ->map(fn($s) => $this->formatStepName($s))
+                    ->sort()
+                    ->values();
+
+                // ── WHAT TO TEACH ────────────────────────────────────
+                // Derived per environment, not once for the whole event.
+                // Office might be dominated by people leaving the
+                // procedure while Kitchen is dominated by sequence
+                // errors — one combined recommendation would give the
+                // wrong advice for one of them.
+                $topPattern = $mistakes
+                    ->map(fn($s) => $this->classifyMistake($s->step_name, $s->chosen_action))
+                    ->countBy()
+                    ->sortDesc()
+                    ->keys()
+                    ->first();
+
+                $advice = match ($topPattern) {
+                    'left_procedure' => 'Participants keep going to the exit instead of '
+                                      . 'finishing the step. Remind them that leaving is '
+                                      . 'the last step, not the first.',
+                    'wrong_order'    => 'Participants know the actions but perform them out '
+                                      . 'of order. Drill the sequence itself rather than '
+                                      . 're-teaching each action.',
+                    'wrong_action'   => 'Participants are reaching for the wrong equipment. '
+                                      . 'Re-cover which action each situation calls for.',
+                    default          => null,
+                };
 
                 return [
-                    'environment'   => $first->environment,
-                    'step_name'     => $first->step_name,
-                    'step_label'    => $this->formatStepName($first->step_name),
-                    'times_run'     => $total,
-                    'times_missed'  => $missed,
-                    'failure_rate'  => $total > 0 ? round(($missed / $total) * 100) : 0,
-                    'avg_penalty'   => $missed > 0
-                        ? round($group->where('was_correct', 0)->avg('penalty_seconds'))
-                        : 0,
+                    'environment'  => $env,
+                    'label'        => ucfirst($env),
+                    'procedure'    => $env === 'kitchen' ? 'WCTL' : 'TPASS',
+                    'participants' => $envSteps->pluck('participant_id')->unique()->count(),
+                    'simulations'  => $envSteps->pluck('session_id')->unique()->count(),
+                    'mistakes'     => $mistakes->count(),
+                    'steps'        => $problemSteps,
+                    'clean_steps'  => $cleanSteps,
+                    'advice'       => $advice,
                 ];
             })
-            ->sortByDesc('failure_rate')
+            ->filter()
             ->values();
 
-        $worst        = $byStep->first();
-        $totalMissed  = $steps->where('was_correct', 0)->count();
-
-        // A readable description of the period, used in the report's
-        // meta block. Both bounds are optional, so there are four cases.
-        $fmt = fn($d) => \Carbon\Carbon::parse($d)->format('d F Y');
-
-        $periodLabel = match (true) {
-            $from && $to => $fmt($from) . ' – ' . $fmt($to),
-            (bool) $from => $fmt($from) . ' onward',
-            (bool) $to   => 'Up to ' . $fmt($to),
-            default      => 'All recorded simulations',
-        };
-
         return [
+            'event'        => $event,
             'generated_at' => $this->displayTime(),
             'generated_by' => trim($request->user()->first_name . ' ' . $request->user()->last_name),
-            'range_from'   => $from,
-            'range_to'     => $to,
-            'period_label' => $periodLabel,
-            'total_steps'  => $steps->count(),
-            'overall_failure_rate' => $steps->count() > 0
-                ? round(($totalMissed / $steps->count()) * 100)
-                : 0,
-            'headline'     => $worst
-                ? $worst['step_label'] . ' was missed in ' . $worst['failure_rate']
-                . '% of ' . ucfirst($worst['environment']) . ' attempts — the most common failure.'
-                : null,
-            'by_step'      => $byStep,
+            'environments' => $environments,
         ];
     }
 
+    /**
+     * Describes what a participant reached for, as something a BFP reader
+     * would say out loud.
+     *
+     * Kept separate from formatStepName() because the phrasing differs: a
+     * step is named ("Aim") but a choice is described ("Went to the exit
+     * door"). Mixing the two produced rows reading "Chose ExitDoor".
+     */
+    protected function describeChoice(string $action): string
+    {
+        return [
+            'ExitDoor'         => 'Went to the exit door',
+            'FireAlarm'        => 'Sounded the fire alarm',
+            'FireExtinguisher' => 'Grabbed the fire extinguisher',
+            'Towel'            => 'Grabbed the towel',
+        ][$action] ?? 'Did ' . $this->formatStepName($action);
+    }
+
+    
         /**
      * GET /api/staff/reports/follow-up/{eventId}
      *

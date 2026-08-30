@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import api from '../../api/axios';
-import { generateEventReport, generateStepAnalysisReport, generateFollowUpReport } from '../../utils/reports';
+import { generateEventReport, generateSimulationAnalysisReport, generateFollowUpReport } from '../../utils/reports';
 import '../../../css/Staff/reports.css'
 
 // Below this count a search box is clutter — you can see everything.
@@ -18,11 +18,6 @@ export default function Reports() {
   const [error, setError]       = useState('');
   const [search, setSearch]     = useState('');
 
-  // Date range for the training analysis report. Empty strings mean
-  // "no bound" — the controller's ->when() skips the filter entirely,
-  // which gives all-time data.
-  const [rangeFrom, setRangeFrom] = useState('');
-  const [rangeTo, setRangeTo]     = useState('');
 
   useEffect(() => {
     api.get('/staff/events')
@@ -36,12 +31,8 @@ export default function Reports() {
     setError('');
 
     let result;
-    if (reportType === 'steps') {
-      result = await generateStepAnalysisReport({
-        from: rangeFrom || null,
-        to:   rangeTo   || null,
-        preview: true,
-      });
+    if (reportType === 'simulation') {
+      result = await generateSimulationAnalysisReport(selected, { preview: true });
     } else if (reportType === 'followup') {
       result = await generateFollowUpReport(selected, { preview: true });
     } else {
@@ -77,10 +68,7 @@ export default function Reports() {
     });
   };
 
-  // The event report needs a selected event; the steps report is
-  // always runnable because an empty range means all time.
-  // Follow-up needs an event, same as the event summary
-  const canGenerate = reportType === 'steps' ? true : Boolean(selected);
+  const canGenerate = Boolean(selected);
 
   const includes = reportType === 'event'
     ? [
@@ -91,13 +79,13 @@ export default function Reports() {
         'Participant results table',
         'Signature line',
       ]
-    : reportType === 'steps'
+    : reportType === 'simulation'
     ? [
         'BFP letterhead and reference number',
-        'Date range covered',
-        'Headline failure finding',
-        'Step-by-step failure rates',
-        'Average penalty per missed step',
+        'Steps that went wrong, per environment',
+        'What participants did instead',
+        'Steps performed correctly',
+        'What to teach next',
         'Signature line',
       ]
     : [
@@ -174,8 +162,8 @@ export default function Reports() {
         <div className="col-12 col-md-4">
           <button
             type="button"
-            className={`rp-type-card ${reportType === 'steps' ? 'active' : ''}`}
-            onClick={() => { setReportType('steps'); setError(''); }}
+            className={`rp-type-card ${reportType === 'simulation' ? 'active' : ''}`}
+            onClick={() => { setReportType('simulation'); setError(''); }}
           >
             <div className="d-flex align-items-start justify-content-between mb-2 mt-1">
               <div className="rp-type-icon">
@@ -183,11 +171,10 @@ export default function Reports() {
               </div>
               <span className="rp-type-tag">PDF</span>
             </div>
-            <div className="rp-type-name">Training analysis</div>
+            <div className="rp-type-name">Simulation analysis</div>
             <div className="rp-type-desc">
-              Which steps participants get wrong most often, across any
-              period you choose. Tells you what to emphasise in the next
-              session.
+              Where participants went wrong in one event and what they
+              did instead. Shows you what to teach again.
             </div>
           </button>
         </div>
@@ -233,50 +220,12 @@ export default function Reports() {
 
       <div className="row g-2 mt-0">
 
-        {/* LEFT — event picker or date range */}
+        {/* LEFT — event picker.
+            All three reports take an event now, so the date-range branch
+            that used to sit here is gone along with rangeFrom/rangeTo. */}
         <div className="col-12 col-lg-8">
 
-          {reportType === 'steps' ? (
-            <div className="rp-panel">
-              <div className="rp-range">
-                <div className="rp-range-field">
-                  <label className="rp-range-lbl" htmlFor="range-from">From</label>
-                  <input
-                    id="range-from"
-                    type="date"
-                    className="rp-date"
-                    value={rangeFrom}
-                    onChange={e => setRangeFrom(e.target.value)}
-                  />
-                </div>
-                <div className="rp-range-field">
-                  <label className="rp-range-lbl" htmlFor="range-to">To</label>
-                  <input
-                    id="range-to"
-                    type="date"
-                    className="rp-date"
-                    value={rangeTo}
-                    onChange={e => setRangeTo(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="rp-range-note">
-                <i className="bi bi-info-circle"></i>
-                Leave both blank to cover every simulation ever recorded.
-                {(rangeFrom || rangeTo) && (
-                  <button
-                    type="button"
-                    className="rp-range-clear"
-                    onClick={() => { setRangeFrom(''); setRangeTo(''); }}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-
-          ) : events.length === 0 ? (
+          {events.length === 0 ? (
             <div className="rp-panel">
               <div className="rp-empty">
                 <i className="bi bi-calendar-x"></i>
@@ -366,18 +315,10 @@ export default function Reports() {
               </div>
             )}
 
+            {/* All three reports take an event now, so the date-range
+                branch that used to sit here is gone. */}
             <div className="rp-target">
-              {reportType === 'steps' ? (
-                <>
-                  <div className="rp-target-lbl">Covering</div>
-                  <div className="rp-target-name">
-                    {!rangeFrom && !rangeTo && 'All recorded simulations'}
-                    {rangeFrom && !rangeTo && `${formatDate(rangeFrom)} onward`}
-                    {!rangeFrom && rangeTo && `Up to ${formatDate(rangeTo)}`}
-                    {rangeFrom && rangeTo && `${formatDate(rangeFrom)} – ${formatDate(rangeTo)}`}
-                  </div>
-                </>
-              ) : chosen ? (
+              {chosen ? (
                 <>
                   <div className="rp-target-lbl">Generating for</div>
                   <div className="rp-target-name">{chosen.name}</div>

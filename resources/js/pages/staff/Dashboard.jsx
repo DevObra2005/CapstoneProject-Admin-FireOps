@@ -5,25 +5,24 @@ import '../../../css/Superadmin/dashboard.css' // shared css of dashboard admin
 
 Chart.register(...registerables)
 
-const formatStepName = (name) => {
-    const map = {
-        'SoundAlarm':       'Sound alarm',
-        'GrabExtinguisher': 'Grab extinguisher',
-        'GrabWetBlanket':   'Grab wet blanket',
-        'TPASS_Twist':      'TPASS — Twist',
-        'TPASS_Pull':       'TPASS — Pull',
-        'TPASS_Aim':        'TPASS — Aim',
-        'TPASS_Squeeze':    'TPASS — Squeeze',
-        'TPASS_Sweep':      'TPASS — Sweep',
-        'WCTL_Wet':         'WCTL — Wet',
-        'WCTL_Cover':       'WCTL — Cover',
-        'WCTL_TurnOff':     'WCTL — Turn off',
-        'WCTL_Leave':       'WCTL — Leave',
-        'Evacuate':         'Evacuate',
+    const formatStepName = (stepName) => {
+        const names = {
+            'SoundAlarm':       'Sound Alarm',
+            'GrabExtinguisher': 'Grab Extinguisher',
+            'GrabTowel':        'Grab Towel',
+            'TPASS_Twist':      'TPASS — Twist',
+            'TPASS_Pull':       'TPASS — Pull',
+            'TPASS_Aim':        'TPASS — Aim',
+            'TPASS_Squeeze':    'TPASS — Squeeze',
+            'TPASS_Sweep':      'TPASS — Sweep',
+            'WCTL_Wet':         'WCTL — Wet',
+            'WCTL_Cover':       'WCTL — Cover',
+            'WCTL_TurnOff':     'WCTL — Turn Off',
+            'WCTL_Leave':       'WCTL — Leave',
+            'Evacuate':         'Evacuate',
+        }
+        return names[stepName] || stepName
     }
-    return map[name] || name
-}
-
 export default function Dashboard() {
 
     const [data, setData]       = useState(null)

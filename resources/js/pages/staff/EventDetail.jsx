@@ -152,7 +152,7 @@ export default function EventDetail({ event, onBack, onEdit, onDelete, onQR, onT
         const names = {
             'SoundAlarm':       'Sound Alarm',
             'GrabExtinguisher': 'Grab Extinguisher',
-            'GrabWetBlanket':   'Grab Wet Blanket',
+            'GrabTowel':        'Grab Towel',
             'TPASS_Twist':      'TPASS — Twist',
             'TPASS_Pull':       'TPASS — Pull',
             'TPASS_Aim':        'TPASS — Aim',

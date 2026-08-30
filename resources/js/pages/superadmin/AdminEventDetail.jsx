@@ -115,19 +115,19 @@ export default function AdminEventDetail({ event, token, onBack }) {
 
     const formatStepName = (stepName) => {
         const names = {
-            'SoundAlarm':    'Sound Alarm',
+            'SoundAlarm':       'Sound Alarm',
             'GrabExtinguisher': 'Grab Extinguisher',
-            'GrabWetBlanket':   'Grab Wet Blanket',
-            'TPASS_Twist':   'TPASS — Twist',
-            'TPASS_Pull':    'TPASS — Pull',
-            'TPASS_Aim':     'TPASS — Aim',
-            'TPASS_Squeeze': 'TPASS — Squeeze',
-            'TPASS_Sweep':   'TPASS — Sweep',
-            'WCTL_Wet':      'WCTL — Wet',
-            'WCTL_Cover':    'WCTL — Cover',
-            'WCTL_TurnOff':  'WCTL — Turn Off',
-            'WCTL_Leave':    'WCTL — Leave',
-            'Evacuate':      'Evacuate',
+            'GrabTowel':        'Grab Towel',
+            'TPASS_Twist':      'TPASS — Twist',
+            'TPASS_Pull':       'TPASS — Pull',
+            'TPASS_Aim':        'TPASS — Aim',
+            'TPASS_Squeeze':    'TPASS — Squeeze',
+            'TPASS_Sweep':      'TPASS — Sweep',
+            'WCTL_Wet':         'WCTL — Wet',
+            'WCTL_Cover':       'WCTL — Cover',
+            'WCTL_TurnOff':     'WCTL — Turn Off',
+            'WCTL_Leave':       'WCTL — Leave',
+            'Evacuate':         'Evacuate',
         }
         return names[stepName] || stepName
     }

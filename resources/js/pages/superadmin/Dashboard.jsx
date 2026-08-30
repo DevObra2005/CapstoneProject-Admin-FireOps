@@ -9,7 +9,7 @@ const formatStepName = (name) => {
     const map = {
         'SoundAlarm':       'Sound alarm',
         'GrabExtinguisher': 'Grab extinguisher',
-        'GrabWetBlanket':   'Grab wet blanket',
+        'GrabTowel':        'Grab towel',
         'TPASS_Twist':      'TPASS — Twist',
         'TPASS_Pull':       'TPASS — Pull',
         'TPASS_Aim':        'TPASS — Aim',
