@@ -273,7 +273,7 @@ class ReportController extends Controller
         ];
     }
 
-    /**
+     /**
      * Turns a raw step key into something a BFP reader recognises.
      * The database stores 'TPASS_Aim'; a printed report should say 'Aim'.
      */
@@ -288,19 +288,24 @@ class ReportController extends Controller
             'FireExtinguisher' => 'The fire extinguisher',
             'Towel'            => 'The towel',
 
-            // Step names
+            // Office and Classroom — TPASS
             'SoundAlarm'       => 'Sound alarm',
             'GrabExtinguisher' => 'Grab extinguisher',
-            'GrabTowel'        => 'Grab towel',
             'TPASS_Twist'      => 'Twist',
             'TPASS_Pull'       => 'Pull',
             'TPASS_Aim'        => 'Aim',
             'TPASS_Squeeze'    => 'Squeeze',
             'TPASS_Sweep'      => 'Sweep',
+
+            // Kitchen — WCTE. The E is served by the shared Evacuate step
+            // below, so the database keys still carry the WCTL_ prefix from
+            // before the rename.
+            'GrabTowel'        => 'Grab towel',
             'WCTL_Wet'         => 'Wet',
             'WCTL_Cover'       => 'Cover',
             'WCTL_TurnOff'     => 'Turn off',
-            'WCTL_Leave'       => 'Leave',
+
+            // Shared — the final step in both sequences
             'Evacuate'         => 'Evacuate',
         ][$name] ?? $name;
     }

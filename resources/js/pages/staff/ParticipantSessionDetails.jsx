@@ -30,11 +30,6 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
             // Shared
             'Evacuate':         'Evacuate via Exit Door',
 
-            // Legacy — kept so older records still read correctly
-            'GrabWetBlanket':   'Grab Wet Blanket',
-            'WCTL_Leave':       'Leave and evacuate',
-            'WetBlanket':       'Cover with Wet Blanket',
-            'TurnOffLPG':       'Turn Off the LPG',
         }
         return names[stepName] || stepName
     }
