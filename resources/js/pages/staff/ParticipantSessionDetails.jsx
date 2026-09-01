@@ -66,12 +66,21 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
 
     // ── FAIL REASON LABEL ─────────────────────────────────────────
     // Failed runs are stored now, so the UI has to explain WHY.
-    // "timeout"   → clock ran out before they finished
-    // "low_score" → finished in time, too many wrong actions
+    // "timeout"        → clock ran out before they finished
+    // "low_score"      → finished in time, too many wrong actions
+    // "wrong_decision" → OFFICE: cleared the far fire first, and the
+    //                    doorway fire spread across the only exit
+    //
+    // The first two are worked out by Laravel from the payload. The
+    // third is sent by Unity, because that run can arrive with a decent
+    // score and time still on the clock — nothing in the data says it
+    // should have ended. Before it was sent, this banner read "Ran out
+    // of time" over a run that finished with 26 seconds left.
     const failReasonLabel = (reason) => {
         const map = {
-            'timeout':   'Ran out of time',
-            'low_score': 'Too many mistakes',
+            'timeout':        'Ran out of time',
+            'low_score':      'Too many mistakes',
+            'wrong_decision': 'Wrong decision',
         }
         return map[reason] || 'Not passed'
     }
@@ -185,6 +194,8 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
                             ` — scored ${session.percentage_score}%, below the 50% needed to pass.`}
                         {session.fail_reason === 'timeout' &&
                             ' — the timer expired before all steps were completed.'}
+                        {session.fail_reason === 'wrong_decision' &&
+                            ' — cleared the far fire first, and the fire by the door spread across the only exit.'}
                     </span>
                 </div>
             )}

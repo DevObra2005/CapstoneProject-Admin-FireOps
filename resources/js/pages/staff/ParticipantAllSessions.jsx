@@ -68,14 +68,21 @@ export default function ParticipantAllSessions({ participant, sessions, onBack }
             ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             : '—'
 
-    // Short label for an attempt row's outcome.
+    // Short outcome for the attempt pills and the summary chip.
+    //
+    // 'wrong_decision' is OFFICE ONLY and is the one reason the server
+    // does not work out for itself — Unity sends it when the player
+    // clears the far fire and the doorway fire spreads across the exit.
+    // That run can end with a decent score and time still on the clock,
+    // so without this case it fell through to the bare 'Failed' and the
+    // most instructive failure in the simulation was the least described.
     const outcomeLabel = (s) => {
         if (s.passed) return s.score_label
         if (s.fail_reason === 'timeout') return 'Timed out'
         if (s.fail_reason === 'low_score') return 'Too many mistakes'
+        if (s.fail_reason === 'wrong_decision') return 'Wrong decision'
         return 'Failed'
     }
-
     // Initials for the avatar circle — "Mark Joemarie Obra" → "MO"
     const initials = participant.name
         ? participant.name

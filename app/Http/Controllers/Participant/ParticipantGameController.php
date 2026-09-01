@@ -58,12 +58,34 @@ class ParticipantGameController extends Controller
      *   phase2_passed → the timer did NOT hit zero
      *   passed        → timer survived AND percentage >= 50
      *
-     * fail_reason is null on a pass, otherwise:
-     *   "timeout"   → ran out of time
-     *   "low_score" → finished in time, too many wrong actions
+     * fail_reason is null on a pass, otherwise one of:
+     *   "timeout"        → ran out of time                    (inferred here)
+     *   "low_score"      → finished in time, too many mistakes (inferred here)
+     *   "wrong_decision" → Office: cleared the wrong fire      (SENT BY UNITY)
+     *
+     * The third one cannot be worked out from this payload — see the
+     * note above the match block for why.
      */
     public function submitResult(Request $request)
     {
+        // ── STEP 0 — NORMALISE THE EMPTY REASON ──────────────────────
+        // Unity's JsonUtility cannot omit a field. A null C# string is
+        // serialised as "", so a run with no reason to report still sends
+        // 'fail_reason': "".
+        //
+        // Laravel's `nullable` rule treats NULL as absent — not an empty
+        // string. Without this line the empty value reaches the `in:` rule
+        // below and fails it, and EVERY normal submission would 422:
+        // Kitchen, Classroom, and every Office run that did not end in a
+        // wrong decision.
+        //
+        // Converting here rather than loosening the rule keeps the
+        // whitelist meaningful: the column can still only ever hold one of
+        // three known strings.
+        if ($request->input('fail_reason') === '') {
+            $request->merge(['fail_reason' => null]);
+        }
+
         // ── STEP 1 — VALIDATE ────────────────────────────────────────
         $validated = $request->validate([
             'event_id'                => 'required|integer|exists:events,id',
@@ -71,9 +93,34 @@ class ParticipantGameController extends Controller
             'phase2_score'            => 'required|integer|min:0',
             'total_penalties'         => 'required|integer|min:0',
             'phase2_passed'           => 'required|boolean',
+
+            // OPTIONAL. Only sent when Unity knows something this method
+            // cannot work out for itself — see the match block below.
+            // Whitelisted rather than free text so the column can only
+            // ever hold a value the admin panel knows how to render.
+            'fail_reason'             => 'nullable|string|in:timeout,low_score,wrong_decision',
+
             'steps'                   => 'required|array',
             'steps.*.step_name'       => 'required|string',
+
+            // WAS 'nullable|integer', WHICH DISAGREED WITH UNITY.
+            // The C# field is `public string sub_step`, so a non-null value
+            // would arrive as text and be rejected with a 422 — taking the
+            // whole submission with it, not just that one step.
+            //
+            // It never fired because nothing has ever set this: both
+            // RegisterCorrectAction and RegisterWrongAction hardcode
+            // sub_step = null. The field is a leftover from a design where
+            // TPASS was ONE step with five sub-actions, before it became
+            // five separate steps.
+            //
+            // Left in place rather than removed — pulling it would mean
+            // touching ResultsModel, two call sites in SimulationManager,
+            // this file and a migration, for a field that costs nothing.
+            // But the types should agree, so that if it is ever used the
+            // run still saves.
             'steps.*.sub_step'        => 'nullable|integer',
+
             'steps.*.chosen_action'   => 'required|string',
             'steps.*.was_correct'     => 'required|boolean',
             'steps.*.penalty_seconds' => 'required|integer|min:0',
@@ -101,10 +148,36 @@ class ParticipantGameController extends Controller
         $scoreEnough   = $percentage >= 50;
         $passed        = $timerSurvived && $scoreEnough;
 
+        // ── WHY THE RUN ENDED ────────────────────────────────────────
+        //
+        // Two of the three reasons are worked out here, from data this
+        // method already has: no time left means the clock ran out, time
+        // left with a sub-50% score means too many mistakes.
+        //
+        // THE THIRD IS INVISIBLE TO THE SERVER. The Office decision
+        // scenario ends a run early when the player clears the wrong fire
+        // — that attempt can arrive with 67% and 26 seconds still on the
+        // clock, and nothing in this payload says it should have ended at
+        // all. Inferring gave "timeout", so the admin panel said "Ran out
+        // of time" for a run whose own lose screen said WRONG DECISION.
+        //
+        // So when Unity names a reason, it wins. Only Unity was there.
+        //
+        // A PASS ALWAYS OVERRIDES IT. $passed is checked first, so a
+        // client that sent a reason on a winning run cannot store one —
+        // fail_reason stays null on every pass, as it always has.
+        //
+        // WHEN NOTHING IS SENT, nothing changes. The two inference arms
+        // below are byte-for-byte what this method did before, which is
+        // what keeps Kitchen, Classroom and every existing record working.
+        $clientReason = $validated['fail_reason'] ?? null;
+
         $failReason = match (true) {
-            !$timerSurvived => 'timeout',
-            !$scoreEnough   => 'low_score',
-            default         => null,
+            $passed                => null,
+            $clientReason !== null => $clientReason,
+            !$timerSurvived        => 'timeout',
+            !$scoreEnough          => 'low_score',
+            default                => null,
         };
 
         // ── STEP 4 — SCORE LABEL ─────────────────────────────────────

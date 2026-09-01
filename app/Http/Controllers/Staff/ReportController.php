@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    /**
+     * PHRASES THAT IDENTIFY THE OFFICE TWO-FIRE DECISION.
+     *
+     * That mistake arrives as an ordinary wrong step — step_name
+     * "TPASS_Squeeze", was_correct 0 — and the only thing distinguishing
+     * it from a mis-tapped button is the chosen_action text Unity sent.
+     *
+     * THIS IS A REAL COUPLING AND IT SHOULD BE VISIBLE. The text comes
+     * from the Far Fire Action Name field on TwoFireDecision, which is an
+     * Inspector string somebody can edit. If it is reworded so it contains
+     * none of the phrases below, this report silently reclassifies the
+     * mistake and prints the wrong advice — no error, just bad guidance.
+     *
+     * Anyone editing that field should either keep one of these phrases or
+     * add the new wording here.
+     */
+    protected const DECISION_MARKERS = ['wrong fire', 'far fire'];
+
     public function eventSummary(Request $request, $eventId)
     {
         $data = $this->buildEventSummary($request, $eventId);
@@ -297,9 +315,7 @@ class ReportController extends Controller
             'TPASS_Squeeze'    => 'Squeeze',
             'TPASS_Sweep'      => 'Sweep',
 
-            // Kitchen — WCTE. The E is served by the shared Evacuate step
-            // below, so the database keys still carry the WCTL_ prefix from
-            // before the rename.
+            // Kitchen
             'GrabTowel'        => 'Grab towel',
             'WCTL_Wet'         => 'Wet',
             'WCTL_Cover'       => 'Cover',
@@ -308,6 +324,27 @@ class ReportController extends Controller
             // Shared — the final step in both sequences
             'Evacuate'         => 'Evacuate',
         ][$name] ?? $name;
+    }
+
+    /**
+     * Was this wrong action the Office two-fire decision?
+     *
+     * See DECISION_MARKERS at the top of this class for why the check is
+     * a phrase match and what that costs.
+     */
+    protected function isWrongFireChoice(?string $chosenAction): bool
+    {
+        if (!$chosenAction) {
+            return false;
+        }
+
+        foreach (self::DECISION_MARKERS as $marker) {
+            if (stripos($chosenAction, $marker) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -340,7 +377,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Sorts a wrong action into one of three behaviours.
+     * Sorts a wrong action into one of four behaviours.
      *
      * Phase 1 teaches participants where every object is before they
      * reach Phase 2, so these are not people who could not find the
@@ -351,6 +388,25 @@ class ReportController extends Controller
     {
         if (!$chosenAction) {
             return 'other';
+        }
+
+        // ── THE OFFICE TWO-FIRE DECISION ─────────────────────────────
+        //
+        // THIS CHECK MUST COME BEFORE THE EXIT ONE BELOW, and the reason
+        // is worth spelling out because it produced advice that was not
+        // merely vague but backwards.
+        //
+        // The action text reads "...instead of the one blocking the
+        // exit". That contains the word "exit", so the next check caught
+        // it and filed the mistake as left_procedure — whose advice is
+        // "participants keep going to the exit instead of finishing the
+        // step".
+        //
+        // The player did the OPPOSITE. They walked AWAY from the fire at
+        // the exit to reach the far one. An officer reading that report
+        // would drill the wrong lesson, and nothing would have flagged it.
+        if ($this->isWrongFireChoice($chosenAction)) {
+            return 'wrong_priority';
         }
 
         // Anything involving the exit means they broke off the procedure
@@ -491,6 +547,22 @@ class ReportController extends Controller
                                       . 're-teaching each action.',
                     'wrong_action'   => 'Participants are reaching for the wrong equipment. '
                                       . 'Re-cover which action each situation calls for.',
+
+                    // OFFICE ONLY, and a different KIND of finding from the
+                    // three above. Those are procedural — the right actions
+                    // in the wrong order, or the wrong equipment.
+                    //
+                    // This one is about JUDGEMENT. The participants performed
+                    // TPASS correctly; they simply chose the wrong fire to
+                    // point it at, and left the one blocking their exit to
+                    // spread. The technique was never the problem, so drilling
+                    // technique would not fix it.
+                    'wrong_priority' => 'Participants are using the extinguisher correctly '
+                                      . 'but on the wrong fire. Teach them to clear whatever '
+                                      . 'threatens the escape route first — a fire between '
+                                      . 'them and the exit is the one that has to go, '
+                                      . 'whatever else is burning.',
+
                     default          => null,
                 };
 
@@ -527,12 +599,36 @@ class ReportController extends Controller
      */
     protected function describeChoice(string $action): string
     {
-        return [
+        $known = [
             'ExitDoor'         => 'Went to the exit door',
             'FireAlarm'        => 'Sounded the fire alarm',
             'FireExtinguisher' => 'Grabbed the fire extinguisher',
             'Towel'            => 'Grabbed the towel',
-        ][$action] ?? 'Did ' . $this->formatStepName($action);
+        ];
+
+        if (isset($known[$action])) {
+            return $known[$action];
+        }
+
+        // ── ALREADY A SENTENCE ───────────────────────────────────────
+        // Everything this method has ever received was a single token —
+        // an object key like "ExitDoor" or a step key like "TPASS_Aim".
+        // The fallback below prefixes "Did ", which reads correctly for
+        // those: "Did Aim".
+        //
+        // The Office two-fire decision breaks that assumption. It sends a
+        // whole phrase describing what happened, and the fallback turned
+        // it into "Did Attacked the far fire instead of..." — visibly
+        // broken English in a document going to a station officer.
+        //
+        // A space is the tell. Keys never contain one; descriptions
+        // always do. So anything with a space is already the sentence
+        // this method exists to produce, and is returned untouched.
+        if (str_contains(trim($action), ' ')) {
+            return $action;
+        }
+
+        return 'Did ' . $this->formatStepName($action);
     }
 
     
@@ -655,10 +751,35 @@ class ReportController extends Controller
                     ->first()
                 : null;
 
-            // Why the runs ended. A person who keeps running out of time
-            // needs different help from one who finishes but scores low.
-            $timeouts  = $attempts->where('fail_reason', 'timeout')->count();
-            $lowScores = $attempts->where('fail_reason', 'low_score')->count();
+            // ── WHY THE RUNS ENDED ───────────────────────────────────
+            // A person who keeps running out of time needs different help
+            // from one who finishes but scores low — and both need
+            // different help again from one who keeps choosing the wrong
+            // fire.
+            //
+            // wrong_decision USED TO COUNT AS NEITHER. Someone who failed
+            // three times on that choice had timeouts 0 and lowScores 0,
+            // and `0 > 0` is false — so the report told the officer they
+            // made too many wrong actions, when their technique was fine
+            // and their judgement was the problem. Silently wrong, on the
+            // one report whose entire purpose is deciding who to sit down
+            // with.
+            $timeouts   = $attempts->where('fail_reason', 'timeout')->count();
+            $lowScores  = $attempts->where('fail_reason', 'low_score')->count();
+            $decisions  = $attempts->where('fail_reason', 'wrong_decision')->count();
+
+            $barriers = [
+                'Ran out of time'          => $timeouts,
+                'Too many wrong actions'   => $lowScores,
+                'Chose the wrong priority' => $decisions,
+            ];
+
+            // Highest count wins. arsort keeps insertion order on ties, so
+            // a tie falls back to the order above — which puts the two
+            // long-standing reasons ahead of the new one rather than
+            // letting a single decision failure outrank three timeouts.
+            arsort($barriers);
+            $mainBarrier = array_key_first($barriers);
 
             return [
                 'participant_name' => $first->participant_name,
@@ -672,9 +793,7 @@ class ReportController extends Controller
                 'dominant_choice'  => $dominantChoice
                                         ? $this->formatStepName($dominantChoice)
                                         : null,
-                'main_barrier'     => $timeouts > $lowScores
-                                        ? 'Ran out of time'
-                                        : 'Too many wrong actions',
+                'main_barrier'     => $mainBarrier,
             ];
         })
         ->sortByDesc('attempts')
