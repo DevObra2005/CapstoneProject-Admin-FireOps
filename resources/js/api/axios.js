@@ -11,16 +11,16 @@ const api = axios.create({
  * correct for authenticated staff pages — an expired token should send
  * you back to sign in. But public endpoints that verify credentials
  * also answer 401 on a bad password, and there the user is not logged
- * in at all. Redirecting them wipes the page and sends them somewhere
- * they have no account for.
+ * in at all. Redirecting them reloads the page, which wipes the inline
+ * error message before it can be read.
  *
- * Paths listed here are matched with includes(), so they're checked
- * against the relative URL passed to api.post() — e.g.
- * '/participant/change-password'.
+ * Paths are matched with includes() against the relative URL passed to
+ * api.post() — e.g. '/participant/change-password'.
  */
 const PUBLIC_AUTH_PATHS = [
-    '/participant/change-password',
+    '/login',
     '/participant/login',
+    '/participant/change-password',
     '/forgot-password',
     '/reset-password',
 ]
@@ -47,6 +47,8 @@ api.interceptors.response.use(
         if (error.response?.status === 401 && !isPublicAuth) {
             localStorage.removeItem('token')
             localStorage.removeItem('role')
+            localStorage.removeItem('first_name')
+            localStorage.removeItem('last_name')
             window.location.href = '/login'
         }
 

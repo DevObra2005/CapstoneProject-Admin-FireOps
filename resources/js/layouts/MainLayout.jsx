@@ -1,10 +1,33 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { Offcanvas } from 'bootstrap'
 import Sidebar from '../components/Sidebar'
 import fireopsLogo from '/public/Images/FireOps_Logo.png'
 import '../../css/mainlayout.css'
 
 export default function MainLayout() {
+    const location = useLocation()
+
+useEffect(() => {
+    const el = document.getElementById('mobileSidebar')
+    if (!el || !el.classList.contains('show')) return
+
+    const instance = Offcanvas.getOrCreateInstance(el)
+
+    // Runs after Bootstrap's slide-out animation completes
+    const onHidden = () => {
+        document.querySelectorAll('.offcanvas-backdrop').forEach(b => b.remove())
+        document.body.classList.remove('offcanvas-backdrop')
+        document.body.style.overflow = ''
+        document.body.style.paddingRight = ''
+    }
+
+    el.addEventListener('hidden.bs.offcanvas', onHidden, { once: true })
+    instance.hide()
+
+    return () => el.removeEventListener('hidden.bs.offcanvas', onHidden)
+}, [location.pathname])
+
     return (
         <div>
 

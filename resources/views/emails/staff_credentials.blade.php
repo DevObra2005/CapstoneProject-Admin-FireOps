@@ -1,3 +1,9 @@
+@php
+    // Falls back to the forgot-password page if the Mailable doesn't
+    // pass a dedicated change-password link. See note below the file.
+    $resetUrl = $changePasswordUrl ?? rtrim(config('app.url'), '/') . '/forgot-password';
+    $loginUrl = rtrim(config('app.url'), '/') . '/login';
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -70,11 +76,19 @@
                                 </tr>
                                 {{-- Password row --}}
                                 <tr>
-                                    <td style="padding:14px 18px;">
+                                    <td style="padding:14px 18px 10px;">
                                         <p style="font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#9ca3af; margin:0 0 5px;">Password</p>
                                         <p style="margin:0;">
                                             <span style="font-family:'Courier New',monospace; font-size:16px; font-weight:700; color:#c0392b; background:#fdf2f2; padding:4px 12px; border-radius:5px; letter-spacing:3px;">{{ $plainPassword }}</span>
                                         </p>
+                                    </td>
+                                </tr>
+                                {{-- Change password link — matches the participant email --}}
+                                <tr>
+                                    <td style="padding:0 18px 16px;">
+                                        <a href="{{ $resetUrl }}" style="font-size:12px; font-weight:600; color:#c0392b; text-decoration:underline;">
+                                            Change this password &rarr;
+                                        </a>
                                     </td>
                                 </tr>
                             </table>
@@ -85,18 +99,25 @@
                                     <td width="6" style="background:#c0392b; border-radius:8px 0 0 8px;">&nbsp;</td>
                                     <td style="padding:14px 16px;">
                                         <p style="font-size:12px; color:#6b7280; line-height:1.6; margin:0;">
-                                            This password was auto-generated. You may change it after signing in. If you did not expect this email, please contact your station administrator.
+                                            This password was auto-generated &mdash; we recommend replacing it with one you&rsquo;ll remember. If you did not expect this email, please contact your station administrator.
                                         </p>
                                     </td>
                                 </tr>
                             </table>
 
-                            {{-- Button --}}
+                            {{-- Primary button --}}
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{ config('app.url') }}" style="display:block; background:#c0392b; color:#ffffff; text-align:center; padding:14px 20px; border-radius:8px; font-size:14px; font-weight:600; text-decoration:none;">
-                                            Sign in to FireOps Admin
+                                        <a href="{{ $resetUrl }}" style="display:block; background:#c0392b; color:#ffffff; text-align:center; padding:14px 20px; border-radius:8px; font-size:14px; font-weight:600; text-decoration:none;">
+                                            Change your password
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top:14px;">
+                                        <a href="{{ $loginUrl }}" style="font-size:12px; font-weight:600; color:#6b7280; text-decoration:underline;">
+                                            Or sign in with the password above &rarr;
                                         </a>
                                     </td>
                                 </tr>
