@@ -10,14 +10,23 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'first_name'  => 'BFP',
-            'last_name'   => 'Chief',
-            'middle_name' => null,
-            'email'       => 'bfp.natividad.fireops@gmail.com',
-            'password'    => Hash::make('admin1234'),
-            'role'        => 'superadmin',
-            'is_active'   => 1,
-        ]);
+        // Password comes from .env so it isn't committed to GitHub.
+        // Falls back to a default if ADMIN_PASSWORD isn't set.
+        $password = env('ADMIN_PASSWORD', 'admin1234');
+
+        // updateOrCreate instead of create: re-running the seeder
+        // updates the existing admin rather than throwing a
+        // duplicate-email error.
+        User::updateOrCreate(
+            ['email' => 'bfp.natividad.fireops@gmail.com'],
+            [
+                'first_name'  => 'BFP',
+                'last_name'   => 'Chief',
+                'middle_name' => null,
+                'password'    => Hash::make($password),
+                'role'        => 'superadmin',
+                'is_active'   => 1,
+            ]
+        );
     }
 }
