@@ -1,0 +1,43 @@
+{
+  "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff": {
+    "file": "assets/bootstrap-icons-BeopsB42.woff",
+    "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff"
+  },
+  "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2": {
+    "file": "assets/bootstrap-icons-mSm7cUeB.woff2",
+    "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
+  },
+  "node_modules/leaflet/dist/images/layers-2x.png": {
+    "file": "assets/layers-2x-Bpkbi35X.png",
+    "src": "node_modules/leaflet/dist/images/layers-2x.png"
+  },
+  "node_modules/leaflet/dist/images/layers.png": {
+    "file": "assets/layers-BWBAp2CZ.png",
+    "src": "node_modules/leaflet/dist/images/layers.png"
+  },
+  "node_modules/leaflet/dist/images/marker-icon.png": {
+    "file": "assets/marker-icon-hN30_KVU.png",
+    "src": "node_modules/leaflet/dist/images/marker-icon.png"
+  },
+  "public/Images/FireOps_Logo.png": {
+    "file": "assets/FireOps_Logo-KqKILhJX.png",
+    "src": "public/Images/FireOps_Logo.png"
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-DPM4bSoL.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "css": [
+      "assets/app-MmYeUGdf.css"
+    ],
+    "assets": [
+      "assets/FireOps_Logo-KqKILhJX.png",
+      "assets/bootstrap-icons-mSm7cUeB.woff2",
+      "assets/bootstrap-icons-BeopsB42.woff",
+      "assets/layers-BWBAp2CZ.png",
+      "assets/layers-2x-Bpkbi35X.png",
+      "assets/marker-icon-hN30_KVU.png"
+    ]
+  }
+}
