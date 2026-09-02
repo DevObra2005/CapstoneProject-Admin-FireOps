@@ -53,7 +53,7 @@ class ParticipantCredentialsMail extends Mailable
                 // urlencode() protects the '+' in addresses like
                 // juan+bfp@gmail.com, which would otherwise decode as a space.
                 'changePasswordUrl' => rtrim(config('app.frontend_url'), '/')
-                    . '/participant/change-password?email='
+                    . '/change-password?email='
                     . urlencode($this->participant->email),
             ],
         );
