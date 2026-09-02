@@ -109,23 +109,28 @@
                                 {{-- Password row: brand new accounts only --}}
                                 @if ($plainPassword)
                                 <tr>
-                                    <td style="padding:14px 18px 10px;">
+                                    <td style="padding:14px 18px;">
                                         <p style="font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#9ca3af; margin:0 0 5px;">Password</p>
                                         <p style="margin:0;">
                                             <span style="font-family:'Courier New',monospace; font-size:16px; font-weight:700; color:#c0392b; background:#fdf2f2; padding:4px 12px; border-radius:5px; letter-spacing:3px;">{{ $plainPassword }}</span>
                                         </p>
                                     </td>
                                 </tr>
-                                {{-- Change password link --}}
+                                @endif
+                            </table>
+
+                            {{-- Change password button: brand new accounts only --}}
+                            @if ($plainPassword)
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                                 <tr>
-                                    <td style="padding:0 18px 16px;">
-                                        <a href="{{ $changePasswordUrl }}" style="font-size:12px; font-weight:600; color:#c0392b; text-decoration:underline;">
-                                            Change this password &rarr;
+                                    <td align="center">
+                                        <a href="{{ $changePasswordUrl }}" style="display:block; background:#c0392b; color:#ffffff; text-align:center; padding:14px 20px; border-radius:8px; font-size:14px; font-weight:600; text-decoration:none;">
+                                            Change your password
                                         </a>
                                     </td>
                                 </tr>
-                                @endif
                             </table>
+                            @endif
 
                             {{-- Getting started --}}
                             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:24px;">
@@ -136,7 +141,7 @@
                                         <p style="font-size:12px; color:#6b7280; line-height:1.7; margin:0;">
                                             Open the <strong style="color:#374151;">FireOps</strong> app on your Android device and sign in with the email address above.
                                             @if ($plainPassword)
-                                                This password was auto-generated &mdash; keep it private and do not share it with anyone. You can replace it with one you&rsquo;ll remember using the link above.
+                                                This password was auto-generated &mdash; keep it private and do not share it with anyone. You can replace it with one you&rsquo;ll remember using the button above.
                                             @endif
                                             If you did not expect this email, please contact your station administrator.
                                         </p>

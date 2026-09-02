@@ -10,7 +10,7 @@ import AdminEvents from './pages/superadmin/AdminEvents';
 import AdminCertifications from './pages/superadmin/Certifications';
 import ActivityLogs from './pages/superadmin/ActivityLogs';
 import Reports from './pages/staff/Reports';
-import ParticipantChangePassword from './pages/public/ParticipantChangePassword';
+import ChangePassword from './pages/public/ChangePassword';
 
 
 // Superadmin pages
@@ -51,7 +51,7 @@ export default function AppRouter() {
             <Route path="/register/:token" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/participant/change-password" element={<ParticipantChangePassword />} />
+            <Route path="/change-password" element={<ChangePassword />} />
 
             {/* Superadmin routes
                 NOTE: staff management now lives under /staff-management so it

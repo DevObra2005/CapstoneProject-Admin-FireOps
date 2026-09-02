@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../../api/axios'
-import '../../../css/participantchangepassword.css';
+import '../../../css/changepassword.css';
 
 
-export default function ParticipantChangePassword() {
+export default function ChangePassword() {
     const [searchParams] = useSearchParams()
 
+    // Staff and participants live in separate tables, so they need
+    // separate endpoints. The link in each credentials email carries
+    // ?type=staff when it's a staff account; participants have no type.
+    const isStaff = searchParams.get('type') === 'staff'
+    const endpoint = isStaff
+        ? '/staff/change-password'
+        : '/participant/change-password'
+
     // The email arrives pre-filled from the link in the credentials
-    // email, so the participant only types passwords.
+    // email, so the user only types passwords.
     const [form, setForm] = useState({
         email:                     searchParams.get('email') || '',
         current_password:          '',
@@ -38,7 +46,7 @@ export default function ParticipantChangePassword() {
         setErrors({})
 
         try {
-            const res = await api.post('/participant/change-password', form)
+            const res = await api.post(endpoint, form)
             setAlert({ type: 'success', message: res.data.message })
             setDone(true)
 
@@ -110,8 +118,9 @@ export default function ParticipantChangePassword() {
                         <div className="pcp-done">
                             <i className="bi bi-shield-check"></i>
                             <p>
-                                You can now open the FireOps app on your Android device
-                                and sign in with your new password.
+                                {isStaff
+                                    ? 'You can now sign in to the FireOps Admin Portal with your new password.'
+                                    : 'You can now open the FireOps app on your Android device and sign in with your new password.'}
                             </p>
                         </div>
                     ) : (

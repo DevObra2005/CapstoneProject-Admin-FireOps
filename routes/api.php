@@ -17,6 +17,7 @@ use App\Http\Controllers\Staff\ParticipantController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\Participant\ParticipantGameController;
 use App\Http\Controllers\Participant\ParticipantPasswordController;
+use App\Http\Controllers\Staff\StaffPasswordController;
 
 // AUTH
 Route::post('/login',  [AuthController::class, 'login']);
@@ -27,7 +28,8 @@ Route::get('/me',      [AuthController::class, 'me'])->middleware('auth:sanctum'
 Route::get('/events/validate/{token}', [EventController::class, 'validateToken']);
 Route::post('/register/{token}',       [ParticipantController::class, 'store']);
 Route::post('/participant/login',      [ParticipantController::class, 'login']);
-Route::post('/participant/change-password',[ParticipantPasswordController::class, 'changePassword'])->middleware('throttle:5,1');
+Route::post('/participant/change-password', [ParticipantPasswordController::class, 'changePassword']);
+Route::post('/staff/change-password', [StaffPasswordController::class, 'changePassword']);
 
 // Password Reset
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);

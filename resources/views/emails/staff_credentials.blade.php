@@ -1,7 +1,8 @@
 @php
     // Falls back to the forgot-password page if the Mailable doesn't
     // pass a dedicated change-password link. See note below the file.
-    $resetUrl = $changePasswordUrl ?? rtrim(config('app.url'), '/') . '/forgot-password';
+    $resetUrl = rtrim(config('app.url'), '/')
+        . '/change-password?email=' . urlencode($email) . '&type=staff';
     $loginUrl = rtrim(config('app.url'), '/') . '/login';
 @endphp
 <!DOCTYPE html>
@@ -81,14 +82,6 @@
                                         <p style="margin:0;">
                                             <span style="font-family:'Courier New',monospace; font-size:16px; font-weight:700; color:#c0392b; background:#fdf2f2; padding:4px 12px; border-radius:5px; letter-spacing:3px;">{{ $plainPassword }}</span>
                                         </p>
-                                    </td>
-                                </tr>
-                                {{-- Change password link — matches the participant email --}}
-                                <tr>
-                                    <td style="padding:0 18px 16px;">
-                                        <a href="{{ $resetUrl }}" style="font-size:12px; font-weight:600; color:#c0392b; text-decoration:underline;">
-                                            Change this password &rarr;
-                                        </a>
                                     </td>
                                 </tr>
                             </table>

@@ -21,6 +21,7 @@ const PUBLIC_AUTH_PATHS = [
     '/login',
     '/participant/login',
     '/participant/change-password',
+    '/staff/change-password',
     '/forgot-password',
     '/reset-password',
 ]
