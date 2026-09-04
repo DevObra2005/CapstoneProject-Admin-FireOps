@@ -20,20 +20,22 @@ use App\Http\Controllers\Participant\ParticipantPasswordController;
 use App\Http\Controllers\Staff\StaffPasswordController;
 
 // AUTH
-Route::post('/login',  [AuthController::class, 'login']);
+Route::post('/login',  [AuthController::class, 'login'])->middleware('throttle:30,1');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/me',      [AuthController::class, 'me'])->middleware('auth:sanctum');
 
 // PUBLIC 
 Route::get('/events/validate/{token}', [EventController::class, 'validateToken']);
 Route::post('/register/{token}',       [ParticipantController::class, 'store']);
-Route::post('/participant/login',      [ParticipantController::class, 'login']);
+Route::post('/participant/login',      [ParticipantController::class, 'login'])->middleware('throttle:30,1');
 Route::post('/participant/change-password', [ParticipantPasswordController::class, 'changePassword']);
 Route::post('/staff/change-password', [StaffPasswordController::class, 'changePassword']);
 
 // Password Reset
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
-Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])
+    ->middleware('throttle:5,1');
+Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword'])
+    ->middleware('throttle:5,1');
 
 // SUPER ADMIN 
 Route::middleware(['auth:sanctum', 'role:superadmin'])->group(function () {
