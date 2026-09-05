@@ -12,13 +12,20 @@ export default function ResetPassword() {
         password:              '',
         password_confirmation: '',
     });
+
+    // Which kind of account this link belongs to: 'participant' or 'user'.
+    // The email that carried this link put it in the URL, because staff and
+    // participants live in different tables and are reset by different
+    // endpoints. Kept out of `form` so it never gets posted as a field.
+    const [accountType, setAccountType] = useState('user');
+
     const [showPass,    setShowPass]    = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [loading,     setLoading]     = useState(false);
     const [success,     setSuccess]     = useState('');
     const [error,       setError]       = useState('');
 
-    // Extract token and email from the URL automatically
+    // Extract token, email, and account type from the URL automatically
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         setForm(f => ({
@@ -26,7 +33,14 @@ export default function ResetPassword() {
             token: params.get('token') || '',
             email: params.get('email') || '',
         }));
+
+        // Defaults to 'user' when absent, so any reset link sent before
+        // participant reset existed — which has no type in the URL —
+        // still resolves to the staff endpoint it was issued for.
+        setAccountType(params.get('type') === 'participant' ? 'participant' : 'user');
     }, []);
+
+    const isParticipant = accountType === 'participant';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,9 +49,19 @@ export default function ResetPassword() {
         }
         setLoading(true); setError(''); setSuccess('');
         try {
-            const res = await api.post('/reset-password', form);
+            const endpoint = isParticipant
+                ? '/participant/reset-password'
+                : '/reset-password';
+
+            const res = await api.post(endpoint, form);
             setSuccess(res.data.message);
-            setTimeout(() => navigate('/login'), 2500);
+
+            // A participant has no account on this site — sending them to
+            // the admin login would be a dead end, so they stay on the
+            // success message and return to the FireOps app themselves.
+            if (!isParticipant) {
+                setTimeout(() => navigate('/login'), 2500);
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong.');
         } finally {
@@ -64,7 +88,8 @@ export default function ResetPassword() {
                     {success && (
                         <div className="rst-alert rst-alert-ok">
                             <i className="bi bi-check-circle-fill"></i>
-                            {success} Redirecting to login…
+                            {success}
+                            {!isParticipant && ' Redirecting to login…'}
                         </div>
                     )}
 
@@ -123,10 +148,12 @@ export default function ResetPassword() {
                         </form>
                     )}
 
-                    <a href="/login" className="rst-back">
-                        <i className="bi bi-arrow-left"></i>
-                        Back to login
-                    </a>
+                    {!isParticipant && (
+                        <a href="/login" className="rst-back">
+                            <i className="bi bi-arrow-left"></i>
+                            Back to login
+                        </a>
+                    )}
                 </div>
 
             </div>

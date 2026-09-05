@@ -36,6 +36,10 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'
     ->middleware('throttle:5,1');
 Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword'])
     ->middleware('throttle:5,1');
+Route::post('/participant/forgot-password', [PasswordResetController::class, 'sendParticipantResetLink'])
+    ->middleware('throttle:5,1');
+Route::post('/participant/reset-password',  [PasswordResetController::class, 'resetParticipantPassword'])
+    ->middleware('throttle:5,1');
 
 // SUPER ADMIN 
 Route::middleware(['auth:sanctum', 'role:superadmin'])->group(function () {
