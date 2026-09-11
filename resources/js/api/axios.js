@@ -18,12 +18,12 @@ const api = axios.create({
  * api.post() — e.g. '/participant/change-password'.
  */
 const PUBLIC_AUTH_PATHS = [
-    '/login',
-    '/participant/login',
+    '/login',                       // admin + staff sign-in
+    '/register/',                   // public enrolment: /register/{token}
     '/participant/change-password',
     '/staff/change-password',
-    '/forgot-password',
-    '/reset-password',
+    '/forgot-password',        
+    '/reset-password',             
 ]
 
 // REQUEST interceptor
@@ -42,10 +42,15 @@ api.interceptors.response.use(
         const url = error.config?.url || ''
         const isPublicAuth = PUBLIC_AUTH_PATHS.some(path => url.includes(path))
 
-        // Only treat a 401 as an expired session on protected routes.
-        // On public auth endpoints, let the error reach the component's
-        // catch block so it can render "incorrect password" inline.
-        if (error.response?.status === 401 && !isPublicAuth) {
+        // A 401 only means "session expired" if there was a session to
+        // expire. With no token in storage the user was never signed in,
+        // so the 401 must be a credentials failure on a public page —
+        // and redirecting would reload it and wipe the error message.
+        // This covers every public page automatically, including ones
+        // added later that nobody remembers to list above.
+        const hasSession = !!localStorage.getItem('token')
+
+        if (error.response?.status === 401 && hasSession && !isPublicAuth) {
             localStorage.removeItem('token')
             localStorage.removeItem('role')
             localStorage.removeItem('first_name')
