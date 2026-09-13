@@ -395,7 +395,6 @@ export default function Certifications() {
             <div className="cf-legend">
                 <span><i className="cf-sw on"></i> Certificate earned</span>
                 <span><i className="cf-sw"></i> Not yet completed</span>
-                <span><i className="bi bi-eye"></i> Opens per-certificate list with download &amp; resend</span>
             </div>
 
         </div>
