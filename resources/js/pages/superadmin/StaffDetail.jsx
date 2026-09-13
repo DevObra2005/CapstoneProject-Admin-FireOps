@@ -3,6 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios'
 import '../../../css/Superadmin/staffdetail.css';
 
+// Meta keys never shown in the log. Participant emails are personal data
+// belonging to the participants, not to the staff record being viewed —
+// an audit trail needs to say what happened, not republish the addresses.
+const HIDDEN_META_KEYS = ['emails'];
+
+// Database IDs are internal plumbing. "Event Id 1" tells a reader nothing
+// they can act on, and the human name sits right beside it anyway. Matched
+// by pattern rather than listed, so any new *_id key is hidden on arrival.
+const isIdKey = (key) => key === 'id' || key.endsWith('_id');
+
 export default function StaffDetail() {
     const { id }       = useParams();
     const navigate     = useNavigate();
@@ -37,20 +47,31 @@ export default function StaffDetail() {
             hour: '2-digit', minute: '2-digit',
         });
 
-    // Each action gets an icon + a semantic CSS class (no inline colors)
     const actionStyle = (action) => {
         const map = {
-            created:  { icon: 'bi-plus-circle-fill',        className: 'sd-action-created' },
-            edited:   { icon: 'bi-pencil-fill',              className: 'sd-action-edited' },
-            archived: { icon: 'bi-archive-fill',              className: 'sd-action-archived' },
-            restored: { icon: 'bi-arrow-counterclockwise',    className: 'sd-action-restored' },
-            viewed:   { icon: 'bi-eye-fill',                  className: 'sd-action-viewed' },
-            deleted:  { icon: 'bi-trash-fill',                className: 'sd-action-deleted' },
-            toggled:  { icon: 'bi-toggle-on',                 className: 'sd-action-toggled' },
-            login:    { icon: 'bi-box-arrow-in-right',        className: 'sd-action-login' },
+            created:    { icon: 'bi-plus-circle-fill',      className: 'al-action-created' },
+            edited:     { icon: 'bi-pencil-fill',           className: 'al-action-edited' },
+            archived:   { icon: 'bi-archive-fill',          className: 'al-action-archived' },
+            restored:   { icon: 'bi-arrow-counterclockwise', className: 'al-action-restored' },
+            viewed:     { icon: 'bi-eye-fill',              className: 'al-action-viewed' },
+            deleted:    { icon: 'bi-trash-fill',            className: 'al-action-deleted' },
+            toggled:    { icon: 'bi-toggle-on',             className: 'al-action-toggled' },
+            generated:  { icon: 'bi-file-earmark-pdf-fill', className: 'al-action-generated' },
+            registered: { icon: 'bi-person-plus-fill',      className: 'al-action-registered' },
+            imported:   { icon: 'bi-box-arrow-in-down',     className: 'al-action-imported' },
         };
-        return map[action] || { icon: 'bi-circle-fill', className: 'sd-action-default' };
+        return map[action] || { icon: 'bi-circle-fill', className: 'al-action-default' };
     };
+
+    // Drops hidden keys and database IDs, and joins array values so a list
+    // renders as "a, b, c" rather than running together with no separator.
+    const visibleMeta = (meta) =>
+        Object.entries(meta)
+            .filter(([key]) => !HIDDEN_META_KEYS.includes(key) && !isIdKey(key))
+            .map(([key, value]) => [
+                key,
+                Array.isArray(value) ? value.join(', ') : value,
+            ]);
 
     if (loading) return (
         <div className="sd-loading">
@@ -120,6 +141,10 @@ export default function StaffDetail() {
                             const { icon, className } = actionStyle(log.action);
                             const isToggle = log.action === 'toggled';
 
+                            // Built here so the block below can be skipped when
+                            // hiding keys leaves nothing worth showing.
+                            const pills = log.meta ? visibleMeta(log.meta) : [];
+
                             return (
                                 <div className="sd-entry" key={log.id}>
 
@@ -143,7 +168,7 @@ export default function StaffDetail() {
                                         </div>
 
                                         {/* Meta — skipped entirely for event toggle actions */}
-                                        {log.meta && !isToggle && (
+                                        {log.meta && !isToggle && (log.meta.before || pills.length > 0) && (
                                             <div className="sd-meta-box">
                                                 <div className="sd-meta-label">Changes</div>
                                                 {log.meta.before && log.meta.after ? (
@@ -156,20 +181,22 @@ export default function StaffDetail() {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {Object.keys(log.meta.before).map((key) => (
-                                                                log.meta.before[key] !== log.meta.after[key] && (
-                                                                    <tr key={key}>
-                                                                        <td className="sd-meta-key">{key.replace('_', ' ')}</td>
-                                                                        <td className="sd-meta-old">{log.meta.before[key] || '—'}</td>
-                                                                        <td className="sd-meta-new">{log.meta.after[key] || '—'}</td>
-                                                                    </tr>
-                                                                )
-                                                            ))}
+                                                            {Object.keys(log.meta.before)
+                                                                .filter((key) => !isIdKey(key))
+                                                                .map((key) => (
+                                                                    log.meta.before[key] !== log.meta.after[key] && (
+                                                                        <tr key={key}>
+                                                                            <td className="sd-meta-key">{key.replace('_', ' ')}</td>
+                                                                            <td className="sd-meta-old">{log.meta.before[key] || '—'}</td>
+                                                                            <td className="sd-meta-new">{log.meta.after[key] || '—'}</td>
+                                                                        </tr>
+                                                                    )
+                                                                ))}
                                                         </tbody>
                                                     </table>
                                                 ) : (
                                                     <div className="sd-meta-pills">
-                                                        {Object.entries(log.meta).map(([key, value]) => (
+                                                        {pills.map(([key, value]) => (
                                                             <div className="sd-meta-pill" key={key}>
                                                                 <span className="sd-meta-pill-key">{key.replace('_', ' ')}</span>
                                                                 <span className="sd-meta-pill-val">{value}</span>

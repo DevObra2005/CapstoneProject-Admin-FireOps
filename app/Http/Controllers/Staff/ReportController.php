@@ -6,9 +6,102 @@ use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
+use App\Models\ActivityLog;
 
 class ReportController extends Controller
 {
+
+    /**
+     * GET /api/staff/reports/history/{eventId}
+     *
+     * What has already been produced for this event, and by whom. Reads the
+     * reports table rather than recomputing anything — this is the one view
+     * that asks about the act of generating, not about the training data.
+     */
+    public function history(Request $request, $eventId)
+    {
+        $event = DB::table('events')->where('id', $eventId)->first();
+
+        if (!$event) {
+            return response()->json(['message' => 'Event not found.'], 404);
+        }
+
+        $rows = DB::table('reports')
+            ->join('users', 'reports.user_id', '=', 'users.id')
+            ->where('reports.event_id', $eventId)
+            ->select(
+                'reports.id',
+                'reports.report_type',
+                'reports.generated_at',
+                'users.first_name',
+                'users.last_name'
+            )
+            ->orderByDesc('reports.generated_at')
+            ->get();
+
+        // Same wording as the report cards on the page, so a staff member
+        // reading the history sees the name they clicked.
+        $labels = [
+            'event_summary'       => 'Event summary',
+            'simulation_analysis' => 'Simulation analysis',
+            'follow_up'           => 'Needs more training',
+        ];
+
+        return response()->json([
+            'total'  => $rows->count(),
+            'counts' => [
+                'event_summary'       => $rows->where('report_type', 'event_summary')->count(),
+                'simulation_analysis' => $rows->where('report_type', 'simulation_analysis')->count(),
+                'follow_up'           => $rows->where('report_type', 'follow_up')->count(),
+            ],
+            // Capped — the panel is a sidebar, not an archive.
+            'entries' => $rows->take(8)->map(fn($r) => [
+                'id'   => $r->id,
+                'type' => $labels[$r->report_type] ?? $r->report_type,
+                'by'   => trim($r->first_name . ' ' . $r->last_name),
+                'at'   => Carbon::parse($r->generated_at)
+                            ->setTimezone(config('app.display_timezone'))
+                            ->format('d M Y, g:i A'),
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * Records that a report document was produced.
+     *
+     * Two writes, deliberately: the reports row is the queryable history,
+     * the activity log entry is what the Administrator reads. Kept together
+     * here so a new report type can't add one and forget the other.
+     */
+    protected function recordGeneration(
+        Request $request,
+        int $eventId,
+        string $type,
+        string $eventName
+    ): void {
+        DB::table('reports')->insert([
+            'user_id'      => $request->user()->id,
+            'event_id'     => $eventId,
+            'report_type'  => $type,
+            'generated_at' => now(),
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+
+        $label = [
+            'event_summary'       => 'Event Summary',
+            'simulation_analysis' => 'Simulation Analysis',
+            'follow_up'           => 'Follow-Up',
+        ][$type] ?? $type;
+
+        ActivityLog::log(
+            action: 'generated',
+            description: 'Generated ' . $label . ' report for ' . $eventName,
+            meta: ['event_id' => $eventId, 'report_type' => $type]
+        );
+    }
+
     /**
      * PHRASES THAT IDENTIFY THE OFFICE TWO-FIRE DECISION.
      *
@@ -36,8 +129,10 @@ class ReportController extends Controller
         }
 
         if ($request->query('format') === 'pdf') {
+            $this->recordGeneration($request, $eventId, 'event_summary', $data['event']->name);
+
             $pdf = Pdf::loadView('reports.event_summary', $data)
-                      ->setPaper('a4', 'portrait');
+                    ->setPaper('a4', 'portrait');
 
             $filename = 'event-summary-' . $eventId . '.pdf';
 
@@ -363,6 +458,8 @@ class ReportController extends Controller
         }
 
         if ($request->query('format') === 'pdf') {
+           $this->recordGeneration($request, $eventId, 'simulation_analysis', $data['event']->name);
+
             $pdf = Pdf::loadView('reports.simulation_analysis', $data)
                     ->setPaper('a4', 'portrait');
 
@@ -652,8 +749,9 @@ class ReportController extends Controller
         }
 
         if ($request->query('format') === 'pdf') {
+            $this->recordGeneration($request, $eventId, 'follow_up', $data['event']->name);
             $pdf = Pdf::loadView('reports.follow_up', $data)
-                      ->setPaper('a4', 'portrait');
+                    ->setPaper('a4', 'portrait');
 
             $filename = 'follow-up-' . $eventId . '.pdf';
 

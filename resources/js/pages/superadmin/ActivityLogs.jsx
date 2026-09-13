@@ -30,13 +30,16 @@ export default function ActivityLogs() {
     // Each action gets an icon + a semantic CSS class (no inline colors)
     const actionStyle = (action) => {
         const map = {
-            created:  { icon: 'bi-plus-circle-fill',      className: 'al-action-created' },
-            edited:   { icon: 'bi-pencil-fill',             className: 'al-action-edited' },
-            archived: { icon: 'bi-archive-fill',            className: 'al-action-archived' },
-            restored: { icon: 'bi-arrow-counterclockwise',  className: 'al-action-restored' },
-            viewed:   { icon: 'bi-eye-fill',                className: 'al-action-viewed' },
-            deleted:  { icon: 'bi-trash-fill',              className: 'al-action-deleted' },
-            toggled:  { icon: 'bi-toggle-on',               className: 'al-action-toggled' },
+            created:    { icon: 'bi-plus-circle-fill',      className: 'al-action-created' },
+            edited:     { icon: 'bi-pencil-fill',           className: 'al-action-edited' },
+            archived:   { icon: 'bi-archive-fill',          className: 'al-action-archived' },
+            restored:   { icon: 'bi-arrow-counterclockwise', className: 'al-action-restored' },
+            viewed:     { icon: 'bi-eye-fill',              className: 'al-action-viewed' },
+            deleted:    { icon: 'bi-trash-fill',            className: 'al-action-deleted' },
+            toggled:    { icon: 'bi-toggle-on',             className: 'al-action-toggled' },
+            generated:  { icon: 'bi-file-earmark-pdf-fill', className: 'al-action-generated' },
+            registered: { icon: 'bi-person-plus-fill',      className: 'al-action-registered' },
+            imported:   { icon: 'bi-box-arrow-in-down',     className: 'al-action-imported' },
         };
         return map[action] || { icon: 'bi-circle-fill', className: 'al-action-default' };
     };

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import api from '../../api/axios';
 import { generateEventReport, generateSimulationAnalysisReport, generateFollowUpReport } from '../../utils/reports';
 import '../../../css/Staff/reports.css'
@@ -18,6 +18,11 @@ export default function Reports() {
   const [error, setError]       = useState('');
   const [search, setSearch]     = useState('');
 
+  // What has already been produced for the selected event. Null until the
+  // first fetch resolves, so the panel can stay quiet instead of flashing
+  // an empty state before the data lands.
+  const [history, setHistory]   = useState(null);
+
 
   useEffect(() => {
     api.get('/staff/events')
@@ -25,6 +30,25 @@ export default function Reports() {
       .catch(() => setError('Could not load your events.'))
       .finally(() => setLoading(false));
   }, []);
+
+  // Fetched here rather than derived from the events list: generation is
+  // recorded per download, so the count changes without the event changing.
+  const fetchHistory = useCallback(async (eventId) => {
+    if (!eventId) {
+      setHistory(null);
+      return;
+    }
+    try {
+      const res = await api.get(`/staff/reports/history/${eventId}`);
+      setHistory(res.data);
+    } catch {
+      // A failed history fetch must not block generating. The panel simply
+      // shows nothing rather than an error the staff member cannot act on.
+      setHistory(null);
+    }
+  }, []);
+
+  useEffect(() => { fetchHistory(selected); }, [selected, fetchHistory]);
 
   const handleGenerate = async () => {
     setBusy(true);
@@ -39,7 +63,14 @@ export default function Reports() {
       result = await generateEventReport(selected, { preview: true });
     }
 
-    if (!result.ok) setError(result.message);
+    if (!result.ok) {
+      setError(result.message);
+    } else {
+      // The row is written server-side during the download, so the panel
+      // only reflects it after a refetch.
+      fetchHistory(selected);
+    }
+
     setBusy(false);
   };
 
@@ -348,6 +379,41 @@ export default function Reports() {
                 </>
               )}
             </button>
+
+            {/* ── GENERATION HISTORY ─────────────────────
+                Only once an event is chosen — without one there is
+                nothing to have a history of. */}
+            {chosen && history && (
+              <div className="rp-history">
+                <div className="rp-history-head">
+                  <span className="rp-history-title">
+                    <i className="bi bi-clock-history"></i>
+                    Previously generated
+                  </span>
+                  <span className="rp-history-count">{history.total}</span>
+                </div>
+
+                {history.total === 0 ? (
+                  <div className="rp-history-empty">
+                    Nothing generated for this event yet.
+                  </div>
+                ) : (
+                  <div className="rp-history-list">
+                    {history.entries.map(entry => (
+                      <div className="rp-history-row" key={entry.id}>
+                        <div className="rp-history-type">{entry.type}</div>
+                        <div className="rp-history-meta">
+                          <i className="bi bi-person"></i>
+                          {entry.by}
+                          <span className="rp-history-sep">·</span>
+                          {entry.at}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
         </div>

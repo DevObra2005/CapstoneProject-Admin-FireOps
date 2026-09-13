@@ -572,6 +572,91 @@
     font-size: 12.5px;
     color: var(--faint);
 }
+/* ── GENERATION HISTORY ────────────────────────────────────────────
+   Append to css/Staff/reports.css.
+
+   Colours here are neutral on purpose — adjust them to your existing
+   rp- palette. The layout is what matters: the list is capped and
+   scrolls, so a frequently-reported event cannot stretch the sticky
+   panel past the fold.
+   ------------------------------------------------------------------ */
+
+.rp-history {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.rp-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+}
+
+.rp-history-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+.rp-history-count {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.rp-history-empty {
+    font-size: 0.78rem;
+    opacity: 0.6;
+    padding: 0.35rem 0;
+}
+
+/* Capped so the sticky panel keeps its height no matter how many
+   reports an event accumulates. */
+.rp-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-height: 190px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.rp-history-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.rp-history-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rp-history-type {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rp-history-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    opacity: 0.65;
+}
+
+.rp-history-sep {
+    opacity: 0.5;
+}
 
 /* ============================================================
    RESPONSIVE

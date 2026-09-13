@@ -92,6 +92,7 @@ Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
     Route::get('/staff/certifications', [CertificateController::class, 'index']);
 
     // Reports
+    Route::get('/staff/reports/history/{eventId}', [ReportController::class, 'history']);
     Route::get('/staff/reports/event/{eventId}',      [ReportController::class, 'eventSummary']);
     Route::get('/staff/reports/simulation/{eventId}', [ReportController::class, 'simulationAnalysis']);
     Route::get('/staff/reports/follow-up/{eventId}',  [ReportController::class, 'followUp']);

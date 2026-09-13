@@ -149,6 +149,19 @@
     color: #7c3aed;
     background: rgba(124, 58, 237, 0.10);
 }
+.al-action-generated {
+    color: #d97706;
+    background: rgba(217, 119, 6, 0.10);
+}
+.al-action-registered {
+    color: #2E7D32;
+    background-color: rgba(46, 125, 50, 0.12);
+}
+
+.al-action-imported {
+    color: #6A1B9A;
+    background-color: rgba(106, 27, 154, 0.12);
+}
 
 .al-action-viewed,
 .al-action-deleted,
