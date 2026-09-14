@@ -247,7 +247,7 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
             <div className="psd-card">
                 <div className="psd-section-label">
                     <i className="bi bi-search" style={{ color: 'var(--green)' }}></i>
-                    Phase 1 — Hazard Identification
+                    Hazard Identification
                 </div>
                 <div className="psd-phase1-ok">
                     <i className="bi bi-check-circle-fill"></i>
@@ -259,7 +259,7 @@ export default function ParticipantSessionDetail({ session, onBack, embedded = f
             <div className="psd-card">
                 <div className="psd-section-label">
                     <i className="bi bi-lightning-fill" style={{ color: 'var(--green)' }}></i>
-                    Phase 2 — Simulation Steps
+                    Simulation Steps
                 </div>
 
                 {orderedStepKeys.length === 0 ? (
