@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../../api/axios'
+import PasswordChecklist, { isPasswordStrong } from '../../components/PasswordChecklist'
 import '../../../css/changepassword.css';
 
 
@@ -78,10 +79,13 @@ export default function ChangePassword() {
         }
     }
 
+    // The button stays disabled until the new password passes EVERY rule
+    // in the checklist (8+ chars, uppercase, lowercase, number, symbol).
+    // Before, this only checked length >= 8.
     const canSubmit =
         form.email.trim() !== '' &&
         form.current_password !== '' &&
-        form.new_password.length >= 8 &&
+        isPasswordStrong(form.new_password) &&
         form.new_password === form.new_password_confirmation &&
         !saving
 
@@ -161,17 +165,18 @@ export default function ChangePassword() {
                                 <input
                                     type={showPw ? 'text' : 'password'}
                                     className={`pcp-input ${errors.new_password ? 'pcp-input-error' : ''}`}
-                                    placeholder="At least 8 characters"
+                                    placeholder="Create a strong password"
                                     value={form.new_password}
                                     onChange={e => updateField('new_password', e.target.value)}
                                     disabled={saving}
                                     autoComplete="new-password"
                                 />
-                                {errors.new_password ? (
+                                {/* Server error (if Laravel rejected it) shows first */}
+                                {errors.new_password && (
                                     <div className="pcp-error">{errors.new_password}</div>
-                                ) : (
-                                    <div className="pcp-hint">Minimum 8 characters.</div>
                                 )}
+                                {/* Live checklist replaces the old "Minimum 8 characters." hint */}
+                                <PasswordChecklist password={form.new_password} />
                             </div>
 
                             <div className="pcp-field">

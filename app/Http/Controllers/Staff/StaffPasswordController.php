@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class StaffPasswordController extends Controller
 {
@@ -21,17 +22,27 @@ class StaffPasswordController extends Controller
      * No auth token required. The staff member proves who they are by
      * supplying their CURRENT password, which is why this works from a
      * link in an email where no session exists.
+     *
+     * PASSWORD STRENGTH: the new password uses Password::defaults(), the
+     * central rule in AppServiceProvider (8+ characters, uppercase,
+     * lowercase, number, symbol).
      */
     public function changePassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'email'            => 'required|email',
+            // Current password is only CHECKED, not created, so it keeps the
+            // simple rule. An old weak password must still be accepted here,
+            // otherwise the staff member could never change it.
             'current_password' => 'required|string',
             // 'confirmed' makes Laravel look for a matching
             // 'new_password_confirmation' field automatically.
-            'new_password'     => 'required|string|min:8|confirmed',
+            // Array form, because Password::defaults() is a rule OBJECT.
+            'new_password'     => ['required', 'string', 'confirmed', Password::defaults()],
         ], [
-            'new_password.min'       => 'Your new password must be at least 8 characters.',
+            // The old 'new_password.min' message was removed: the Password
+            // rule now writes its own messages for length, case, numbers,
+            // and symbols.
             'new_password.confirmed' => 'The two new passwords do not match.',
         ]);
 

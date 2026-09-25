@@ -82,6 +82,12 @@ export default function Sidebar() {
                             <i className="bi bi-patch-check-fill"></i>
                             Certifications
                         </NavLink>
+
+                        {/* Staff-issued certificates for people or organizations */}
+                        <NavLink to="/staff/manual-certifications" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
+                            <i className="bi bi-envelope-paper-fill"></i>
+                            Manual Certifications
+                        </NavLink>
              
                         <NavLink to="/staff/reports" className={({ isActive }) => 'sb-link' + (isActive ? ' active' : '')}>
                             <i className="bi bi-file-earmark-bar-graph-fill"></i>

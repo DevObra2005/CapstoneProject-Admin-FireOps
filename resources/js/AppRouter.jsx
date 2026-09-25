@@ -21,6 +21,7 @@ import Staff from './pages/superadmin/Staff';
 import StaffDashboard from './pages/staff/Dashboard';
 import Events from './pages/staff/Events';
 import Certifications from './pages/staff/Certifications';
+import ManualCertifications from './pages/staff/ManualCertifications';
 
 
 // Guard for superadmin only
@@ -74,6 +75,7 @@ export default function AppRouter() {
                 <Route path="dashboard" element={<StaffDashboard />} />
                 <Route path="events" element={<Events />} />
                 <Route path="certifications" element={<Certifications />} />
+                <Route path="manual-certifications" element={<ManualCertifications />} />
                 <Route path="reports" element={<Reports />} />
             </Route>
 

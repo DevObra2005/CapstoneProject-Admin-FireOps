@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Mail\StaffCredentialsMail;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Support\PasswordGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 
 class StaffController extends Controller
@@ -48,7 +48,12 @@ class StaffController extends Controller
             'email'       => 'required|email|unique:users,email',
         ]);
 
-        $plainPassword = Str::random(8);
+        // Shared generator — always passes the central password rule
+        // (uppercase, lowercase, number, symbol). 12 characters for staff
+        // because staff accounts can manage events and participants.
+        // The old Str::random(8) had no symbols and could even come out
+        // with no number, so it could fail the system's own rule.
+        $plainPassword = PasswordGenerator::generate(12);
 
         $staff = User::create([
             'first_name'  => $validated['first_name'],

@@ -11,6 +11,7 @@ use App\Http\Controllers\Staff\CertificateController as AdminCertificateControll
 use App\Http\Controllers\Staff\StaffDashboardController;
 use App\Http\Controllers\Staff\EventController;
 use App\Http\Controllers\Staff\CertificateController;
+use App\Http\Controllers\Staff\ManualCertificateController;
 use App\Http\Controllers\Staff\ReportController;
 //Participant Controllers
 use App\Http\Controllers\Staff\ParticipantController;
@@ -90,6 +91,15 @@ Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
 
     // Certificates
     Route::get('/staff/certifications', [CertificateController::class, 'index']);
+
+    // Manual Certifications — staff-issued certificates for organizations.
+    // {manualCertificate} uses route model binding: Laravel finds the
+    // record by id automatically, and returns 404 if it doesn't exist.
+    Route::get('/staff/manual-certificates',                              [ManualCertificateController::class, 'index']);
+    Route::post('/staff/manual-certificates',                             [ManualCertificateController::class, 'store']);
+    Route::get('/staff/manual-certificates/{manualCertificate}/pdf',      [ManualCertificateController::class, 'pdf']);
+    Route::post('/staff/manual-certificates/{manualCertificate}/send',    [ManualCertificateController::class, 'send'])
+        ->middleware('throttle:10,1');
 
     // Reports
     Route::get('/staff/reports/history/{eventId}', [ReportController::class, 'history']);

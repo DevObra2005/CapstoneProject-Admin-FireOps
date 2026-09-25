@@ -7,11 +7,13 @@ use App\Mail\ParticipantCredentialsMail;
 use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\Participant;
+use App\Support\PasswordGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -181,25 +183,15 @@ class ParticipantController extends Controller
     }
 
     /**
-     * Generates a password that is safe to type on a phone keyboard.
+     * Generates the password for a brand new participant account.
      *
-     * Excluded characters: I, O, 0, 1 — these are visually ambiguous and
-     * cause "wrong password" failures that look like application bugs.
-     *
-     * random_int() is cryptographically secure (unlike rand()), which matters
-     * because this string is the only thing protecting the account.
+     * The real logic lives in App\Support\PasswordGenerator, shared with
+     * StaffController, so staff and participant passwords follow the same
+     * recipe and always pass the central password rule.
      */
     private function generateReadablePassword(int $length = 10): string
     {
-        $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        $max        = strlen($characters) - 1;
-        $password   = '';
-
-        for ($i = 0; $i < $length; $i++) {
-            $password .= $characters[random_int(0, $max)];
-        }
-
-        return $password;
+        return PasswordGenerator::generate($length);
     }
 
     /**
@@ -651,6 +643,16 @@ class ParticipantController extends Controller
     /**
      * PUBLIC — Submit registration form
      * Route: POST /api/register/{token}
+     *
+     * The password field does TWO different jobs here:
+     *   - NEW email      → the participant is CREATING a password,
+     *                      so it must pass the strong central rule.
+     *   - EXISTING email → the participant is PROVING who they are with the
+     *                      password they already have. That old password may
+     *                      be weak (made before the rule existed), so the
+     *                      strong rule must NOT apply, or they could never
+     *                      join another event.
+     * That is why the strength check runs only inside the "new account" branch.
      */
     public function store(Request $request, $token)
     {
@@ -668,10 +670,13 @@ class ParticipantController extends Controller
         //
         // contact_number matches the manual/import rule so both registration
         // paths store numbers in the same format.
+        //
+        // password is only 'required|string' at this point — the strength
+        // check comes later, and only for brand new accounts.
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'email'          => 'required|email|max:255',
-            'password'       => 'required|string|min:6',
+            'password'       => 'required|string',
             'organization'   => 'required|in:Employee,Student',
             'contact_number' => ['nullable', 'regex:/^09\d{9}$/'],
         ], [
@@ -700,6 +705,14 @@ class ParticipantController extends Controller
             $participant->events()->attach($event->id);
 
         } else {
+            // NEW account: now the password must pass the central rule.
+            // If it fails, Laravel returns a 422 with the same error format
+            // as any other validation error, so the React form handles it
+            // the same way.
+            $request->validate([
+                'password' => [Password::defaults()],
+            ]);
+
             $participant = Participant::create([
                 'name'           => $validated['name'],
                 'email'          => $validated['email'],
@@ -741,6 +754,9 @@ class ParticipantController extends Controller
     /**
      * PUBLIC — Unity game login
      * Route: POST /api/participant/login
+     *
+     * Login only CHECKS a password, it never creates one, so it keeps the
+     * simple rule. Old passwords made before the strong rule still work.
      */
     public function login(Request $request)
     {

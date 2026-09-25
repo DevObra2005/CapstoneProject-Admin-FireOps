@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,17 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Central password rule for superadmin, staff, and participants.
+        // Every controller uses Password::defaults(), so changing the rule
+        // here updates register, change password, and forgot password at once.
+        // Placed BEFORE the console check so Artisan/Tinker/seeders use it too.
+        Password::defaults(function () {
+            return Password::min(8)   // at least 8 characters
+                ->mixedCase()         // at least one uppercase and one lowercase
+                ->numbers()           // at least one number
+                ->symbols();          // at least one special character (@, #, !, etc.)
+        });
+
         // Artisan commands have no incoming request, so there's no host to
         // read. Fall back to APP_URL in that case by doing nothing here.
         if ($this->app->runningInConsole()) {

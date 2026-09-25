@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios'
+import PasswordChecklist, { isPasswordStrong } from '../../components/PasswordChecklist';
 import '../../../css/resetpassword.css';
 
 export default function ResetPassword() {
@@ -42,6 +43,18 @@ export default function ResetPassword() {
 
     const isParticipant = accountType === 'participant';
 
+    // Confirm field has something typed but doesn't match yet
+    const mismatch =
+        form.password_confirmation !== '' &&
+        form.password !== form.password_confirmation;
+
+    // Button stays disabled until the password passes every rule
+    // AND both fields match. Laravel still re-checks on submit.
+    const canSubmit =
+        isPasswordStrong(form.password) &&
+        form.password === form.password_confirmation &&
+        !loading;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (form.password !== form.password_confirmation) {
@@ -63,7 +76,11 @@ export default function ResetPassword() {
                 setTimeout(() => navigate('/login'), 2500);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong.');
+            // For a 422, Laravel puts the exact reason in errors.password
+            // (e.g. "must contain at least one symbol"). The top-level
+            // message would add "(and 2 more errors)", which reads badly.
+            const fieldError = err.response?.data?.errors?.password?.[0];
+            setError(fieldError || err.response?.data?.message || 'Something went wrong.');
         } finally {
             setLoading(false);
         }
@@ -82,7 +99,7 @@ export default function ResetPassword() {
 
                     <h4 className="rst-title">Set a new password</h4>
                     <p className="rst-sub">
-                        Your new password must be at least 8 characters long.
+                        Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol.
                     </p>
 
                     {success && (
@@ -109,16 +126,18 @@ export default function ResetPassword() {
                                     <input
                                         type={showPass ? 'text' : 'password'}
                                         className="rst-input"
-                                        placeholder="Min. 8 characters"
+                                        placeholder="Create a strong password"
                                         value={form.password}
                                         onChange={e => setForm({ ...form, password: e.target.value })}
                                         required
-                                        minLength={8}
+                                        autoComplete="new-password"
                                     />
                                     <button type="button" className="rst-eye" onClick={() => setShowPass(p => !p)}>
                                         <i className={`bi ${showPass ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                                     </button>
                                 </div>
+                                {/* Live strength bar + rule chips */}
+                                <PasswordChecklist password={form.password} />
                             </div>
 
                             <div className="rst-field">
@@ -131,15 +150,20 @@ export default function ResetPassword() {
                                         value={form.password_confirmation}
                                         onChange={e => setForm({ ...form, password_confirmation: e.target.value })}
                                         required
-                                        minLength={8}
+                                        autoComplete="new-password"
                                     />
                                     <button type="button" className="rst-eye" onClick={() => setShowConfirm(p => !p)}>
                                         <i className={`bi ${showConfirm ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                                     </button>
                                 </div>
+                                {mismatch && (
+                                    <div style={{ color: '#dc2626', fontSize: '12.5px', marginTop: '6px' }}>
+                                        Passwords do not match.
+                                    </div>
+                                )}
                             </div>
 
-                            <button type="submit" className="rst-btn" disabled={loading}>
+                            <button type="submit" className="rst-btn" disabled={!canSubmit}>
                                 {loading
                                     ? <><span className="rst-spin"></span>Resetting…</>
                                     : 'Reset password'

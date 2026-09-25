@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import api from '../../api/axios'
+import PasswordChecklist, { isPasswordStrong } from '../../components/PasswordChecklist'
 import '../../../css/staff/register.css'
 import fireopsLogo from '/public/Images/FireOps_Logo.png';
 
@@ -148,10 +149,13 @@ export default function Register() {
         if (!form.organization)
             e.organization = ['Please select your organization type.']
 
+        // Same rule as Laravel's Password::defaults():
+        // 8+ characters, uppercase, lowercase, number, symbol.
+        // Before, this only checked length >= 6.
         if (!form.password)
             e.password = ['Password is required.']
-        else if (form.password.length < 6)
-            e.password = ['Password must be at least 6 characters.']
+        else if (!isPasswordStrong(form.password))
+            e.password = ['Password needs 8+ characters with uppercase, lowercase, a number, and a symbol.']
 
         if (!form.confirm_password)
             e.confirm_password = ['Please confirm your password.']
@@ -202,8 +206,10 @@ export default function Register() {
                 // Validation errors from Laravel. Shown inline per field,
                 // plus a summary line so the user isn't left wondering why
                 // nothing happened when the bad field is off-screen.
+                // The summary uses a fixed sentence because Laravel's own
+                // message adds "(and 2 more errors)", which reads badly.
                 setErrors(err.response.data.errors || {})
-                setFormAlert(msg || 'Please check the highlighted fields above.')
+                setFormAlert('Please check the highlighted fields above.')
 
             } else if (status === 401) {
                 setMessage(msg)
@@ -267,6 +273,8 @@ export default function Register() {
     )
 
     // ── passwordField() helper ─────────────────────────────────────────────
+    // The visible-mode placeholder used to be "mypassword123", which no
+    // longer passes the rule — people copy examples, so it's now a plain hint.
     const passwordField = (name, label, show, onToggle, required = false) => (
         <div className="reg-field" key={name}>
             <label className="reg-label">
@@ -278,8 +286,12 @@ export default function Register() {
                     type={show ? 'text' : 'password'}
                     className={`reg-input reg-input-pass${errors[name] ? ' reg-input-error' : ''}`}
                     value={form[name]}
-                    placeholder={show ? 'mypassword123' : '••••••••'}
-                    autoComplete={name === 'password' ? 'new-password' : 'new-password'}
+                    placeholder={
+                        show
+                            ? (name === 'password' ? 'Create a strong password' : 'Type it again')
+                            : '••••••••'
+                    }
+                    autoComplete="new-password"
                     onChange={e => handleChange(name, e.target.value)}
                 />
                 <button
@@ -363,6 +375,9 @@ export default function Register() {
     }
 
     // ── canSubmit ──────────────────────────────────────────────────────────
+    // Kept GPS-only on purpose. This page checks fields on submit and shows
+    // the "check the highlighted fields" alert, which works better on phones
+    // than a button that is silently disabled.
     const canSubmit = gpsStatus === 'granted' && !loading
 
     // ════════════════════════════════════════════════════════════════════════
@@ -541,7 +556,7 @@ export default function Register() {
                        
                         <div className="reg-cred-note">
                             <i className="bi bi-info-circle"></i>
-                            Create a password to log in to the FireOps mobile app after registration.
+                            Create a strong password to log in to the FireOps mobile app after registration.
                         </div>
 
                         <div className="reg-grid">
@@ -555,6 +570,13 @@ export default function Register() {
                                 showConfirm, () => setShowConfirm(p => !p),
                                 true
                             )}
+                        </div>
+
+                        {/* Password checklist sits BELOW the two-column grid, full
+                            width. Inside the Password column it would make that
+                            column taller than Confirm and break the alignment. */}
+                        <div style={{ marginTop: -4, marginBottom: 12 }}>
+                            <PasswordChecklist password={form.password} />
                         </div>
 
                         {/* GPS status indicator */}

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 // -------------------------------------------------------
 // TWO SEPARATE FLOWS, ONE CONTROLLER.
@@ -24,6 +25,10 @@ use Illuminate\Support\Str;
 // The token table is shared and keyed by email. That is fine while
 // an address only ever belongs to one table — which is the case here,
 // since staff use BFP addresses and participants enrol with their own.
+//
+// PASSWORD STRENGTH: both reset flows use Password::defaults(), the
+// central rule defined in AppServiceProvider (8+ characters, uppercase,
+// lowercase, number, symbol). Change the rule there, not here.
 // -------------------------------------------------------
 class PasswordResetController extends Controller
 {
@@ -70,7 +75,9 @@ class PasswordResetController extends Controller
         $request->validate([
             'email'    => 'required|email',
             'token'    => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+            // Array form, because Password::defaults() is a rule OBJECT
+            // and cannot be written inside a 'a|b|c' string.
+            'password' => ['required', 'string', 'confirmed', Password::defaults()],
         ]);
 
         $error = $this->verifyToken($request->email, $request->token);
@@ -136,7 +143,8 @@ class PasswordResetController extends Controller
         $request->validate([
             'email'    => 'required|email',
             'token'    => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+            // Same central rule as staff — participants get the same strength.
+            'password' => ['required', 'string', 'confirmed', Password::defaults()],
         ]);
 
         $error = $this->verifyToken($request->email, $request->token);

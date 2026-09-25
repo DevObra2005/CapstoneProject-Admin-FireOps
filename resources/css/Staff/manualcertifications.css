@@ -1,0 +1,333 @@
+/* ─────────────────────────────────────────────────────────────
+   Manual Certifications — only what certifications.css doesn't
+   already cover: buttons, status pills, the modals, and the live
+   certificate preview. Every class starts with "mc-".
+
+   Colors are variables so dark mode only has to swap them once.
+   ───────────────────────────────────────────────────────────── */
+
+.db-page {
+  --mc-red: #c0392b;
+  --mc-red-hover: #a93226;
+  --mc-surface: #ffffff;
+  --mc-field: #f6f7f9;
+  --mc-line: #e3e6ea;
+  --mc-text: #1f2328;
+  --mc-muted: #6b7280;
+}
+
+/* Dark mode — covers the common ways a toggle marks the page */
+[data-theme="dark"] .db-page,
+[data-bs-theme="dark"] .db-page,
+.dark .db-page,
+body.dark-mode .db-page,
+[data-theme="dark"] .mc-overlay,
+[data-bs-theme="dark"] .mc-overlay,
+.dark .mc-overlay,
+body.dark-mode .mc-overlay {
+  --mc-surface: #0f1923;
+  --mc-field: #1c232c;
+  --mc-line: #2a3440;
+  --mc-text: #e6edf3;
+  --mc-muted: #8b98a5;
+}
+
+/* The overlay lives in <body> (portal), outside .db-page,
+   so it needs its own copy of the light defaults */
+.mc-overlay {
+  --mc-red: #c0392b;
+  --mc-red-hover: #a93226;
+  --mc-surface: #ffffff;
+  --mc-field: #f6f7f9;
+  --mc-line: #e3e6ea;
+  --mc-text: #1f2328;
+  --mc-muted: #6b7280;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.mc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.mc-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.mc-btn:focus-visible { outline: 2px solid #f4a300; outline-offset: 2px; }
+
+.mc-btn-primary { background: var(--mc-red); color: #fff; }
+.mc-btn-primary:not(:disabled):hover { background: var(--mc-red-hover); }
+
+.mc-btn-ghost {
+  background: transparent;
+  color: var(--mc-text);
+  border-color: var(--mc-line);
+  padding: 6px 10px;
+  font-size: 12.5px;
+}
+.mc-btn-ghost:not(:disabled):hover { border-color: var(--mc-red); color: var(--mc-red); }
+
+.mc-actions {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── Notice bar (after save / send) ───────────────────────── */
+.mc-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  margin-bottom: 12px;
+  border: 1px solid;
+}
+.mc-notice-ok   { background: #ecfdf5; border-color: #bbf7d0; color: #15803d; }
+.mc-notice-warn { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+.mc-notice-err  { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+/* ── Plain text cells (date, issued by) ─────────────────────
+   Matches the size of the small text in the recipient cell,
+   so plain cells don't look bigger than the styled ones. */
+.cf-tbl td.mc-cell {
+  font-size: 13.5px;
+  color: var(--mc-text);
+}
+
+/* ── Email status pill in the table ───────────────────────── */
+.mc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mc-pill-sent { background: #ecfdf5; color: #15803d; }
+.mc-pill-none { background: var(--mc-field); color: var(--mc-muted); }
+
+.mc-email {
+  font-size: 12px;
+  color: var(--mc-muted);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+/* ── Modal shell ───────────────────────────────────────────── */
+.mc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(10, 14, 20, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.mc-modal {
+  width: 100%;
+  max-width: 1120px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--mc-surface);
+  color: var(--mc-text);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.mc-modal-sm { max-width: 440px; }
+
+.mc-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--mc-line);
+}
+.mc-modal-head h5 { font-weight: 700; }
+.mc-modal-sub { font-size: 13px; color: var(--mc-muted); margin-top: 2px; }
+
+.mc-close {
+  background: none;
+  border: 0;
+  color: var(--mc-muted);
+  font-size: 18px;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.mc-close:hover { color: var(--mc-text); }
+
+/* Form on the left, preview on the right; stacked on small screens */
+.mc-modal-body {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 22px;
+  padding: 18px 22px;
+  overflow-y: auto;
+}
+@media (max-width: 900px) {
+  .mc-modal-body { grid-template-columns: 1fr; }
+}
+
+.mc-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--mc-line);
+}
+
+/* ── Form fields ───────────────────────────────────────────── */
+.mc-field { margin-bottom: 14px; }
+.mc-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+
+.mc-input {
+  width: 100%;
+  background: var(--mc-field);
+  border: 1px solid var(--mc-line);
+  color: var(--mc-text);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 14px;
+}
+.mc-input:focus {
+  outline: none;
+  border-color: var(--mc-red);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+}
+.mc-textarea { min-height: 104px; resize: vertical; line-height: 1.45; }
+
+.mc-hint  { font-size: 12px; color: var(--mc-muted); margin-top: 4px; }
+.mc-error { font-size: 12px; color: #dc2626; margin-top: 4px; }
+
+.mc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.mc-divider { height: 1px; background: var(--mc-line); margin: 4px 0 14px; }
+
+.mc-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.mc-check input { accent-color: var(--mc-red); width: 16px; height: 16px; }
+
+.mc-send-body { padding: 18px 22px 4px; }
+
+/* ── Live certificate preview ──────────────────────────────────
+   Same layout as the dompdf template. The page is 297mm × 210mm,
+   so positions are converted:  top %  = mm ÷ 210 × 100
+                                 cqw    = mm ÷ 297 × 100
+   cqw = 1% of the preview's width, so everything scales together. */
+.mc-preview-wrap {
+  background: var(--mc-field);
+  border-radius: 10px;
+  padding: 14px;
+  align-self: start;
+  position: sticky;
+  top: 0;
+}
+
+.mc-cert {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 297 / 210;
+  background: #fff;
+  color: #2b2b2b;
+  container-type: inline-size;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font-family: 'DejaVu Sans', Verdana, Geneva, sans-serif;  /* closest to the PDF font */
+}
+
+.mc-cert-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mc-cert-content { position: absolute; inset: 0; }
+
+/* Every text row spans the width and centers, like .row in the PDF */
+.mc-cert-content > div {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.mc-cert-logos  { top: 5.71%; }
+.mc-cert-logos img { height: 6.73cqw; width: 6.73cqw; margin: 0 0.67cqw; object-fit: contain; }
+
+.mc-cert-agency { top: 16.67%; font-size: 1.13cqw; line-height: 1.35; }
+
+.mc-cert-award  { top: 32.38%; font-size: 2.14cqw; color: #1f8fdc; }
+.mc-cert-title  { top: 35.71%; font-size: 4.99cqw; font-weight: bold; color: #1f8fdc; letter-spacing: 0.12cqw; }
+.mc-cert-to     { top: 44.76%; font-size: 2.14cqw; color: #1f8fdc; }
+
+.mc-cert-content > .mc-cert-name {
+  top: 50.48%;
+  left: 50%;
+  width: auto;
+  transform: translateX(-50%);
+  min-width: 57.24cqw;
+  font-weight: bold;
+  padding: 0 2.02cqw 0.5cqw;
+  border-bottom: 0.27cqw solid #2b2b2b;
+  white-space: nowrap;
+}
+
+.mc-cert-content > .mc-cert-body {
+  top: 60.95%;
+  left: 19.53%;
+  width: 62.29%;
+  text-align: left;
+  font-style: italic;
+  line-height: 1.5;
+  overflow-wrap: anywhere;  /* a very long word wraps instead of running off */
+}
+
+.mc-cert-content > .mc-cert-given {
+  top: 72.86%;
+  left: 18.86%;
+  width: 62.29%;
+  font-size: 1.37cqw;
+  font-style: italic;
+}
+
+.mc-cert-signer { top: 81.43%; }
+.mc-cert-sname {
+  display: inline-block;
+  font-size: 1.49cqw;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 0 3.37cqw 0.34cqw;
+  border-bottom: 0.2cqw solid #2b2b2b;
+}
+.mc-cert-stitle { font-size: 1.31cqw; font-weight: bold; line-height: 1.35; margin-top: 0.5cqw; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-btn { transition: none; }
+}
