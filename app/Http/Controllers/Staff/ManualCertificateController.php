@@ -63,11 +63,11 @@ class ManualCertificateController extends Controller
             'message.not_regex'                    => 'A word in the message is too long to fit on one line. Add spaces between words.',
         ]);
 
-        // created_by comes from the logged-in staff, never from the form,
+        // user_id comes from the logged-in staff, never from the form,
         // so nobody can issue a certificate "as" someone else.
         $cert = ManualCertificate::create([
             ...collect($validated)->except('send_email')->all(),
-            'created_by' => $request->user()->id,
+            'user_id' => $request->user()->id,
         ]);
 
         ActivityLog::log(

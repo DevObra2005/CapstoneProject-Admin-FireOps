@@ -17,6 +17,15 @@ return new class extends Migration
         Schema::create('manual_certificates', function (Blueprint $table) {
             $table->id();
 
+            // Staff member who issued it. Named user_id to match
+            // events.user_id and reports.user_id.
+            // nullOnDelete keeps the certificate record even if that
+            // staff account is removed.
+            $table->foreignId('user_id')
+                  ->nullable()
+                  ->constrained('users')
+                  ->nullOnDelete();
+
             // Readable number for records and reprints, e.g. MC-2026-0001
             $table->string('certificate_no')->unique();
 
@@ -31,13 +40,6 @@ return new class extends Migration
             // are print-only. emailed_at stays null until a send succeeds.
             $table->string('recipient_email')->nullable();
             $table->timestamp('emailed_at')->nullable();
-
-            // Which staff member issued it. nullOnDelete keeps the
-            // certificate record even if that staff account is removed.
-            $table->foreignId('created_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
 
             $table->timestamps();
         });

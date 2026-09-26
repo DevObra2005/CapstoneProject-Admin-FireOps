@@ -22,7 +22,7 @@ class ManualCertificate extends Model
         'fire_marshal_name',
         'fire_marshal_title',
         'recipient_email',
-        'created_by',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -33,10 +33,12 @@ class ManualCertificate extends Model
         ];
     }
 
-    // The staff member who issued it
+    // The staff member who issued it.
+    // 'user_id' is passed explicitly because the method is named
+    // creator(): without it, Laravel would look for "creator_id".
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Runs automatically every time a certificate is created.
