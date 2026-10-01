@@ -10,8 +10,11 @@ use App\Models\Event;
 use App\Mail\CertificateMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 use Barryvdh\DomPDF\Facade\Pdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -65,25 +68,42 @@ class ParticipantGameController extends Controller
      *
      * The third one cannot be worked out from this payload — see the
      * note above the match block for why.
+     *
+     * OFFLINE RESULTS — two OPTIONAL fields, both sent by newer Unity builds:
+     *
+     *   participant_attempt_id → a UUID Unity creates once per finished run.
+     *                       If the internet drops after this method saved
+     *                       the run but before Unity got the answer, Unity
+     *                       uploads the same run again from its outbox.
+     *                       A second copy with the same ID returns the
+     *                       ORIGINAL result and saves nothing (STEP 1.5).
+     *
+     *   played_at         → when the run actually finished on the phone.
+     *                       A run played Monday and uploaded Tuesday is
+     *                       stored as Monday (STEP 5.5).
+     *
+     * Leave both out and nothing changes — older app versions keep
+     * working exactly as before.
      */
     public function submitResult(Request $request)
     {
-        // ── STEP 0 — NORMALISE THE EMPTY REASON ──────────────────────
+        // ── STEP 0 — NORMALISE THE EMPTY STRINGS ─────────────────────
         // Unity's JsonUtility cannot omit a field. A null C# string is
-        // serialised as "", so a run with no reason to report still sends
-        // 'fail_reason': "".
+        // serialised as "", so a run with nothing to report still sends
+        // 'fail_reason': "" — and, from newer builds, the same for
+        // 'participant_attempt_id' and 'played_at'.
         //
         // Laravel's `nullable` rule treats NULL as absent — not an empty
-        // string. Without this line the empty value reaches the `in:` rule
-        // below and fails it, and EVERY normal submission would 422:
-        // Kitchen, Classroom, and every Office run that did not end in a
-        // wrong decision.
+        // string. Without this the empty value reaches the `in:`, `uuid`
+        // and `date` rules below and fails them, and EVERY normal
+        // submission would 422.
         //
-        // Converting here rather than loosening the rule keeps the
-        // whitelist meaningful: the column can still only ever hold one of
-        // three known strings.
-        if ($request->input('fail_reason') === '') {
-            $request->merge(['fail_reason' => null]);
+        // Converting here rather than loosening the rules keeps them
+        // meaningful: a value that IS sent must still be valid.
+        foreach (['fail_reason', 'participant_attempt_id', 'played_at'] as $field) {
+            if ($request->input($field) === '') {
+                $request->merge([$field => null]);
+            }
         }
 
         // ── STEP 1 — VALIDATE ────────────────────────────────────────
@@ -99,6 +119,10 @@ class ParticipantGameController extends Controller
             // Whitelisted rather than free text so the column can only
             // ever hold a value the admin panel knows how to render.
             'fail_reason'             => 'nullable|string|in:timeout,low_score,wrong_decision',
+
+            // OPTIONAL — OFFLINE RESULTS. See the method header.
+            'participant_attempt_id'       => 'nullable|uuid',
+            'played_at'               => 'nullable|date',
 
             'steps'                   => 'required|array',
             'steps.*.step_name'       => 'required|string',
@@ -126,7 +150,26 @@ class ParticipantGameController extends Controller
             'steps.*.penalty_seconds' => 'required|integer|min:0',
         ]);
 
-        $participant = $request->user();
+        $participant     = $request->user();
+        $participantAttemptId = $validated['participant_attempt_id'] ?? null;
+
+        // ── STEP 1.5 — SAME RUN UPLOADED TWICE? ──────────────────────
+        // Placed BEFORE any scoring, counting or saving, so a re-upload
+        // changes nothing: no new row, no new attempt number, no second
+        // certificate email. It gets back exactly what the first upload
+        // got, marked duplicate = true.
+        //
+        // Scoped to this participant, so one player's ID can never pull
+        // up another player's result.
+        if ($participantAttemptId !== null) {
+            $existing = GameSession::where('participant_id', $participant->id)
+                ->where('participant_attempt_id', $participantAttemptId)
+                ->first();
+
+            if ($existing) {
+                return $this->duplicateResponse($existing);
+            }
+        }
 
         /// ── STEP 2 — CALCULATE SCORE ─────────────────────────────────
         // Penalties are clamped to the length of the run. A player only
@@ -198,6 +241,9 @@ class ParticipantGameController extends Controller
         // Placed AFTER the score is calculated so the response can still
         // report what they scored on this run, and BEFORE the attempt
         // number is worked out so the count freezes at the passing try.
+        //
+        // Already safe to repeat: a re-upload of a run that landed here
+        // saved nothing the first time and saves nothing again.
         $alreadyPassed = GameSession::where('participant_id', $participant->id)
             ->where('event_id', $validated['event_id'])
             ->where('environment', $validated['environment'])
@@ -208,6 +254,7 @@ class ParticipantGameController extends Controller
             return response()->json([
                 'saved'            => false,
                 'already_recorded' => true,
+                'duplicate'        => false,
                 'passed'           => $passed,
                 'retry'            => false,   // nothing to retry — they're done
                 'fail_reason'      => $failReason,
@@ -224,12 +271,44 @@ class ParticipantGameController extends Controller
         // Count every prior run for this participant + event +
         // environment, then add one. Attempt 1 is their first try,
         // pass or fail.
+        //
+        // OFFLINE NOTE: this counts in UPLOAD order. Unity's outbox
+        // uploads oldest-first and empties itself before sending a new
+        // run, so upload order matches play order.
         $attemptNumber = GameSession::where('participant_id', $participant->id)
             ->where('event_id', $validated['event_id'])
             ->where('environment', $validated['environment'])
             ->count() + 1;
 
-       // ── STEP 6 — SAVE THE SESSION ────────────────────────────────
+        // ── STEP 5.5 — WHEN WAS IT ACTUALLY PLAYED? ──────────────────
+        // Newer builds send the time the run finished on the phone, so a
+        // run uploaded late from the outbox keeps its real date.
+        //
+        // PHONE CLOCKS CANNOT BE FULLY TRUSTED. A time in the future is
+        // impossible for a finished run, so anything more than a few
+        // minutes ahead (allowing for small clock drift) falls back to
+        // now(). Converted to the app timezone before saving, because
+        // Eloquent writes a date as-is without converting it.
+        //
+        // Not sent (older builds): now(), exactly as before.
+        $playedAt = now();
+
+        if (!empty($validated['played_at'])) {
+            $sent = Carbon::parse($validated['played_at'])
+                ->setTimezone(config('app.timezone'));
+
+            if ($sent->lessThanOrEqualTo(now()->addMinutes(10))) {
+                $playedAt = $sent;
+            } else {
+                Log::warning("submitResult: played_at {$validated['played_at']} is in the future - using now().");
+            }
+        }
+
+        // ── STEP 6 + 7 — SAVE THE SESSION AND ITS STEPS ──────────────
+        // ONE TRANSACTION: either the session AND every step are saved,
+        // or nothing is. Before, a failure halfway through could leave a
+        // session with missing steps.
+        //
         // The old unique constraint is gone, so this succeeds on every
         // attempt instead of only the first.
         //
@@ -237,40 +316,68 @@ class ParticipantGameController extends Controller
         // value Unity sent. A player only ever has 90 seconds to lose, so
         // storing a larger figure would make the admin panel show more
         // penalty time than the run contained.
-        $session = GameSession::create([
-            'participant_id'   => $participant->id,
-            'event_id'         => $validated['event_id'],
-            'environment'      => $validated['environment'],
-            'attempt_number'   => $attemptNumber,
-            'phase1_completed' => true,
-            'phase2_score'     => $validated['phase2_score'],
-            'total_penalties'  => $penalties,
-            'percentage_score' => $percentage,
-            'score_label'      => $label,
-            'phase2_passed'    => $timerSurvived,
-            'passed'           => $passed,
-            'fail_reason'      => $failReason,
-            'played_at'        => now(),
-        ]);
+        //
+        // Steps are saved for failures too — the step breakdown is exactly
+        // what makes a failed attempt worth reviewing.
+        try {
+            $session = DB::transaction(function () use (
+                $participant, $validated, $attemptNumber, $participantAttemptId,
+                $penalties, $percentage, $label, $timerSurvived, $passed,
+                $failReason, $playedAt
+            ) {
+                $session = GameSession::create([
+                    'participant_id'    => $participant->id,
+                    'event_id'          => $validated['event_id'],
+                    'environment'       => $validated['environment'],
+                    'attempt_number'    => $attemptNumber,
+                    'participant_attempt_id' => $participantAttemptId,
+                    'phase1_completed'  => true,
+                    'phase2_score'      => $validated['phase2_score'],
+                    'total_penalties'   => $penalties,
+                    'percentage_score'  => $percentage,
+                    'score_label'       => $label,
+                    'phase2_passed'     => $timerSurvived,
+                    'passed'            => $passed,
+                    'fail_reason'       => $failReason,
+                    'played_at'         => $playedAt,
+                ]);
 
-        // ── STEP 7 — SAVE THE STEPS ──────────────────────────────────
-        // Saved for failures too — the step breakdown is exactly what
-        // makes a failed attempt worth reviewing.
-        foreach ($validated['steps'] as $step) {
-            SimulationStep::create([
-                'session_id'      => $session->id,
-                'step_name'       => $step['step_name'],
-                'sub_step'        => $step['sub_step'] ?? null,
-                'chosen_action'   => $step['chosen_action'],
-                'was_correct'     => $step['was_correct'],
-                'penalty_seconds' => $step['penalty_seconds'],
-            ]);
+                foreach ($validated['steps'] as $step) {
+                    SimulationStep::create([
+                        'session_id'      => $session->id,
+                        'step_name'       => $step['step_name'],
+                        'sub_step'        => $step['sub_step'] ?? null,
+                        'chosen_action'   => $step['chosen_action'],
+                        'was_correct'     => $step['was_correct'],
+                        'penalty_seconds' => $step['penalty_seconds'],
+                    ]);
+                }
+
+                return $session;
+            });
+        } catch (QueryException $e) {
+            // TWO COPIES AT THE SAME INSTANT. Both passed STEP 1.5 before
+            // either was saved; the unique column refused the second one
+            // (SQLSTATE 23000 = integrity constraint violation) and the
+            // transaction rolled it back. Answer with the copy that won.
+            if ($participantAttemptId !== null && $e->getCode() === '23000') {
+                $existing = GameSession::where('participant_id', $participant->id)
+                    ->where('participant_attempt_id', $participantAttemptId)
+                    ->first();
+
+                if ($existing) {
+                    return $this->duplicateResponse($existing);
+                }
+            }
+
+            throw $e;   // any other database error is a real error
         }
 
         // ── STEP 8 — CERTIFICATE (PASSES ONLY) ───────────────────────
         // Step 4.5 already blocks a second pass from reaching this
         // point, but the guard inside issueCertificate stays as a
-        // second line of defence.
+        // second line of defence. A duplicate upload never reaches here
+        // at all — STEP 1.5 returns before it.
         if ($passed) {
             try {
                 $this->issueCertificate($participant, $session, $percentage, $label);
@@ -286,6 +393,7 @@ class ParticipantGameController extends Controller
         return response()->json([
             'saved'            => true,
             'already_recorded' => false,
+            'duplicate'        => false,
             'passed'           => $passed,
             'retry'            => !$passed,
             'fail_reason'      => $failReason,
@@ -298,6 +406,31 @@ class ParticipantGameController extends Controller
             'score_label'      => $label,
             'time_remaining'   => $validated['phase2_score'],
         ], 201);
+    }
+
+    /**
+     * The response for a run that was ALREADY saved by an earlier upload.
+     *
+     * Built from the stored row, so the player sees exactly the result the
+     * first upload produced. 200 rather than 201 — nothing was created.
+     * Same keys as every other response, so Unity parses it the same way.
+     */
+    private function duplicateResponse(GameSession $session)
+    {
+        return response()->json([
+            'saved'            => true,
+            'already_recorded' => false,
+            'duplicate'        => true,
+            'passed'           => (bool) $session->passed,
+            'retry'            => !$session->passed,
+            'fail_reason'      => $session->fail_reason,
+            'attempt_number'   => $session->attempt_number,
+            'message'          => 'Already received — this attempt was saved earlier.',
+            'session_id'       => $session->id,
+            'percentage_score' => $session->percentage_score,
+            'score_label'      => $session->score_label,
+            'time_remaining'   => $session->phase2_score,
+        ], 200);
     }
 
     /**

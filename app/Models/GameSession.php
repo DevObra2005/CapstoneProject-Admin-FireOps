@@ -15,6 +15,12 @@ class GameSession extends Model
         'event_id',
         'environment',
         'attempt_number',
+
+        // OFFLINE RESULTS — the UUID Unity creates for each finished run.
+        // Lets submitResult recognise a re-upload of the same run.
+        // Null for runs sent by older app versions.
+        'participant_attempt_id',
+
         'phase1_completed',
         'phase2_score',
         'percentage_score',

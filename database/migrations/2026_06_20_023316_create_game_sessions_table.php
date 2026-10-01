@@ -31,6 +31,20 @@ return new class extends Migration
             // right before saving.
             $table->unsignedInteger('attempt_number')->default(1);
 
+            // OFFLINE RESULTS — duplicate protection.
+            // A UUID Unity creates once per finished run and sends with the
+            // result. If the internet drops AFTER this row was saved but
+            // BEFORE Unity got the answer, Unity uploads the same run again
+            // from its outbox; submitResult finds this ID and returns the
+            // original result instead of saving a second row.
+            //
+            // UNIQUE is the real guard: two copies arriving at the same
+            // instant can both pass the controller's check, but the database
+            // refuses the second row. NULLABLE so runs sent by older app
+            // versions (no ID) still save — MySQL allows many NULLs in a
+            // unique column.
+            $table->uuid('participant_attempt_id')->nullable()->unique();
+
             // Phase 1 — always true if they reached Phase 2
             $table->boolean('phase1_completed')->default(false);
 
@@ -60,7 +74,10 @@ return new class extends Migration
             // Drives the label in the admin attempt table.
             $table->string('fail_reason', 20)->nullable();
 
-            // When they completed this session
+            // When they completed this session.
+            // OFFLINE RESULTS: newer Unity builds send the time the run
+            // finished on the phone, so a run uploaded late keeps its real
+            // date. useCurrent() is the fallback for older builds.
             $table->timestamp('played_at')->useCurrent();
 
             // NO UNIQUE CONSTRAINT — multiple attempts are the point now.
