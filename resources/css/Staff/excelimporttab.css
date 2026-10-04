@@ -1,0 +1,362 @@
+/* ══════════════════════════════════════════════════════════════
+   EXCEL IMPORT — PREVIEW STAGE
+   Used only by ExcelImportTab.jsx (stage: preview).
+
+   Colours come from the --ap-* variables declared on .ap-backdrop
+   in addparticipant.css, so this file has no colours of its own.
+
+   Every class starts with "ap-pv-" so nothing here can collide
+   with other styles.
+   ══════════════════════════════════════════════════════════════ */
+
+.ap-pv {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    color: var(--ap-text);
+}
+
+/* ── Tones: one class sets the colours for cards and pills ──
+   --tone      strong colour (numbers, dots, icons)
+   --tone-soft tinted background
+   --tone-ink  readable text on that background
+   --tone-bd   soft border                                      */
+.ap-pv-tone-new {
+    --tone:      var(--ap-ok);
+    --tone-soft: var(--ap-ok-bg);
+    --tone-ink:  var(--ap-ok-ink);
+    --tone-bd:   var(--ap-ok-border);
+}
+
+.ap-pv-tone-existing {
+    --tone:      var(--ap-amber-text);
+    --tone-soft: var(--ap-amber-soft);
+    --tone-ink:  var(--ap-amber-ink);
+    --tone-bd:   var(--ap-amber-border);
+}
+
+.ap-pv-tone-duplicate {
+    --tone:      var(--ap-text-dim);
+    --tone-soft: var(--ap-panel-alt);
+    --tone-ink:  var(--ap-text-mid);
+    --tone-bd:   var(--ap-border);
+}
+
+.ap-pv-tone-error {
+    --tone:      var(--ap-err);
+    --tone-soft: var(--ap-err-bg);
+    --tone-ink:  var(--ap-err-ink);
+    --tone-bd:   var(--ap-err-border);
+}
+
+/* ══ FILE BAR ══ */
+.ap-pv-file {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--ap-panel-alt);
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
+}
+
+.ap-pv-file-icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+    color: var(--ap-ok);
+    background: var(--ap-ok-bg);
+    border-radius: 10px;
+}
+
+.ap-pv-file-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ap-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ap-pv-file-change {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ap-text-mid);
+    cursor: pointer;
+    background: var(--ap-panel);
+    border: 1px solid var(--ap-border);
+    border-radius: 9px;
+    transition: color .15s ease, border-color .15s ease;
+}
+
+.ap-pv-file-change:hover {
+    color: var(--ap-amber-text);
+    border-color: var(--ap-amber);
+}
+
+/* ══ STAT CARDS ══ */
+.ap-pv-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ap-pv-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    background: var(--tone-soft);
+    border: 1px solid var(--tone-bd);
+    border-radius: 12px;
+}
+
+.ap-pv-stat-icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    color: var(--tone);
+    background: var(--ap-panel);
+    border-radius: 10px;
+    box-shadow: var(--sh-sm);
+}
+
+.ap-pv-stat-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ap-pv-stat-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--tone);
+}
+
+.ap-pv-stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--tone-ink);
+    white-space: nowrap;
+}
+
+/* ══ WARNING ══ */
+.ap-pv-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--ap-amber-ink);
+    background: var(--ap-amber-soft);
+    border: 1px solid var(--ap-amber-border);
+    border-radius: 12px;
+}
+
+.ap-pv-warning i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--ap-amber-text);
+}
+
+/* ══ FILTER CHIPS (segmented control, same style as the tabs) ══ */
+.ap-pv-chips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-self: flex-start;
+    gap: 3px;
+    padding: 3px;
+    background: var(--ap-panel-alt);
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
+}
+
+.ap-pv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ap-text-dim);
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.ap-pv-chip:hover { color: var(--ap-text); }
+
+.ap-pv-chip.is-active {
+    color: var(--ap-text);
+    background: var(--ap-panel);
+    border-color: var(--ap-border);
+    box-shadow: var(--sh-sm);
+}
+
+.ap-pv-chip-count { font-weight: 800; }
+
+.ap-pv-chip-new .ap-pv-chip-count   { color: var(--ap-ok); }
+.ap-pv-chip-error .ap-pv-chip-count { color: var(--ap-err); }
+
+/* ══ TABLE ══
+
+   overflow: clip rounds the corners but does NOT create a scroll
+   area. So there is only ONE scrollbar (the modal body), and the
+   sticky header sticks to the top of the modal body as you scroll. */
+.ap-pv-table-wrap {
+    overflow: hidden;   /* fallback for very old browsers */
+    overflow: clip;
+    background: var(--ap-panel);
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
+}
+
+.ap-pv-table {
+    width: 100%;
+    font-size: 0.82rem;
+    border-collapse: collapse;
+    table-layout: fixed;   /* columns keep their widths, no squeezing */
+}
+
+/* Sticky header with a SOLID background.
+
+   top is NEGATIVE on purpose: the scroll area (.ap-body) has 20px
+   of top padding, and browsers measure sticky positions from
+   inside that padding. top: 0 would leave a 20px gap above the
+   header where rows show through. -20px cancels the padding so
+   the header sits flush with the top edge.
+
+   If you ever change .ap-body's top padding in addparticipant.css,
+   change this number to match. */
+.ap-pv-table thead th {
+    position: sticky;
+    top: -20px;
+    z-index: 2;
+    padding: 10px 12px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--ap-text-dim);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--ap-panel-alt);
+    border-bottom: 1px solid var(--ap-border);
+}
+
+.ap-pv-table tbody td {
+    padding: 11px 12px;
+    color: var(--ap-text-mid);
+    vertical-align: top;
+    border-bottom: 1px solid var(--ap-border-soft);
+}
+
+.ap-pv-table tbody tr:last-child td { border-bottom: none; }
+
+.ap-pv-table tbody tr:hover td { background: var(--ap-panel-alt); }
+
+/* Column widths */
+.ap-pv-col-row     { width: 56px; }
+.ap-pv-col-contact { width: 150px; }
+.ap-pv-col-status  { width: 116px; }
+
+.ap-pv-table tbody td.ap-pv-col-row {
+    font-weight: 600;
+    color: var(--ap-text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.ap-pv-table tbody td.ap-pv-name {
+    font-weight: 700;
+    color: var(--ap-text);
+}
+
+.ap-pv-email { word-break: break-all; }
+
+/* ══ RED ERROR CELL ══ */
+.ap-pv-bad {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 8px;
+    font-weight: 600;
+    color: var(--ap-err);
+    background: var(--ap-err-bg);
+    border: 1px solid var(--ap-err-border);
+    border-radius: 8px;
+}
+
+.ap-pv-bad-value { word-break: break-all; }
+
+.ap-pv-bad-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ap-err-ink);
+}
+
+.ap-pv-bad-hint i { flex-shrink: 0; margin-top: 1px; }
+
+/* Hint under the name when the error is on a hidden column */
+.ap-pv-hint-plain { margin-top: 4px; }
+
+/* ══ STATUS PILL ══ */
+.ap-pv-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--tone-ink);
+    white-space: nowrap;
+    background: var(--tone-soft);
+    border: 1px solid var(--tone-bd);
+    border-radius: 999px;
+}
+
+.ap-pv-pill-dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--tone);
+    border-radius: 50%;
+}
+
+/* ══ SMALL SCREENS ══ */
+@media (max-width: 560px) {
+    .ap-pv-stats       { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ap-pv-col-row     { width: 40px; }
+    .ap-pv-col-contact { width: 118px; }
+    .ap-pv-col-status  { width: 96px; }
+}
+
+/* Phone: .ap-body's top padding drops to 18px here
+   (see addparticipant.css), so the sticky offset follows. */
+@media (max-width: 480px) {
+    .ap-pv-table thead th { top: -18px; }
+}

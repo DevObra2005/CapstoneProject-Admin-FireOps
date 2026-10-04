@@ -265,6 +265,18 @@ class ParticipantController extends Controller
      * Writes nothing. Sends no email. Purely a dry run so staff can
      * catch typos before any account is created.
      */
+        /**
+     * PROTECTED — Parse an uploaded file and report what WOULD happen
+     * Route: POST /api/staff/events/{eventId}/participants/import/preview
+     *
+     * Writes nothing. Sends no email. Purely a dry run so staff can
+     * catch typos before any account is created.
+     *
+     * Error rows include:
+     *   - error_field : which column failed (name, email, organization,
+     *                   contact_number) so React can highlight that cell
+     *   - message     : a SHORT hint shown under the highlighted value
+     */
     public function previewImport(Request $request, $eventId)
     {
         $event = Event::where('id', $eventId)->firstOrFail();
@@ -364,22 +376,29 @@ class ParticipantController extends Controller
             $email        = strtolower(trim((string) ($row[$headers['email']] ?? '')));
             $organization = trim((string) ($row[$headers['organization']] ?? ''));
 
-            // Contact numbers come back from Excel as floats when the cell
-            // was stored as a number — 9171234567 arrives as 9171234567.0.
-            // number_format strips the decimal without scientific notation.
             $contact = isset($headers['contact_number'])
                 ? ($row[$headers['contact_number']] ?? null)
                 : null;
 
             // Only convert when the cell arrived as an actual NUMBER.
             // Excel stores a plain-typed 09171234567 as the float
-            // 9171234567.0, and casting recovers the digits.
+            // 9171234567.0, and number_format recovers the digits
+            // without scientific notation.
             //
             // is_numeric() must NOT be used here: it returns true for the
             // STRING "09171234567" too, so the cast would strip the very
             // leading zero the template works to preserve.
             if (is_float($contact) || is_int($contact)) {
                 $contact = number_format((float) $contact, 0, '', '');
+
+                // RESTORE THE LOST LEADING ZERO.
+                // A number cell can never start with 0, so Excel turns
+                // 09171234567 into 9171234567 (10 digits starting with 9).
+                // That pattern can only be a PH mobile number missing its
+                // 0, so we put it back. Text cells are never touched.
+                if (preg_match('/^9\d{9}$/', $contact)) {
+                    $contact = '0' . $contact;
+                }
             }
 
             $contact = trim((string) $contact);
@@ -401,26 +420,46 @@ class ParticipantController extends Controller
             // Same rules as the manual endpoint. Validator::make() lets us
             // validate without throwing — we want to collect every bad row
             // and report them together, not stop at the first one.
+            //
+            // Messages are SHORT on purpose: they appear as a small hint
+            // under the highlighted cell in the preview table.
             $validator = Validator::make($entry, [
                 'name'           => 'required|string|max:255',
                 'email'          => 'required|email|max:255',
                 'organization'   => 'required|in:Employee,Student',
                 'contact_number' => ['nullable', 'regex:/^09\d{9}$/'],
             ], [
-                'contact_number.regex' => 'Contact number must be 11 digits starting with 09.',
+                'name.required'         => 'Name is missing',
+                'name.max'              => 'Name is too long (max 255)',
+                'email.required'        => 'Email is missing',
+                'email.email'           => 'Invalid email',
+                'email.max'             => 'Email is too long (max 255)',
+                'organization.required' => 'Organization is missing',
+                'organization.in'       => 'Organization must be Employee or Student',
+                // Replaced below by a more specific hint
+                'contact_number.regex'  => 'Invalid contact number',
             ]);
 
             if ($validator->fails()) {
-                $entry['status']  = 'error';
-                $entry['message'] = $validator->errors()->first();
+                // keys() lists the fields that failed, in rule order.
+                // We report the first one, and tell React which column it is.
+                $field = $validator->errors()->keys()[0];
+
+                $entry['status']      = 'error';
+                $entry['error_field'] = $field;
+                $entry['message']     = $field === 'contact_number'
+                    ? $this->contactNumberHint($entry['contact_number'])
+                    : $validator->errors()->first($field);
+
                 $parsed[] = $entry;
                 continue;
             }
 
             // Duplicate WITHIN the uploaded file
             if (isset($seenInFile[$email])) {
-                $entry['status']  = 'error';
-                $entry['message'] = 'This email is duplicate on row ' . $seenInFile[$email] . '.';
+                $entry['status']      = 'error';
+                $entry['error_field'] = 'email';
+                $entry['message']     = 'Same email as row ' . $seenInFile[$email];
                 $parsed[] = $entry;
                 continue;
             }
@@ -484,6 +523,28 @@ class ParticipantController extends Controller
         ], 200);
     }
 
+    /**
+     * Builds a short, specific hint for an invalid contact number,
+     * so staff see exactly what's wrong instead of one generic sentence.
+     *
+     * Only called when the regex /^09\d{9}$/ has already failed.
+     */
+    private function contactNumberHint(?string $contact): string
+    {
+        $contact = (string) $contact;
+
+        // Letters, spaces, dashes, +63 ...
+        if (!preg_match('/^\d+$/', $contact)) {
+            return 'Numbers only';
+        }
+
+        if (!str_starts_with($contact, '09')) {
+            return 'Must start with 09';
+        }
+
+        // Starts with 09 but the length is wrong
+        return 'Has ' . strlen($contact) . ' digits, needs 11';
+    }
     /**
      * PROTECTED — Commit ONE CHUNK of rows from a reviewed import
      * Route: POST /api/staff/events/{eventId}/participants/import/commit

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import api from '../../api/axios'
+import '../../../css/Staff/excelimporttab.css'
 
 // How many rows go in each commit request.
 // Gmail SMTP takes 1-3s per email, so 10 rows ≈ 10-30s — comfortably
@@ -7,6 +8,25 @@ import api from '../../api/axios'
 // Raising this risks a half-finished import with no way to tell
 // which rows made it.
 const CHUNK_SIZE = 10
+
+// The columns shown in the preview table. If an error belongs to one of
+// these fields, that cell turns red. Anything else (e.g. organization)
+// shows the message under the name instead.
+const SHOWN_FIELDS = ['name', 'email', 'contact_number']
+
+// Works out WHICH column an error belongs to.
+// 1. Prefer row.error_field — the backend will send this after Step 2.
+// 2. Until then, guess from the wording of row.message.
+const getErrorField = (row) => {
+    if (row.status !== 'error') return null
+    if (row.error_field) return row.error_field
+
+    const msg = (row.message || '').toLowerCase()
+    if (msg.includes('contact')) return 'contact_number'
+    if (msg.includes('email'))   return 'email'
+    if (msg.includes('name'))    return 'name'
+    return null
+}
 
 export default function ExcelImportTab({ event, onSuccess }) {
     // 'pick' → 'preview' → 'importing' → 'done'
@@ -18,6 +38,10 @@ export default function ExcelImportTab({ event, onSuccess }) {
     const [progress, setProgress] = useState({ done: 0, total: 0 })
     const [result, setResult]     = useState(null)   // final totals
     const [dragging, setDragging] = useState(false)
+
+    // Which filter chip is active in the preview: 'all', 'new',
+    // 'existing', 'duplicate' or 'error'
+    const [filter, setFilter]     = useState('all')
 
     // The real <input type="file"> is hidden — the styled drop zone
     // triggers it. Browsers won't let you style a file input directly.
@@ -69,6 +93,7 @@ export default function ExcelImportTab({ event, onSuccess }) {
                 formData
             )
             setPreview(res.data)
+            setFilter('all')
             setStage('preview')
 
         } catch (err) {
@@ -157,6 +182,7 @@ export default function ExcelImportTab({ event, onSuccess }) {
         setPreview(null)
         setResult(null)
         setError(null)
+        setFilter('all')
         setProgress({ done: 0, total: 0 })
         if (fileInputRef.current) fileInputRef.current.value = ''
     }
@@ -241,38 +267,80 @@ export default function ExcelImportTab({ event, onSuccess }) {
         const { summary, rows } = preview
         const importable = summary.new + summary.existing
 
-        return (
-            <div className="ap-excel">
+        // The 4 stat cards. Each has its own colour (tone) and icon.
+        const stats = [
+            { tone: 'new',       label: 'New',        value: summary.new,       icon: 'bi-person-plus' },
+            { tone: 'existing',  label: 'Existing',   value: summary.existing,  icon: 'bi-person-check' },
+            { tone: 'duplicate', label: 'Already in', value: summary.duplicate, icon: 'bi-people' },
+            { tone: 'error',     label: 'Errors',     value: summary.error,     icon: 'bi-exclamation-triangle' },
+        ]
 
-                <div className="ap-file-bar">
-                    <span className="ap-file-name">
-                        <i className="bi bi-file-earmark-spreadsheet"></i>
-                        {file?.name}
+        // Filter chips. "All" always shows; the others only if they
+        // have at least one row, so staff never click an empty filter.
+        const filters = [
+            { key: 'all',       label: 'All',        count: rows.length },
+            { key: 'new',       label: 'New',        count: summary.new },
+            { key: 'existing',  label: 'Existing',   count: summary.existing },
+            { key: 'duplicate', label: 'Already in', count: summary.duplicate },
+            { key: 'error',     label: 'Errors',     count: summary.error },
+        ].filter(f => f.key === 'all' || f.count > 0)
+
+        // Rows that match the active chip
+        const visibleRows = filter === 'all'
+            ? rows
+            : rows.filter(r => r.status === filter)
+
+        // Draws one table cell. If this cell's field is the one that
+        // failed, it gets the red box with the message underneath.
+        const renderCell = (row, field, errorField) => {
+            const value = row[field] || '—'
+
+            if (errorField !== field) return value
+
+            return (
+                <div className="ap-pv-bad">
+                    <span className="ap-pv-bad-value">{value}</span>
+                    <span className="ap-pv-bad-hint">
+                        <i className="bi bi-exclamation-circle"></i>
+                        {row.message}
                     </span>
-                    <button className="ap-link" onClick={reset}>Change file</button>
+                </div>
+            )
+        }
+
+        return (
+            <div className="ap-excel ap-pv">
+
+                {/* ── File bar ── */}
+                <div className="ap-pv-file">
+                    <span className="ap-pv-file-icon">
+                        <i className="bi bi-file-earmark-spreadsheet"></i>
+                    </span>
+                    <span className="ap-pv-file-name">{file?.name}</span>
+                    <button className="ap-pv-file-change" onClick={reset}>
+                        <i className="bi bi-arrow-repeat"></i>
+                        Change file
+                    </button>
                 </div>
 
-                <div className="ap-counts">
-                    <div className="ap-count ap-count-new">
-                        <span className="ap-count-n">{summary.new}</span>
-                        <span className="ap-count-l">New</span>
-                    </div>
-                    <div className="ap-count ap-count-existing">
-                        <span className="ap-count-n">{summary.existing}</span>
-                        <span className="ap-count-l">Existing</span>
-                    </div>
-                    <div className="ap-count ap-count-dupe">
-                        <span className="ap-count-n">{summary.duplicate}</span>
-                        <span className="ap-count-l">Already in</span>
-                    </div>
-                    <div className="ap-count ap-count-err">
-                        <span className="ap-count-n">{summary.error}</span>
-                        <span className="ap-count-l">Errors</span>
-                    </div>
+                {/* ── Stat cards ── */}
+                <div className="ap-pv-stats">
+                    {stats.map(s => (
+                        <div key={s.tone} className={`ap-pv-stat ap-pv-tone-${s.tone}`}>
+                            <span className="ap-pv-stat-icon">
+                                <i className={`bi ${s.icon}`}></i>
+                            </span>
+                            <span className="ap-pv-stat-text">
+                                <span className="ap-pv-stat-value">{s.value}</span>
+                                <span className="ap-pv-stat-label">{s.label}</span>
+                            </span>
+                        </div>
+                    ))}
                 </div>
 
+                {/* ── Warning (only when some rows will be skipped) ── */}
                 {summary.error > 0 && (
-                    <div className="ap-alert ap-alert-warning">
+                    <div className="ap-pv-warning">
                         <i className="bi bi-exclamation-triangle-fill"></i>
                         <span>
                             {summary.error} row{summary.error > 1 ? 's' : ''} will be skipped.
@@ -281,34 +349,72 @@ export default function ExcelImportTab({ event, onSuccess }) {
                     </div>
                 )}
 
-                <div className="ap-table-wrap">
-                    <table className="ap-table">
+                {/* ── Filter chips ── */}
+                <div className="ap-pv-chips">
+                    {filters.map(f => (
+                        <button
+                            key={f.key}
+                            className={`ap-pv-chip ${filter === f.key ? 'is-active' : ''} ap-pv-chip-${f.key}`}
+                            onClick={() => setFilter(f.key)}
+                        >
+                            {f.label}
+                            <span className="ap-pv-chip-count">{f.count}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* ── Table ── */}
+                <div className="ap-pv-table-wrap">
+                    <table className="ap-pv-table">
                         <thead>
                             <tr>
-                                <th className="ap-th-row">Row</th>
+                                <th className="ap-pv-col-row">Row</th>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th className="ap-th-status">Status</th>
+                                <th className="ap-pv-col-contact">Contact no.</th>
+                                <th className="ap-pv-col-status">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map(row => (
-                                <tr key={row.row_number} className={`ap-tr-${row.status}`}>
-                                    <td className="ap-td-row">{row.row_number}</td>
-                                    <td className="ap-td-name">{row.name || '—'}</td>
-                                    <td className="ap-td-email">
-                                        {row.email || '—'}
-                                        {row.status === 'error' && (
-                                            <span className="ap-td-msg">{row.message}</span>
-                                        )}
-                                    </td>
-                                    <td>
-                                        <span className={`ap-pill ap-pill-${row.status}`}>
-                                            {statusLabel[row.status]}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
+                            {visibleRows.map(row => {
+                                const errorField = getErrorField(row)
+
+                                // Error on a column we don't show (e.g. organization),
+                                // or one we couldn't detect → show it under the name.
+                                const showUnderName =
+                                    row.status === 'error' && !SHOWN_FIELDS.includes(errorField)
+
+                                return (
+                                    <tr key={row.row_number}>
+                                        <td className="ap-pv-col-row">{row.row_number}</td>
+
+                                        <td className="ap-pv-name">
+                                            {renderCell(row, 'name', errorField)}
+                                            {showUnderName && (
+                                                <span className="ap-pv-bad-hint ap-pv-hint-plain">
+                                                    <i className="bi bi-exclamation-circle"></i>
+                                                    {row.message}
+                                                </span>
+                                            )}
+                                        </td>
+
+                                        <td className="ap-pv-email">
+                                            {renderCell(row, 'email', errorField)}
+                                        </td>
+
+                                        <td className="ap-pv-col-contact">
+                                            {renderCell(row, 'contact_number', errorField)}
+                                        </td>
+
+                                        <td className="ap-pv-col-status">
+                                            <span className={`ap-pv-pill ap-pv-tone-${row.status}`}>
+                                                <span className="ap-pv-pill-dot"></span>
+                                                {statusLabel[row.status]}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 </div>

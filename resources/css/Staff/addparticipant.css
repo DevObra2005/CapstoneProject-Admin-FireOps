@@ -1,146 +1,165 @@
 /* ══════════════════════════════════════════════════════════════
-   ADD PARTICIPANT MODAL
+   ADD PARTICIPANT MODAL — modern
 
-   Theme tokens are declared locally on .ap-backdrop and flipped
-   under [data-theme="light"]. Everything below consumes the
-   variables, so switching themes changes only this one block.
+   The --ap-* variables are "adapters": most of them point at the
+   GLOBAL theme in sidebar.css (--panel, --line, --ink, --pass,
+   --fail ...). When the theme toggles data-theme="dark" on <html>,
+   those globals change, so this modal follows automatically.
+
+   Only amber (the modal's accent) is defined here, because the
+   global theme has no amber colour.
+
+   Light is the default (:root), dark overrides below.
    ══════════════════════════════════════════════════════════════ */
 
 .ap-backdrop {
-    /* ── DARK (default) ── */
-    --ap-panel:        #1C232C;
-    --ap-panel-alt:    rgba(0, 0, 0, 0.18);
-    --ap-border:       rgba(255, 255, 255, 0.09);
-    --ap-border-soft:  rgba(255, 255, 255, 0.06);
-    --ap-text:         #ffffff;
-    --ap-text-mid:     rgba(255, 255, 255, 0.72);
-    --ap-text-dim:     rgba(255, 255, 255, 0.45);
-    --ap-text-faint:   rgba(255, 255, 255, 0.30);
-    --ap-input-bg:     rgba(255, 255, 255, 0.04);
-    --ap-input-bg-on:  rgba(255, 255, 255, 0.07);
-    --ap-input-border: rgba(255, 255, 255, 0.13);
-    --ap-hover:        rgba(255, 255, 255, 0.08);
+    /* ── Neutrals (from the global theme) ── */
+    --ap-panel:        var(--panel);
+    --ap-panel-alt:    var(--soft);
+    --ap-border:       var(--line);
+    --ap-border-soft:  color-mix(in srgb, var(--line) 60%, transparent);
+    --ap-text:         var(--ink);
+    --ap-text-mid:     var(--ink2);
+    --ap-text-dim:     var(--muted);
+    --ap-text-faint:   var(--faint);
+    --ap-input-bg:     var(--soft);
+    --ap-input-border: var(--line);
+    --ap-hover:        var(--soft);
 
-    --ap-amber:        #f4a300;
-    --ap-amber-hi:     #ffb51f;
-    --ap-red:          #c0392b;
-    --ap-red-text:     #ef8175;
-    --ap-green-text:   #7ee29a;
+    /* ── Status colours (from the global theme) ── */
+    --ap-ok:           var(--pass);
+    --ap-ok-bg:        var(--pass-soft);
+    --ap-ok-ink:       var(--pass-ink);
+    --ap-ok-border:    color-mix(in srgb, var(--pass) 30%, transparent);
 
-    --ap-ok-bg:        rgba(40, 167, 69, 0.12);
-    --ap-ok-border:    rgba(40, 167, 69, 0.35);
-    --ap-warn-bg:      rgba(244, 163, 0, 0.12);
-    --ap-warn-border:  rgba(244, 163, 0, 0.35);
-    --ap-err-bg:       rgba(192, 57, 43, 0.12);
-    --ap-err-border:   rgba(192, 57, 43, 0.40);
+    --ap-err:          var(--fail);
+    --ap-err-bg:       var(--fail-soft);
+    --ap-err-ink:      var(--fail-ink);
+    --ap-err-border:   color-mix(in srgb, var(--fail) 35%, transparent);
 
-    --ap-scrim:        rgba(0, 0, 0, 0.65);
-    --ap-shadow:       0 20px 60px rgba(0, 0, 0, 0.5);
+    /* ── Amber accent (modal only) — light values ── */
+    --ap-amber:        #f4a300;   /* button fill — same in both themes */
+    --ap-amber-hi:     #ffb51f;   /* button hover */
+    --ap-amber-on:     #2b1a00;   /* text ON the amber button */
+    --ap-amber-text:   #a86a00;   /* active tab icon, links, icons */
+    --ap-amber-soft:   #fff4dc;   /* tinted backgrounds */
+    --ap-amber-ink:    #6b4500;   /* text on tinted backgrounds */
+    --ap-amber-border: color-mix(in srgb, #f4a300 35%, transparent);
+    --ap-ring:         rgba(244, 163, 0, 0.22);   /* input focus glow */
+
+    --ap-scrim:        rgba(17, 24, 39, 0.45);
+    --ap-shadow:       0 24px 60px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
 
     position: fixed;
     inset: 0;
-    background: var(--ap-scrim);
-    backdrop-filter: blur(3px);
+    z-index: 1060;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1060;
     padding: 24px;
+    background: var(--ap-scrim);
+    backdrop-filter: blur(4px);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-/* ── LIGHT ──
-   Attribute sits on <html>, and createPortal mounts the modal on
-   <body>, so a descendant selector reaches it either way. */
-[data-theme="light"] .ap-backdrop {
-    --ap-panel:        #ffffff;
-    --ap-panel-alt:    #f9fafb;
-    --ap-border:       #e5e7eb;
-    --ap-border-soft:  #f0f1f3;
-    --ap-text:         #111827;
-    --ap-text-mid:     #4b5563;
-    --ap-text-dim:     #6b7280;
-    --ap-text-faint:   #9ca3af;
-    --ap-input-bg:     #ffffff;
-    --ap-input-bg-on:  #ffffff;
-    --ap-input-border: #d8dbe0;
-    --ap-hover:        #f3f4f6;
+/* ── DARK ──
+   The attribute sits on <html>, and createPortal mounts the modal
+   on <body>, so this descendant selector reaches it. */
+[data-theme="dark"] .ap-backdrop {
+    --ap-amber-text:   #f4a300;
+    --ap-amber-soft:   #2e2208;
+    --ap-amber-ink:    #ffc95c;
+    --ap-ring:         rgba(244, 163, 0, 0.28);
 
-    --ap-red-text:     #9b1c1c;
-    --ap-green-text:   #166534;
-
-    --ap-ok-bg:        #f0fdf4;
-    --ap-ok-border:    #bbf7d0;
-    --ap-warn-bg:      #fffbeb;
-    --ap-warn-border:  #fde68a;
-    --ap-err-bg:       #fdf2f2;
-    --ap-err-border:   #fcd5d5;
-
-    --ap-scrim:        rgba(17, 24, 39, 0.45);
-    --ap-shadow:       0 20px 50px rgba(17, 24, 39, 0.18);
+    --ap-scrim:        rgba(0, 0, 0, 0.70);
+    --ap-shadow:       0 24px 70px rgba(0, 0, 0, 0.70), 0 4px 14px rgba(0, 0, 0, 0.50);
 }
 
-/* Warning text needs a darker amber in light mode — #f4a300 on a
-   pale background fails contrast badly. */
-[data-theme="light"] .ap-alert-warning { color: #92400e; }
-
-/* ── Panel ────────────────────────────────────────────────── */
+/* ══ PANEL ═══════════════════════════════════════════════════ */
 .ap-panel {
-    background: var(--ap-panel);
-    border: 1px solid var(--ap-border);
-    border-radius: 14px;
-    width: 100%;
-    max-width: 620px;
-    max-height: 90vh;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
     overflow: hidden;
+    background: var(--ap-panel);
+    border: 1px solid var(--ap-border);
+    border-radius: 18px;
     box-shadow: var(--ap-shadow);
 }
 
-/* ── Header ───────────────────────────────────────────────── */
+/* ══ HEADER ══════════════════════════════════════════════════ */
 .ap-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 20px 24px 16px;
-    border-bottom: 1px solid var(--ap-border-soft);
 }
 
-.ap-header-text { min-width: 0; }   /* lets the subtitle truncate */
+/* position: relative lets the icon below be placed as a tile on
+   the left, spanning both the title and the subtitle. */
+.ap-header-text {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;          /* lets the subtitle truncate */
+    min-height: 42px;
+    padding-left: 54px;    /* room for the icon tile */
+}
 
 .ap-title {
-    display: flex;
-    align-items: center;
-    gap: 9px;
     margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: -0.2px;
     color: var(--ap-text);
 }
 
-.ap-title .bi { color: var(--ap-amber); font-size: 1rem; }
+/* The icon tile — lifted out of the title line with absolute
+   positioning, so no JSX change is needed. */
+.ap-title .bi {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    font-size: 1.1rem;
+    color: var(--ap-amber-text);
+    background: var(--ap-amber-soft);
+    border: 1px solid var(--ap-amber-border);
+    border-radius: 12px;
+    transform: translateY(-50%);
+}
 
 .ap-subtitle {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
+    overflow: hidden;
     font-size: 0.82rem;
     color: var(--ap-text-dim);
-    white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ap-close {
+    display: flex;
     flex-shrink: 0;
-    background: transparent;
-    border: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
     color: var(--ap-text-dim);
-    font-size: 0.95rem;
-    line-height: 1;
-    padding: 7px 9px;
     cursor: pointer;
-    border-radius: 6px;
-    transition: color 0.15s ease, background 0.15s ease;
+    background: transparent;
+    border: 1px solid var(--ap-border);
+    border-radius: 10px;
+    transition: color .15s ease, background .15s ease, border-color .15s ease;
 }
 
 .ap-close:hover:not(:disabled) {
@@ -150,218 +169,438 @@
 
 .ap-close:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* ── Tabs ─────────────────────────────────────────────────── */
+/* ══ TABS (segmented control) ════════════════════════════════ */
 .ap-tabs {
-    display: flex;
-    gap: 4px;
-    padding: 12px 24px 0;
-    border-bottom: 1px solid var(--ap-border-soft);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    margin: 0 24px 16px;
+    padding: 3px;
+    background: var(--ap-panel-alt);
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
 }
 
 .ap-tab {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--ap-text-dim);
+    padding: 9px 12px;
+    font-family: inherit;
     font-size: 0.86rem;
-    font-weight: 500;
-    padding: 10px 16px;
-    cursor: pointer;
+    font-weight: 600;
+    color: var(--ap-text-dim);
     white-space: nowrap;
-    transition: color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    transition: color .15s ease, background .15s ease;
 }
 
-.ap-tab:hover:not(:disabled) { color: var(--ap-text-mid); }
+.ap-tab:hover:not(:disabled) { color: var(--ap-text); }
 
 .ap-tab-active {
-    color: var(--ap-amber);
-    border-bottom-color: var(--ap-amber);
+    color: var(--ap-text);
+    background: var(--ap-panel);
+    border-color: var(--ap-border);
+    box-shadow: var(--sh-sm);
 }
 
-[data-theme="light"] .ap-tab-active { color: #b07100; border-bottom-color: #b07100; }
+.ap-tab-active .bi { color: var(--ap-amber-text); }
 
 .ap-tab:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── Body ─────────────────────────────────────────────────── */
+/* ══ BODY — the ONLY scroll area in the modal ════════════════ */
 .ap-body {
+    flex: 1;
     padding: 20px 24px;
     overflow-y: auto;
-    flex: 1;
+    border-top: 1px solid var(--ap-border-soft);
 }
 
-/* ── Alerts ───────────────────────────────────────────────── */
+.ap-body::-webkit-scrollbar       { width: 6px; }
+.ap-body::-webkit-scrollbar-thumb { background: var(--ap-border); border-radius: 99px; }
+
+/* ══ ALERTS ══════════════════════════════════════════════════ */
 .ap-alert {
     display: flex;
     align-items: flex-start;
-    gap: 9px;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
     font-size: 0.85rem;
     line-height: 1.55;
-    padding: 12px 14px;
-    border-radius: 8px;
-    margin-bottom: 18px;
     border: 1px solid;
+    border-radius: 12px;
 }
 
-.ap-alert .bi { flex-shrink: 0; margin-top: 1px; }
+.ap-alert .bi { flex-shrink: 0; margin-top: 2px; }
 
 .ap-alert-success {
+    color: var(--ap-ok-ink);
     background: var(--ap-ok-bg);
     border-color: var(--ap-ok-border);
-    color: var(--ap-green-text);
 }
 
 .ap-alert-warning {
-    background: var(--ap-warn-bg);
-    border-color: var(--ap-warn-border);
-    color: var(--ap-amber);
+    color: var(--ap-amber-ink);
+    background: var(--ap-amber-soft);
+    border-color: var(--ap-amber-border);
 }
+
+.ap-alert-warning .bi { color: var(--ap-amber-text); }
 
 .ap-alert-error {
+    color: var(--ap-err-ink);
     background: var(--ap-err-bg);
     border-color: var(--ap-err-border);
-    color: var(--ap-red-text);
 }
 
-/* ── Form ─────────────────────────────────────────────────── */
+/* ══ FORM ════════════════════════════════════════════════════ */
 .ap-form { display: flex; flex-direction: column; gap: 16px; }
 
 .ap-field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 14px;
 }
 
 .ap-field { display: flex; flex-direction: column; min-width: 0; }
 
 .ap-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--ap-text-faint);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.9px;
+    margin-bottom: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ap-text-mid);
 }
 
-.ap-required { color: var(--ap-red); }
+.ap-required { color: var(--ap-err); }
 
 .ap-input {
     width: 100%;
+    padding: 11px 13px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--ap-text);
     background: var(--ap-input-bg);
     border: 1px solid var(--ap-input-border);
-    border-radius: 8px;
-    color: var(--ap-text);
-    font-size: 0.9rem;
-    font-family: inherit;
-    padding: 10px 12px;
+    border-radius: 10px;
     outline: none;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
 
 .ap-input::placeholder { color: var(--ap-text-faint); }
 
+.ap-input:hover:not(:disabled):not(:focus) {
+    border-color: color-mix(in srgb, var(--line), var(--ink) 18%);
+}
+
+/* Focus: amber border + soft amber glow ring */
 .ap-input:focus {
+    background: var(--ap-panel);
     border-color: var(--ap-amber);
-    background: var(--ap-input-bg-on);
+    box-shadow: 0 0 0 3px var(--ap-ring);
 }
 
 .ap-input:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .ap-input-error,
-.ap-input-error:focus { border-color: var(--ap-red); }
+.ap-input-error:focus {
+    border-color: var(--ap-err);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fail) 15%, transparent);
+}
 
 /* Custom chevron so the select matches the text inputs.
    Native arrows render in the OS theme and clash in dark mode. */
 .ap-select {
     appearance: none;
     -webkit-appearance: none;
+    padding-right: 34px;
+    cursor: pointer;
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23888' d='M4.5 6.5L8 10l3.5-3.5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 10px center;
+    background-position: right 11px center;
     background-size: 16px;
-    padding-right: 32px;
-    cursor: pointer;
 }
 
-/* Native dropdown options ignore most CSS and use the OS theme,
-   so set both colours explicitly per theme. */
-.ap-input option { background: #1C232C; color: #fff; }
-[data-theme="light"] .ap-input option { background: #fff; color: #111827; }
+/* Native dropdown options use the OS theme unless told otherwise */
+.ap-input option {
+    color: var(--ap-text);
+    background: var(--ap-panel);
+}
 
 .ap-error {
+    margin-top: 6px;
     font-size: 0.75rem;
-    color: var(--ap-red-text);
-    margin-top: 5px;
     line-height: 1.4;
+    color: var(--ap-err-ink);
 }
 
 .ap-hint {
+    margin-top: 6px;
     font-size: 0.75rem;
-    color: var(--ap-text-faint);
-    margin-top: 5px;
     line-height: 1.4;
-}
-
-/* ── Placeholder ──────────────────────────────────────────── */
-.ap-placeholder {
-    text-align: center;
-    padding: 48px 24px;
     color: var(--ap-text-faint);
 }
 
-.ap-placeholder .bi { font-size: 2.2rem; display: block; margin-bottom: 12px; }
+/* ══ PLACEHOLDER ═════════════════════════════════════════════ */
+.ap-placeholder {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--ap-text-faint);
+}
+
+.ap-placeholder .bi { display: block; margin-bottom: 12px; font-size: 2.2rem; }
 .ap-placeholder p  { margin: 0; font-size: 0.88rem; }
 
-/* ── Footer ───────────────────────────────────────────────── */
+/* ══ FOOTER ══════════════════════════════════════════════════ */
 .ap-footer {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    padding: 16px 24px;
-    border-top: 1px solid var(--ap-border-soft);
+    padding: 14px 24px;
     background: var(--ap-panel-alt);
+    border-top: 1px solid var(--ap-border-soft);
 }
 
-/* ── Buttons ──────────────────────────────────────────────── */
+/* ══ BUTTONS ═════════════════════════════════════════════════ */
 .ap-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border-radius: 8px;
-    font-size: 0.86rem;
-    font-weight: 600;
-    font-family: inherit;
     padding: 10px 18px;
-    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
     white-space: nowrap;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background .15s ease, border-color .15s ease, color .15s ease,
+                box-shadow .15s ease, transform .12s ease;
 }
 
 .ap-btn:disabled { cursor: not-allowed; opacity: 0.45; }
 
 .ap-btn-ghost {
-    background: transparent;
-    border: 1px solid var(--ap-input-border);
     color: var(--ap-text-mid);
+    background: var(--ap-panel);
+    border: 1px solid var(--ap-border);
 }
 
 .ap-btn-ghost:hover:not(:disabled) {
-    background: var(--ap-hover);
     color: var(--ap-text);
+    background: var(--ap-hover);
 }
 
 .ap-btn-primary {
+    color: var(--ap-amber-on);
     background: var(--ap-amber);
     border: 1px solid var(--ap-amber);
-    color: #1C232C;
 }
 
 .ap-btn-primary:hover:not(:disabled) {
     background: var(--ap-amber-hi);
     border-color: var(--ap-amber-hi);
+    box-shadow: 0 6px 16px rgba(244, 163, 0, 0.28);
+    transform: translateY(-1px);
+}
+
+.ap-btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+.ap-btn-block { width: 100%; }
+.ap-btn-sm    { flex-shrink: 0; padding: 7px 12px; font-size: 0.78rem; }
+
+/* ══════════════════════════════════════════════════════════════
+   EXCEL IMPORT TAB — pick, importing and done stages
+   (the preview stage is styled in excelpreview.css)
+   ══════════════════════════════════════════════════════════════ */
+
+.ap-excel { display: flex; flex-direction: column; gap: 16px; }
+
+.ap-excel-center {
+    align-items: center;
+    padding: 32px 0 16px;
+    text-align: center;
+}
+
+/* ── Template row ── */
+.ap-template {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--ap-panel-alt);
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
+}
+
+.ap-template-text        { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ap-template-text strong { font-size: 0.86rem; font-weight: 700; color: var(--ap-text); }
+.ap-template-text span   { font-size: 0.78rem; color: var(--ap-text-dim); }
+
+/* ── Drop zone ── */
+.ap-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 34px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--ap-panel-alt);
+    border: 2px dashed var(--ap-input-border);
+    border-radius: 14px;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+.ap-drop:hover,
+.ap-drop-active {
+    background: var(--ap-amber-soft);
+    border-color: var(--ap-amber);
+}
+
+.ap-drop-busy { cursor: wait; opacity: 0.75; }
+
+/* Upload icon sits in a round tile */
+.ap-drop .bi {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 4px;
+    font-size: 1.5rem;
+    color: var(--ap-amber-text);
+    background: var(--ap-panel);
+    border: 1px solid var(--ap-border);
+    border-radius: 50%;
+}
+
+.ap-drop .spinner-border { color: var(--ap-amber-text); }
+
+.ap-drop-title { margin: 0; font-size: 0.9rem; font-weight: 600; color: var(--ap-text); }
+.ap-drop-sub   { margin: 0; font-size: 0.76rem; color: var(--ap-text-faint); }
+
+/* ── Count tiles (done stage) ── */
+.ap-counts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ap-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 14px 6px;
+    border: 1px solid;
+    border-radius: 12px;
+}
+
+.ap-count-n { font-size: 1.35rem; font-weight: 800; line-height: 1.1; }
+.ap-count-l { font-size: 0.72rem; font-weight: 600; }
+
+.ap-count-new      { color: var(--ap-ok);         background: var(--ap-ok-bg);      border-color: var(--ap-ok-border); }
+.ap-count-existing { color: var(--ap-amber-text); background: var(--ap-amber-soft); border-color: var(--ap-amber-border); }
+.ap-count-dupe     { color: var(--ap-text-dim);   background: var(--ap-panel-alt);  border-color: var(--ap-border); }
+.ap-count-err      { color: var(--ap-err);        background: var(--ap-err-bg);     border-color: var(--ap-err-border); }
+
+/* ── Failed-rows table (done stage) ──
+   overflow: clip rounds the corners WITHOUT creating a second
+   scroll area — only .ap-body scrolls. */
+.ap-table-wrap {
+    overflow: hidden;   /* fallback for very old browsers */
+    overflow: clip;
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
+}
+
+.ap-table {
+    width: 100%;
+    font-size: 0.82rem;
+    border-collapse: collapse;
+}
+
+.ap-table tbody td {
+    padding: 10px 12px;
+    color: var(--ap-text-mid);
+    vertical-align: top;
+    border-bottom: 1px solid var(--ap-border-soft);
+}
+
+.ap-table tbody tr:last-child td { border-bottom: none; }
+
+.ap-td-row   { width: 48px; color: var(--ap-text-faint); font-variant-numeric: tabular-nums; }
+.ap-td-name  { font-weight: 600; color: var(--ap-text); }
+.ap-td-email { word-break: break-all; }
+
+.ap-td-msg {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.74rem;
+    color: var(--ap-err-ink);
+}
+
+/* ── Importing stage ── */
+.ap-big-spinner { width: 2.4rem; height: 2.4rem; color: var(--ap-amber-text); }
+
+.ap-progress-title { margin: 14px 0 0; font-size: 0.98rem; font-weight: 700; color: var(--ap-text); }
+.ap-progress-sub   { margin: 4px 0 0; font-size: 0.82rem; color: var(--ap-text-dim); }
+
+.ap-bar {
+    width: 100%;
+    height: 8px;
+    margin: 16px 0 4px;
+    overflow: hidden;
+    background: var(--ap-panel-alt);
+    border: 1px solid var(--ap-border);
+    border-radius: 99px;
+}
+
+.ap-bar-fill {
+    height: 100%;
+    background: var(--ap-amber);
+    border-radius: 99px;
+    transition: width .3s ease;
+}
+
+/* ── Done stage ── */
+.ap-done { padding: 8px 0 4px; text-align: center; }
+
+.ap-done .bi {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 10px;
+    font-size: 1.8rem;
+    color: var(--ap-ok);
+    background: var(--ap-ok-bg);
+    border-radius: 50%;
+}
+
+/* Some rows failed → amber instead of green */
+.ap-done .bi-exclamation-circle {
+    color: var(--ap-amber-text);
+    background: var(--ap-amber-soft);
+}
+
+.ap-done-title { margin: 0; font-size: 1.02rem; font-weight: 700; color: var(--ap-text); }
+
+/* ── Shared ── */
+.ap-note {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--ap-text-faint);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -374,9 +613,10 @@
     .ap-field-row { grid-template-columns: 1fr; }
 
     .ap-header,
-    .ap-tabs,
     .ap-body,
     .ap-footer { padding-left: 18px; padding-right: 18px; }
+
+    .ap-tabs { margin-left: 18px; margin-right: 18px; }
 }
 
 /* Phone — bottom sheet.
@@ -384,33 +624,26 @@
    the panel jumping when the on-screen keyboard opens. */
 @media (max-width: 480px) {
     .ap-backdrop {
-        padding: 0;
         align-items: flex-end;
+        padding: 0;
     }
 
     .ap-panel {
         max-width: 100%;
         max-height: 92vh;
-        border-radius: 16px 16px 0 0;
         border-bottom: none;
+        border-radius: 20px 20px 0 0;
     }
 
     .ap-header { padding: 18px 16px 14px; }
-    .ap-tabs   { padding: 10px 16px 0; gap: 0; }
+    .ap-tabs   { margin: 0 16px 14px; }
     .ap-body   { padding: 18px 16px; }
     .ap-footer { padding: 14px 16px; }
 
-    /* Two tabs share the width evenly instead of overflowing */
-    .ap-tab {
-        flex: 1;
-        justify-content: center;
-        padding: 10px 8px;
-        font-size: 0.8rem;
-        gap: 6px;
-    }
+    .ap-tab { padding: 9px 8px; font-size: 0.8rem; gap: 6px; }
 
     /* 16px stops iOS Safari zooming in on focus */
-    .ap-input { font-size: 16px; padding: 11px 12px; }
+    .ap-input { padding: 12px 13px; font-size: 16px; }
 
     /* Full-width stacked buttons, primary on top */
     .ap-footer {
@@ -419,252 +652,16 @@
     }
 
     .ap-btn { width: 100%; padding: 12px 18px; }
+
+    .ap-counts   { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ap-template { flex-direction: column; align-items: stretch; }
+    .ap-btn-sm   { width: 100%; }
+    .ap-drop     { padding: 28px 16px; }
+    .ap-table    { font-size: 0.76rem; }
 }
 
 /* Very short viewport — landscape phone */
 @media (max-height: 520px) {
-    .ap-panel { max-height: 96vh; }
+    .ap-panel  { max-height: 96vh; }
     .ap-header { padding-top: 14px; padding-bottom: 12px; }
-}
-/* ══════════════════════════════════════════════════════════════
-   EXCEL IMPORT TAB
-   ══════════════════════════════════════════════════════════════ */
-
-.ap-excel { display: flex; flex-direction: column; gap: 16px; }
-
-.ap-excel-center {
-    align-items: center;
-    text-align: center;
-    padding: 32px 0 16px;
-}
-
-/* ── Template row ─────────────────────────────────────────── */
-.ap-template {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 16px;
-    border: 1px solid var(--ap-border);
-    border-radius: 10px;
-    background: var(--ap-panel-alt);
-}
-
-.ap-template-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ap-template-text strong { font-size: 0.85rem; color: var(--ap-text); font-weight: 600; }
-.ap-template-text span   { font-size: 0.78rem; color: var(--ap-text-dim); }
-
-/* ── Drop zone ────────────────────────────────────────────── */
-.ap-drop {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 36px 20px;
-    border: 2px dashed var(--ap-input-border);
-    border-radius: 12px;
-    background: var(--ap-input-bg);
-    cursor: pointer;
-    text-align: center;
-    transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.ap-drop:hover { border-color: var(--ap-amber); }
-
-.ap-drop-active {
-    border-color: var(--ap-amber);
-    background: var(--ap-warn-bg);
-}
-
-.ap-drop-busy { cursor: wait; opacity: 0.75; }
-
-.ap-drop .bi { font-size: 2rem; color: var(--ap-text-faint); }
-.ap-drop-title { margin: 0; font-size: 0.88rem; color: var(--ap-text-mid); font-weight: 500; }
-.ap-drop-sub   { margin: 0; font-size: 0.76rem; color: var(--ap-text-faint); }
-
-/* ── File bar ─────────────────────────────────────────────── */
-.ap-file-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 0.82rem;
-}
-
-.ap-file-name {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--ap-text-mid);
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.ap-file-name .bi { color: var(--ap-amber); flex-shrink: 0; }
-
-.ap-link {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 0.8rem;
-    font-family: inherit;
-    color: var(--ap-amber);
-    cursor: pointer;
-    text-decoration: underline;
-    flex-shrink: 0;
-}
-
-[data-theme="light"] .ap-link { color: #b07100; }
-
-/* ── Count tiles ──────────────────────────────────────────── */
-.ap-counts {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-}
-
-.ap-count {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 12px 6px;
-    border-radius: 9px;
-    border: 1px solid;
-}
-
-.ap-count-n { font-size: 1.25rem; font-weight: 700; line-height: 1.1; }
-.ap-count-l { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85; }
-
-.ap-count-new      { background: var(--ap-ok-bg);   border-color: var(--ap-ok-border);   color: var(--ap-green-text); }
-.ap-count-existing { background: var(--ap-warn-bg); border-color: var(--ap-warn-border); color: var(--ap-amber); }
-.ap-count-dupe     { background: var(--ap-input-bg); border-color: var(--ap-border);     color: var(--ap-text-dim); }
-.ap-count-err      { background: var(--ap-err-bg);  border-color: var(--ap-err-border);  color: var(--ap-red-text); }
-
-[data-theme="light"] .ap-count-existing { color: #92400e; }
-
-/* ── Preview table ────────────────────────────────────────── */
-.ap-table-wrap {
-    border: 1px solid var(--ap-border);
-    border-radius: 10px;
-    overflow: hidden;
-    max-height: 260px;
-    overflow-y: auto;
-}
-
-.ap-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-}
-
-.ap-table thead th {
-    position: sticky;
-    top: 0;
-    background: var(--ap-panel-alt);
-    color: var(--ap-text-faint);
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-    text-align: left;
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--ap-border);
-}
-
-.ap-th-row    { width: 48px; }
-.ap-th-status { width: 92px; }
-
-.ap-table tbody td {
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--ap-border-soft);
-    color: var(--ap-text-mid);
-    vertical-align: top;
-}
-
-.ap-table tbody tr:last-child td { border-bottom: none; }
-
-.ap-td-row   { color: var(--ap-text-faint); font-variant-numeric: tabular-nums; }
-.ap-td-name  { color: var(--ap-text); font-weight: 500; }
-.ap-td-email { word-break: break-all; }
-
-.ap-td-msg {
-    display: block;
-    font-size: 0.72rem;
-    color: var(--ap-red-text);
-    margin-top: 3px;
-}
-
-.ap-tr-error     { background: var(--ap-err-bg); }
-.ap-tr-duplicate { opacity: 0.55; }
-
-/* ── Status pills ─────────────────────────────────────────── */
-.ap-pill {
-    display: inline-block;
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 20px;
-    white-space: nowrap;
-    border: 1px solid;
-}
-
-.ap-pill-new       { background: var(--ap-ok-bg);   border-color: var(--ap-ok-border);   color: var(--ap-green-text); }
-.ap-pill-existing  { background: var(--ap-warn-bg); border-color: var(--ap-warn-border); color: var(--ap-amber); }
-.ap-pill-duplicate { background: var(--ap-input-bg); border-color: var(--ap-border);     color: var(--ap-text-dim); }
-.ap-pill-error     { background: var(--ap-err-bg);  border-color: var(--ap-err-border);  color: var(--ap-red-text); }
-
-[data-theme="light"] .ap-pill-existing { color: #92400e; }
-
-/* ── Progress ─────────────────────────────────────────────── */
-.ap-big-spinner { width: 2.2rem; height: 2.2rem; color: var(--ap-amber); }
-
-.ap-progress-title { margin: 14px 0 0; font-size: 0.95rem; font-weight: 600; color: var(--ap-text); }
-.ap-progress-sub   { margin: 4px 0 0; font-size: 0.82rem; color: var(--ap-text-dim); }
-
-.ap-bar {
-    width: 100%;
-    height: 6px;
-    background: var(--ap-input-bg);
-    border: 1px solid var(--ap-border);
-    border-radius: 20px;
-    overflow: hidden;
-    margin: 16px 0 4px;
-}
-
-.ap-bar-fill {
-    height: 100%;
-    background: var(--ap-amber);
-    border-radius: 20px;
-    transition: width 0.3s ease;
-}
-
-/* ── Done ─────────────────────────────────────────────────── */
-.ap-done { text-align: center; padding: 8px 0 4px; }
-.ap-done .bi { font-size: 2.4rem; color: var(--ap-green-text); display: block; margin-bottom: 8px; }
-.ap-done-title { margin: 0; font-size: 1rem; font-weight: 600; color: var(--ap-text); }
-
-/* ── Shared bits ──────────────────────────────────────────── */
-.ap-note {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--ap-text-faint);
-    text-align: center;
-    line-height: 1.5;
-}
-
-.ap-btn-block { width: 100%; }
-.ap-btn-sm { padding: 7px 12px; font-size: 0.78rem; flex-shrink: 0; }
-
-/* ── Responsive ───────────────────────────────────────────── */
-@media (max-width: 480px) {
-    .ap-counts   { grid-template-columns: repeat(2, 1fr); }
-    .ap-template { flex-direction: column; align-items: stretch; }
-    .ap-btn-sm   { width: 100%; }
-    .ap-drop     { padding: 28px 16px; }
-    .ap-table    { font-size: 0.75rem; }
-    .ap-table-wrap { max-height: 220px; }
 }
