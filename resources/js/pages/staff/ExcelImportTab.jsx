@@ -10,22 +10,34 @@ import '../../../css/Staff/excelimporttab.css'
 const CHUNK_SIZE = 10
 
 // The columns shown in the preview table. If an error belongs to one of
-// these fields, that cell turns red. Anything else (e.g. organization)
-// shows the message under the name instead.
+// these fields, that cell turns red. Errors on any other field
+// (e.g. organization) are listed under the name instead.
 const SHOWN_FIELDS = ['name', 'email', 'contact_number']
 
-// Works out WHICH column an error belongs to.
-// 1. Prefer row.error_field — the backend will send this after Step 2.
-// 2. Until then, guess from the wording of row.message.
-const getErrorField = (row) => {
-    if (row.status !== 'error') return null
-    if (row.error_field) return row.error_field
+// Returns EVERY error on a row as { field: hint }, for example:
+//   { email: 'Invalid email', contact_number: 'Must start with 09' }
+//
+// 1. row.errors      — sent by Laravel, holds ALL failed fields
+// 2. row.error_field — older responses: only the first error
+// 3. otherwise       — guess the field from the message wording
+const getRowErrors = (row) => {
+    if (row.status !== 'error') return {}
+
+    if (row.errors && Object.keys(row.errors).length > 0) {
+        return row.errors
+    }
+
+    if (row.error_field) {
+        return { [row.error_field]: row.message }
+    }
 
     const msg = (row.message || '').toLowerCase()
-    if (msg.includes('contact')) return 'contact_number'
-    if (msg.includes('email'))   return 'email'
-    if (msg.includes('name'))    return 'name'
-    return null
+    if (msg.includes('contact')) return { contact_number: row.message }
+    if (msg.includes('email'))   return { email: row.message }
+    if (msg.includes('name'))    return { name: row.message }
+
+    // Couldn't tell which field — show it under the name
+    return { _general: row.message }
 }
 
 export default function ExcelImportTab({ event, onSuccess }) {
@@ -290,19 +302,22 @@ export default function ExcelImportTab({ event, onSuccess }) {
             ? rows
             : rows.filter(r => r.status === filter)
 
-        // Draws one table cell. If this cell's field is the one that
-        // failed, it gets the red box with the message underneath.
-        const renderCell = (row, field, errorField) => {
+        // Draws one table cell. If THIS field has an entry in the row's
+        // errors, the cell gets the red box with its own hint underneath.
+        // Every field is checked separately, so several cells in the
+        // same row can be red at once.
+        const renderCell = (row, field, rowErrors) => {
             const value = row[field] || '—'
+            const hint  = rowErrors[field]
 
-            if (errorField !== field) return value
+            if (!hint) return value
 
             return (
                 <div className="ap-pv-bad">
                     <span className="ap-pv-bad-value">{value}</span>
                     <span className="ap-pv-bad-hint">
                         <i className="bi bi-exclamation-circle"></i>
-                        {row.message}
+                        {hint}
                     </span>
                 </div>
             )
@@ -377,33 +392,35 @@ export default function ExcelImportTab({ event, onSuccess }) {
                         </thead>
                         <tbody>
                             {visibleRows.map(row => {
-                                const errorField = getErrorField(row)
+                                // ALL of this row's errors: { field: hint }
+                                const rowErrors = getRowErrors(row)
 
-                                // Error on a column we don't show (e.g. organization),
-                                // or one we couldn't detect → show it under the name.
-                                const showUnderName =
-                                    row.status === 'error' && !SHOWN_FIELDS.includes(errorField)
+                                // Errors on columns the table doesn't show
+                                // (e.g. organization) — listed under the name.
+                                const hiddenHints = Object.entries(rowErrors)
+                                    .filter(([field]) => !SHOWN_FIELDS.includes(field))
+                                    .map(([, hint]) => hint)
 
                                 return (
                                     <tr key={row.row_number}>
                                         <td className="ap-pv-col-row">{row.row_number}</td>
 
                                         <td className="ap-pv-name">
-                                            {renderCell(row, 'name', errorField)}
-                                            {showUnderName && (
-                                                <span className="ap-pv-bad-hint ap-pv-hint-plain">
+                                            {renderCell(row, 'name', rowErrors)}
+                                            {hiddenHints.map((hint, i) => (
+                                                <span key={i} className="ap-pv-bad-hint ap-pv-hint-plain">
                                                     <i className="bi bi-exclamation-circle"></i>
-                                                    {row.message}
+                                                    {hint}
                                                 </span>
-                                            )}
+                                            ))}
                                         </td>
 
                                         <td className="ap-pv-email">
-                                            {renderCell(row, 'email', errorField)}
+                                            {renderCell(row, 'email', rowErrors)}
                                         </td>
 
                                         <td className="ap-pv-col-contact">
-                                            {renderCell(row, 'contact_number', errorField)}
+                                            {renderCell(row, 'contact_number', rowErrors)}
                                         </td>
 
                                         <td className="ap-pv-col-status">

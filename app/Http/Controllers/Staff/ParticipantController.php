@@ -264,18 +264,17 @@ class ParticipantController extends Controller
      *
      * Writes nothing. Sends no email. Purely a dry run so staff can
      * catch typos before any account is created.
-     */
-        /**
-     * PROTECTED — Parse an uploaded file and report what WOULD happen
-     * Route: POST /api/staff/events/{eventId}/participants/import/preview
      *
-     * Writes nothing. Sends no email. Purely a dry run so staff can
-     * catch typos before any account is created.
+     * Values are reported exactly as they are in the file — nothing is
+     * auto-corrected. Staff fix mistakes in their file and re-upload.
      *
      * Error rows include:
-     *   - error_field : which column failed (name, email, organization,
-     *                   contact_number) so React can highlight that cell
-     *   - message     : a SHORT hint shown under the highlighted value
+     *   - errors      : EVERY failed column → short hint, e.g.
+     *                   { "email": "Invalid email",
+     *                     "contact_number": "Must start with 09" }
+     *                   so React can highlight every bad cell
+     *   - error_field : the first failed column (kept for older code)
+     *   - message     : the first hint (kept for older code)
      */
     public function previewImport(Request $request, $eventId)
     {
@@ -297,9 +296,14 @@ class ParticipantController extends Controller
         }
 
         // toArray(nullValue, calculateFormulas, formatData, returnCellRef)
+        //
+        // formatData = FALSE gives each cell's RAW value. Number cells
+        // arrive as real numbers, which number_format below turns into
+        // exact digits (never scientific notation like 9.17E+9).
+        //
         // returnCellRef = false gives plain 0-indexed arrays instead of
         // letter-keyed ones like ['A' => ..., 'B' => ...]
-        $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+        $rows = $spreadsheet->getActiveSheet()->toArray(null, true, false, false);
 
         if (count($rows) < 2) {
             return response()->json([
@@ -380,25 +384,15 @@ class ParticipantController extends Controller
                 ? ($row[$headers['contact_number']] ?? null)
                 : null;
 
-            // Only convert when the cell arrived as an actual NUMBER.
-            // Excel stores a plain-typed 09171234567 as the float
-            // 9171234567.0, and number_format recovers the digits
-            // without scientific notation.
+            // A number cell arrives as a float (9171234567.0).
+            // number_format turns it into plain digits ("9171234567")
+            // without a decimal or scientific notation. Nothing else is
+            // changed — if the 0 is missing, validation reports it.
             //
             // is_numeric() must NOT be used here: it returns true for the
-            // STRING "09171234567" too, so the cast would strip the very
-            // leading zero the template works to preserve.
+            // STRING "09171234567" too, and the cast would strip its 0.
             if (is_float($contact) || is_int($contact)) {
                 $contact = number_format((float) $contact, 0, '', '');
-
-                // RESTORE THE LOST LEADING ZERO.
-                // A number cell can never start with 0, so Excel turns
-                // 09171234567 into 9171234567 (10 digits starting with 9).
-                // That pattern can only be a PH mobile number missing its
-                // 0, so we put it back. Text cells are never touched.
-                if (preg_match('/^9\d{9}$/', $contact)) {
-                    $contact = '0' . $contact;
-                }
             }
 
             $contact = trim((string) $contact);
@@ -441,15 +435,26 @@ class ParticipantController extends Controller
             ]);
 
             if ($validator->fails()) {
-                // keys() lists the fields that failed, in rule order.
-                // We report the first one, and tell React which column it is.
-                $field = $validator->errors()->keys()[0];
+                // Collect EVERY failed field, not just the first one,
+                // so a row with a bad name, email AND number shows all three.
+                //
+                // keys() lists the failed fields in rule order:
+                // name, email, organization, contact_number.
+                $rowErrors = [];
+
+                foreach ($validator->errors()->keys() as $field) {
+                    $rowErrors[$field] = $field === 'contact_number'
+                        ? $this->contactNumberHint($entry['contact_number'])
+                        : $validator->errors()->first($field);
+                }
 
                 $entry['status']      = 'error';
-                $entry['error_field'] = $field;
-                $entry['message']     = $field === 'contact_number'
-                    ? $this->contactNumberHint($entry['contact_number'])
-                    : $validator->errors()->first($field);
+                $entry['errors']      = $rowErrors;
+
+                // The first error on its own, kept so older React code
+                // that reads error_field / message still works.
+                $entry['error_field'] = array_key_first($rowErrors);
+                $entry['message']     = reset($rowErrors);
 
                 $parsed[] = $entry;
                 continue;
@@ -457,9 +462,13 @@ class ParticipantController extends Controller
 
             // Duplicate WITHIN the uploaded file
             if (isset($seenInFile[$email])) {
+                $hint = 'Same email as row ' . $seenInFile[$email];
+
                 $entry['status']      = 'error';
+                $entry['errors']      = ['email' => $hint];
                 $entry['error_field'] = 'email';
-                $entry['message']     = 'Same email as row ' . $seenInFile[$email];
+                $entry['message']     = $hint;
+
                 $parsed[] = $entry;
                 continue;
             }
@@ -545,6 +554,7 @@ class ParticipantController extends Controller
         // Starts with 09 but the length is wrong
         return 'Has ' . strlen($contact) . ' digits, needs 11';
     }
+
     /**
      * PROTECTED — Commit ONE CHUNK of rows from a reviewed import
      * Route: POST /api/staff/events/{eventId}/participants/import/commit
